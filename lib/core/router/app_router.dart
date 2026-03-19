@@ -12,6 +12,7 @@ import '../../features/search/presentation/search_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/subscription/presentation/subscription_screen.dart';
 import '../../features/settings/presentation/privacy_policy_screen.dart';
+import '../../features/family/presentation/merge_preview_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
 import '../../shared/widgets/ad_banner_widget.dart';
 
@@ -29,6 +30,7 @@ abstract final class AppRoutes {
   static const String search = '/search';
   static const String subscription = '/subscription';
   static const String privacyPolicy = '/privacy-policy';
+  static const String mergePreview = '/merge-preview';
 
   static String memoryPath(String nodeId) => '/memory/$nodeId';
 }
@@ -104,6 +106,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.privacyPolicy,
         builder: (_, s) => const PrivacyPolicyScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.mergePreview,
+        builder: (_, s) => MergePreviewScreen(
+          rlinkPath: s.uri.queryParameters['path'] ?? '',
+        ),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../core/utils/haptic_service.dart';
+import '../../../design/motion/app_motion.dart';
 import '../../../shared/models/node_model.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../utils/lod_utils.dart';
@@ -33,13 +35,22 @@ class NodeCard extends StatefulWidget {
 }
 
 class _NodeCardState extends State<NodeCard>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
+  // ── 연결 모드 pulse ──────────────────────────────────────────────────────
   late AnimationController _pulseController;
   late Animation<double> _pulseAnim;
+
+  // ── Ghost → 실제 인물 전환 fill 애니메이션 ────────────────────────────────
+  late AnimationController _fillController;
+  late Animation<double> _fillScale;
+  late Animation<double> _fillGlow;
+  bool _wasGhost = false;
 
   @override
   void initState() {
     super.initState();
+    _wasGhost = widget.node.isGhost;
+
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -47,11 +58,46 @@ class _NodeCardState extends State<NodeCard>
     _pulseAnim = Tween<double>(begin: 1.0, end: 1.06).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+
+    _fillController = AnimationController(
+      vsync: this,
+      duration: AppMotion.ghostFill,
+    );
+    // scale: 1.0 → 1.2 → 1.0
+    _fillScale = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(begin: 1.0, end: 1.2)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 50,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: 1.2, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeIn)),
+        weight: 50,
+      ),
+    ]).animate(_fillController);
+    // glow: 0 → 1 → 0
+    _fillGlow = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 50),
+    ]).animate(_fillController);
+  }
+
+  @override
+  void didUpdateWidget(NodeCard old) {
+    super.didUpdateWidget(old);
+    // Ghost → 실제 인물 전환 감지
+    if (_wasGhost && !widget.node.isGhost) {
+      _fillController.forward(from: 0);
+      HapticService.ghostFill();
+    }
+    _wasGhost = widget.node.isGhost;
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
+    _fillController.dispose();
     super.dispose();
   }
 
@@ -72,10 +118,29 @@ class _NodeCardState extends State<NodeCard>
       onTap: widget.onTap,
       onLongPress: widget.onLongPress,
       child: AnimatedBuilder(
-        animation: _pulseAnim,
+        animation: Listenable.merge([_pulseAnim, _fillScale, _fillGlow]),
         builder: (context, child) {
-          final scale = widget.isConnectSource ? _pulseAnim.value : 1.0;
-          return Transform.scale(scale: scale, child: child);
+          final pulseScale = widget.isConnectSource ? _pulseAnim.value : 1.0;
+          final fillS = _fillScale.value;
+          final glow = _fillGlow.value;
+          return Transform.scale(
+            scale: pulseScale * fillS,
+            child: glow > 0.01
+                ? Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withAlpha((glow * 120).toInt()),
+                          blurRadius: 30 * glow,
+                          spreadRadius: 6 * glow,
+                        ),
+                      ],
+                    ),
+                    child: child,
+                  )
+                : child!,
+          );
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),

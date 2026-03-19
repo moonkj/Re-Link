@@ -10,6 +10,7 @@ import '../../../shared/models/node_model.dart';
 import '../providers/canvas_notifier.dart';
 import '../providers/node_notifier.dart';
 import 'edit_node_sheet.dart';
+import 'vibe_meter_sheet.dart';
 
 /// 노드 상세 바텀시트
 class NodeDetailSheet extends ConsumerWidget {
@@ -249,45 +250,29 @@ class _TemperatureSlider extends ConsumerWidget {
     const labels = ['냉담', '쌀쌀', '보통', '따뜻', '뜨거움', '열정'];
 
     return GlassCard(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      onTap: () => showModalBottomSheet<void>(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (_) => VibeMeterSheet(
+          nodeId: node.id,
+          initialTemperature: node.temperature,
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Icon(Icons.thermostat, color: tempColor, size: 18),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                '온도: ${labels[node.temperature]}',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: tempColor,
-                ),
-              ),
-            ],
-          ),
-          SliderTheme(
-            data: SliderThemeData(
-              activeTrackColor: tempColor,
-              inactiveTrackColor: tempColor.withAlpha(60),
-              thumbColor: tempColor,
-              overlayColor: tempColor.withAlpha(40),
-              trackHeight: 3,
-            ),
-            child: Slider(
-              value: node.temperature.toDouble(),
-              min: 0,
-              max: 5,
-              divisions: 5,
-              onChanged: (v) {
-                ref.read(nodeNotifierProvider.notifier).updateTemperature(
-                      node.id,
-                      v.round(),
-                    );
-              },
+          Icon(Icons.thermostat, color: tempColor, size: 18),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            '온도: ${labels[node.temperature]}',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: tempColor,
             ),
           ),
+          const Spacer(),
+          const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 16),
         ],
       ),
     );

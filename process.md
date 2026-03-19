@@ -909,6 +909,121 @@
 
 ---
 
+---
+
+## Phase 4f — UX 고도화 (ux_ui_design.md 미구현 항목)
+
+> ux_ui_design.md / tech_stack_analysis.md / ReLink_Project_Plan.pdf 분석 후 식별된 미구현 항목
+
+### Spring 애니메이션 프리셋 ✅
+
+#### Coder
+- [x] `app_motion.dart` — 5가지 `SpringDescription` 상수 추가 (springSnappy/Default/Bouncy/Gentle/Node)
+- [x] `app_motion.dart` — ghostFill/focusPanelSlide/vibeMeterStep Duration 상수 추가
+
+---
+
+### 햅틱 피드백 완전 매핑 ✅
+
+#### Coder
+- [x] `haptic_service.dart` — `ghostFill()` (heavyImpact×2)
+- [x] `haptic_service.dart` — `heritageExport()` (heavyImpact×2)
+- [x] `haptic_service.dart` — `vibeMeterStep()` (selectionClick)
+- [x] `haptic_service.dart` — `connectionMade()` (mediumImpact)
+- [x] `haptic_service.dart` — `memoryAdded()` (mediumImpact)
+- [x] `haptic_service.dart` — `nodeDeleted()` (heavyImpact)
+- [x] `haptic_service.dart` — `planLimitReached()` (heavyImpact)
+- [x] `haptic_service.dart` — `backupComplete()` (lightImpact)
+- [x] Ghost 인물 전환 → `ghostFill()` 트리거 (node_card.dart didUpdateWidget)
+- [x] Heritage Export → `heritageExport()` 트리거 (heritage_export_screen.dart)
+- [x] Vibe Meter 스텝 변경 → `vibeMeterStep()` 트리거 (vibe_meter_sheet.dart)
+- [x] 노드 연결 완료 → `connectionMade()` 트리거 (canvas_screen.dart)
+- [x] 기억 저장 완료 → `memoryAdded()` 트리거 (add_memory_sheet.dart, voice_recorder_sheet.dart)
+
+---
+
+### 음성 캡슐 고도화 (Voice Capsule UX) ✅
+
+#### UX Designer
+- [x] 재생 속도 컨트롤 설계 (0.5×/1×/1.5×/2×)
+- [x] Liquid Glass 마이크 버튼 디자인 (녹음 중 pulse 애니메이션)
+
+#### Coder
+- [x] `voice_recorder_sheet.dart` — `_PlaybackSpeed` enum + 속도 조절 Row
+- [x] `voice_recorder_sheet.dart` — `_PulseMicButton` — AnimationController pulse 애니메이션
+- [x] `PlayerController.setRate()` — 속도 적용
+- [x] `_PlaybackSpeed` — 0.5×/1×/1.5×/2× 4단계
+
+#### Performance
+- [x] pulse 애니메이션 `RepaintBoundary` 독립
+
+---
+
+### Focus Mode 정보 패널 ✅
+
+#### UX Designer
+- [x] 포커스 시 하단 패널: 이름/관계수/온도 표시
+- [x] TweenAnimationBuilder 슬라이드업 (280ms easeOutCubic)
+
+#### Coder
+- [x] `canvas_screen.dart` — `_FocusInfoPanel` 위젯
+- [x] `focusedNodeId` → 해당 노드 이름/관계수/온도 표시
+- [x] 상세보기/닫기 버튼
+
+---
+
+### Ghost Node 전환 애니메이션 ✅
+
+#### UX Designer
+- [x] Ghost → 실제 인물 전환 시 scale(1.0→1.2→1.0) + glow 애니메이션
+
+#### Coder
+- [x] `node_card.dart` — `_fillController` AnimationController + `_wasGhost` 감지
+- [x] `didUpdateWidget` — `wasGhost && !isGhost` 시 `_fillController.forward()`
+- [x] `Listenable.merge` — pulse + fill + glow 합성 AnimatedBuilder
+- [x] 전환 완료 → `HapticService.ghostFill()` 호출
+
+---
+
+### Vibe Meter 바텀시트 (온도 애니메이션) ✅
+
+#### UX Designer
+- [x] 6단계 아이콘 선택기 (ac_unit/cloud/wb_sunny/local_fire_department/whatshot/flare)
+- [x] 선택 단계 scale+glow 강조 (AnimatedContainer + AnimatedScale)
+- [x] selectionClick 햅틱 + AnimatedSwitcher 중앙 아이콘 전환
+
+#### Coder
+- [x] `lib/features/canvas/widgets/vibe_meter_sheet.dart` — 독립 바텀시트
+- [x] 온도 게이지 트랙 (AnimatedContainer 진행 표시)
+- [x] `NodeDetailSheet` — 온도 슬라이더 → VibeMeterSheet 탭으로 교체
+
+---
+
+### Family Merge Preview (가족 파일 병합) ✅
+
+#### UX Designer
+- [x] .rlink 가져오기 후 병합 미리보기 화면 (새 인물 수 + 충돌 목록)
+- [x] 충돌 해결 UI (내 노드 / 상대방 노드 / 둘 다 유지)
+
+#### Architect
+- [x] `MergePreviewNotifier` — Riverpod Notifier + `MergePreviewState`
+- [x] `MergeConflict` 모델 (nodeId, myNode, theirNode)
+- [x] .rlink 내 relink.db 임시 파싱 → `NodeRepository.getAll()`로 충돌 감지
+
+#### Coder
+- [x] `lib/features/family/presentation/merge_preview_screen.dart`
+- [x] `lib/features/family/presentation/conflict_resolve_screen.dart`
+- [x] `lib/features/family/providers/merge_preview_notifier.dart`
+- [x] `NodeRepository.getAll()` / `createWithModel()` / `updateFromModel()` 추가
+- [x] `AppDatabase.forMerge(path)` — 임시 파일 DB 생성자 추가
+- [x] `/merge-preview` 라우트 추가 (AppRoutes.mergePreview)
+
+#### Debugger
+- [x] `flutter analyze lib/` → 0 issues
+- [x] `flutter test test/` → 169/169 통과
+
+---
+
 ## 진행 현황 요약
 
 | Phase | 진행율 | 상태 |
@@ -922,4 +1037,5 @@
 | Phase 4c 디자인 & 품질 | 95% | ✅ 완료 (Glassmorphism2.0/ElderlyMode/Accessibility/Semantics) |
 | Phase 4d 성능 & 테스트 | 80% | ✅ 완료 (패키지 정리/QuadTree캐싱/통합테스트/단위164개, DevTools는 실디바이스) |
 | Phase 4e 런치 준비 | 0% | ⏳ 대기 |
-| **전체 테스트** | **164/164** | ✅ 전체 통과 |
+| Phase 4f UX 고도화 | 100% | ✅ 완료 (Spring/Haptic/VoiceSpeed/FocusPanel/GhostAnim/VibeMeter/MergePreview) |
+| **전체 테스트** | **169/169** | ✅ 전체 통과 |

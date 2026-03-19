@@ -147,6 +147,37 @@ class NodeRepository {
 
   Future<void> deleteEdge(String id) => _db.deleteEdge(id);
 
+  // ── 병합 헬퍼 ─────────────────────────────────────────────────────────────
+
+  /// 전체 노드 목록 (병합 미리보기용)
+  Future<List<NodeModel>> getAll() async {
+    final rows = await _db.getAllNodes();
+    return rows.map(_rowToModel).toList();
+  }
+
+  /// 모델을 그대로 DB에 삽입 (병합 — 외부 .rlink 노드)
+  Future<void> createWithModel(NodeModel node) async {
+    await _db.upsertNode(NodesTableCompanion.insert(
+      id: node.id,
+      name: node.name,
+      nickname: Value(node.nickname),
+      photoPath: Value(node.photoPath),
+      bio: Value(node.bio),
+      birthDate: Value(node.birthDate),
+      deathDate: Value(node.deathDate),
+      isGhost: Value(node.isGhost),
+      temperature: Value(node.temperature),
+      positionX: Value(node.positionX + 20), // 위치 약간 오프셋
+      positionY: Value(node.positionY + 20),
+      tagsJson: Value(jsonEncode(node.tags)),
+      createdAt: Value(node.createdAt),
+      updatedAt: Value(DateTime.now()),
+    ));
+  }
+
+  /// 상대방 버전으로 노드 덮어쓰기 (충돌 해결 — theirs)
+  Future<void> updateFromModel(NodeModel node) => update(node);
+
   /// [nodeId] 노드에 배우자(spouse) 관계가 하나라도 있는지 확인합니다.
   Future<bool> hasSpouse(String nodeId) async {
     final edges = await getEdgesForNode(nodeId);

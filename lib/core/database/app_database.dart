@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -23,6 +24,10 @@ class AppDatabase extends _$AppDatabase {
 
   /// 테스트용 in-memory DB
   AppDatabase.forTesting(super.executor);
+
+  /// 병합 미리보기용 외부 파일 DB (읽기 전용)
+  AppDatabase.forMerge(String path)
+      : super(NativeDatabase(File(path)));
 
   @override
   int get schemaVersion => 2;

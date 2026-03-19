@@ -29,4 +29,45 @@ abstract final class AppMotion {
   // ── 글래스 효과 ───────────────────────────────────────────────────────────
   static const Duration glassReveal = Duration(milliseconds: 400);
   static const Curve glassRevealCurve = Curves.easeOut;
+
+  // ── Spring Descriptions ───────────────────────────────────────────────────
+  /// 빠른 스냅: 툴팁, 칩 선택 (damping:15, stiffness:400)
+  static const SpringDescription springSnappy = SpringDescription(
+    mass: 1.0,
+    stiffness: 400.0,
+    damping: 15.0,
+  );
+
+  /// 기본 스프링: 바텀시트, 패널 (damping:20, stiffness:300)
+  static const SpringDescription springDefault = SpringDescription(
+    mass: 1.0,
+    stiffness: 300.0,
+    damping: 20.0,
+  );
+
+  /// 탄력 스프링: 노드 추가 팝인, FAB (damping:10, stiffness:500)
+  static const SpringDescription springBouncy = SpringDescription(
+    mass: 1.0,
+    stiffness: 500.0,
+    damping: 10.0,
+  );
+
+  /// 부드러운 스프링: Focus Mode 패널, 오버레이 (damping:25, stiffness:200)
+  static const SpringDescription springGentle = SpringDescription(
+    mass: 1.0,
+    stiffness: 200.0,
+    damping: 25.0,
+  );
+
+  /// 노드 드래그 릴리즈: 노드카드 위치 복원 (damping:18, stiffness:350)
+  static const SpringDescription springNode = SpringDescription(
+    mass: 1.0,
+    stiffness: 350.0,
+    damping: 18.0,
+  );
+
+  // ── Ghost 전환 ────────────────────────────────────────────────────────────
+  static const Duration ghostFill = Duration(milliseconds: 300);
+  static const Duration focusPanelSlide = Duration(milliseconds: 280);
+  static const Duration vibeMeterStep = Duration(milliseconds: 180);
 }

@@ -10,6 +10,7 @@ import '../../../shared/models/user_plan.dart';
 import '../../../core/services/media/media_service.dart';
 import '../../../shared/repositories/memory_repository.dart';
 import '../../../shared/repositories/settings_repository.dart';
+import '../../../core/utils/haptic_service.dart';
 import '../providers/memory_notifier.dart';
 import 'voice_recorder_sheet.dart';
 
@@ -165,6 +166,7 @@ class _AddMemorySheetState extends ConsumerState<AddMemorySheet> {
         dateTaken: _dateTaken ?? DateTime.now(),
       );
       if (!mounted) return;
+      HapticService.memoryAdded();
       Navigator.of(context).pop(true);
     } on PlanLimitError catch (e) {
       if (!mounted) return;
@@ -193,6 +195,7 @@ class _AddMemorySheetState extends ConsumerState<AddMemorySheet> {
         title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
       );
       if (!mounted) return;
+      HapticService.memoryAdded();
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;

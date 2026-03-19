@@ -5,6 +5,7 @@ import '../../../design/tokens/app_spacing.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../features/subscription/providers/plan_notifier.dart';
 import '../../../shared/models/user_plan.dart';
+import '../../../core/utils/haptic_service.dart';
 import '../services/export_service.dart';
 
 /// Heritage Export 화면 — 가계도 포스터 내보내기
@@ -160,6 +161,7 @@ class _HeritageExportScreenState extends ConsumerState<HeritageExportScreen> {
         return;
       }
       await ExportService.share(file);
+      HapticService.heritageExport();
     } finally {
       if (mounted) setState(() => _isExporting = false);
     }

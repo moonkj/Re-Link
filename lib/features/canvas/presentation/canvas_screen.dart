@@ -310,6 +310,26 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                   ),
           ),
 
+          // ── Focus Mode 정보 패널 ─────────────────────────────────────────
+          if (canvasState.focusedNodeId != null)
+            _FocusInfoPanel(
+              node: canvasState.nodes
+                  .where((n) => n.id == canvasState.focusedNodeId)
+                  .firstOrNull,
+              edgeCount: canvasState.edges
+                  .where((e) =>
+                      e.fromNodeId == canvasState.focusedNodeId ||
+                      e.toNodeId == canvasState.focusedNodeId)
+                  .length,
+              onClose: () => ref.read(canvasNotifierProvider.notifier).clearFocus(),
+              onDetail: () {
+                final node = canvasState.nodes
+                    .where((n) => n.id == canvasState.focusedNodeId)
+                    .firstOrNull;
+                if (node != null) _onNodeTap(node, canvasState);
+              },
+            ),
+
           // ── FAB (노드 추가) ──────────────────────────────────────────────
           Positioned(
             bottom: AppSpacing.xxl + 80, // 하단 네비게이션 위
@@ -385,6 +405,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
             toNodeId: toNode.id,
             relation: relation,
           );
+      HapticService.connectionMade();
     }
   }
 
@@ -608,6 +629,128 @@ class _StaticBackground extends StatelessWidget {
             center: Alignment.center,
             radius: 1.5,
             colors: [Color(0xFF1A1040), Color(0xFF0A0A1A)],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Focus Mode 정보 패널 — 하단에서 슬라이드업 (AnimatedSlide)
+class _FocusInfoPanel extends StatelessWidget {
+  const _FocusInfoPanel({
+    required this.node,
+    required this.edgeCount,
+    required this.onClose,
+    required this.onDetail,
+  });
+
+  final NodeModel? node;
+  final int edgeCount;
+  final VoidCallback onClose;
+  final VoidCallback onDetail;
+
+  static const _tempLabels = ['냉담', '쌀쌀', '보통', '따뜻', '뜨거움', '열정'];
+  static const _tempColors = [
+    Color(0xFF4FC3F7),
+    Color(0xFF81C784),
+    Color(0xFFFFD54F),
+    Color(0xFFFFB74D),
+    Color(0xFFFF7043),
+    Color(0xFFE53935),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    if (node == null) return const SizedBox.shrink();
+    final n = node!;
+    final tempIdx = n.temperature.clamp(0, 5);
+    final tempColor = _tempColors[tempIdx];
+    final tempLabel = _tempLabels[tempIdx];
+
+    return Positioned(
+      bottom: AppSpacing.xxl + 80,
+      left: AppSpacing.lg,
+      right: AppSpacing.lg + AppSpacing.fabSize + AppSpacing.md,
+      child: TweenAnimationBuilder<Offset>(
+        tween: Tween(begin: const Offset(0, 1), end: Offset.zero),
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+        builder: (_, offset, child) => FractionalTranslation(
+          translation: offset,
+          child: child,
+        ),
+        child: GlassCard(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.md,
+          ),
+          child: Row(
+            children: [
+              // 아바타 (미니)
+              Container(
+                width: 40, height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: tempColor.withAlpha(40),
+                  border: Border.all(color: tempColor, width: 1.5),
+                ),
+                child: n.isGhost
+                    ? const Icon(Icons.help_outline, color: Colors.white54, size: 18)
+                    : const Icon(Icons.person, color: Colors.white70, size: 20),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              // 이름 + 관계수 + 온도
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      n.name,
+                      style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        const Icon(Icons.people_outline, size: 12, color: AppColors.textSecondary),
+                        const SizedBox(width: 3),
+                        Text(
+                          '연결 $edgeCount명',
+                          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 8, height: 8,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle, color: tempColor,
+                          ),
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          tempLabel,
+                          style: TextStyle(fontSize: 11, color: tempColor),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // 상세보기 버튼
+              GestureDetector(
+                onTap: onDetail,
+                child: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.primary),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              // 닫기
+              GestureDetector(
+                onTap: onClose,
+                child: const Icon(Icons.close, size: 16, color: AppColors.textSecondary),
+              ),
+            ],
           ),
         ),
       ),
