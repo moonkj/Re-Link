@@ -35,6 +35,13 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 다크/라이트 밝기에 따라 glass opacity 자동 조정
+    final brightness = Theme.of(context).brightness;
+    final effectiveOpacity =
+        brightness == Brightness.light ? (opacity * 4.8).clamp(0.0, 1.0) : opacity;
+    final effectiveBorderOpacity =
+        brightness == Brightness.light ? (borderOpacity * 2.0).clamp(0.0, 1.0) : borderOpacity;
+
     return Container(
       margin: margin,
       width: width,
@@ -53,9 +60,9 @@ class GlassCard extends StatelessWidget {
               padding: padding,
               decoration: BoxDecoration(
                 borderRadius: borderRadius,
-                color: Color.fromRGBO(255, 255, 255, opacity),
+                color: Color.fromRGBO(255, 255, 255, effectiveOpacity),
                 border: Border.all(
-                  color: Color.fromRGBO(255, 255, 255, borderOpacity),
+                  color: Color.fromRGBO(255, 255, 255, effectiveBorderOpacity),
                   width: 1.0,
                 ),
               ),
@@ -68,8 +75,8 @@ class GlassCard extends StatelessWidget {
   }
 }
 
-/// 글래스 버튼
-class GlassButton extends StatelessWidget {
+/// 글래스 버튼 — 상태별(normal/pressed/disabled) 피드백 포함
+class GlassButton extends StatefulWidget {
   const GlassButton({
     super.key,
     required this.child,
@@ -86,24 +93,41 @@ class GlassButton extends StatelessWidget {
   final Color? backgroundColor;
 
   @override
+  State<GlassButton> createState() => _GlassButtonState();
+}
+
+class _GlassButtonState extends State<GlassButton> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
+    final isDisabled = widget.onPressed == null;
     return GestureDetector(
-      onTap: onPressed,
-      child: ClipRRect(
-        borderRadius: borderRadius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              borderRadius: borderRadius,
-              color: backgroundColor ?? AppColors.glassSurface,
-              border: Border.all(
-                color: AppColors.glassBorder,
-                width: 1.0,
+      onTap: isDisabled ? null : widget.onPressed,
+      onTapDown: isDisabled ? null : (_) => setState(() => _pressed = true),
+      onTapUp: isDisabled ? null : (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedOpacity(
+        opacity: isDisabled ? 0.4 : (_pressed ? 0.65 : 1.0),
+        duration: const Duration(milliseconds: 80),
+        child: ClipRRect(
+          borderRadius: widget.borderRadius,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              padding: widget.padding,
+              decoration: BoxDecoration(
+                borderRadius: widget.borderRadius,
+                color: _pressed
+                    ? AppColors.glassBorder // 눌림 시 약간 더 불투명
+                    : (widget.backgroundColor ?? AppColors.glassSurface),
+                border: Border.all(
+                  color: AppColors.glassBorder,
+                  width: 1.0,
+                ),
               ),
+              child: widget.child,
             ),
-            child: child,
           ),
         ),
       ),

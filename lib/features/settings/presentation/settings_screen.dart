@@ -12,6 +12,7 @@ import '../../../shared/repositories/profile_repository.dart';
 import '../../../shared/repositories/settings_repository.dart';
 import '../../backup/providers/backup_notifier.dart';
 import '../../export/presentation/heritage_export_screen.dart';
+import '../providers/elderly_mode_notifier.dart';
 
 /// 설정 화면
 class SettingsScreen extends ConsumerWidget {
@@ -427,6 +428,10 @@ class _AccessibilitySection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // ElderlyModeNotifier로 반응형 구독 (토글 즉시 앱 전역 반영)
+    final elderlyAsync = ref.watch(elderlyModeNotifierProvider);
+    final elderlyEnabled = elderlyAsync.valueOrNull ?? false;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -436,26 +441,26 @@ class _AccessibilitySection extends ConsumerWidget {
           padding: EdgeInsets.zero,
           child: Column(
             children: [
-              // 어르신 모드
-              FutureBuilder<bool>(
-                future: ref.read(settingsRepositoryProvider).isElderlyMode(),
-                builder: (context, snap) {
-                  final enabled = snap.data ?? false;
-                  return SwitchListTile(
-                    secondary: const Icon(Icons.accessibility_new,
-                        color: AppColors.secondary),
-                    title: const Text('어르신 모드',
-                        style: TextStyle(
-                            fontSize: 15, color: AppColors.textPrimary)),
-                    subtitle: const Text('큰 글씨 · 넓은 터치 영역',
-                        style: TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary)),
-                    value: enabled,
-                    onChanged: (v) =>
-                        ref.read(settingsRepositoryProvider).setElderlyMode(v),
-                    activeThumbColor: AppColors.secondary,
-                  );
-                },
+              // 어르신 모드 — ElderlyModeNotifier 반응형
+              Semantics(
+                label: '어르신 모드',
+                hint: '큰 글씨와 넓은 터치 영역을 사용합니다',
+                toggled: elderlyEnabled,
+                child: SwitchListTile(
+                  secondary: const Icon(Icons.accessibility_new,
+                      color: AppColors.secondary),
+                  title: const Text('어르신 모드',
+                      style: TextStyle(
+                          fontSize: 15, color: AppColors.textPrimary)),
+                  subtitle: const Text('큰 글씨 · 넓은 터치 영역',
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary)),
+                  value: elderlyEnabled,
+                  onChanged: (v) => ref
+                      .read(elderlyModeNotifierProvider.notifier)
+                      .setEnabled(v),
+                  activeThumbColor: AppColors.secondary,
+                ),
               ),
               const Divider(color: AppColors.glassBorder, height: 1),
               // Privacy Layer
@@ -463,19 +468,25 @@ class _AccessibilitySection extends ConsumerWidget {
                 future: ref.read(settingsRepositoryProvider).isPrivacyEnabled(),
                 builder: (context, snap) {
                   final enabled = snap.data ?? false;
-                  return SwitchListTile(
-                    secondary: const Icon(Icons.lock_outline,
-                        color: AppColors.accent),
-                    title: const Text('개인 메모 잠금',
-                        style: TextStyle(
-                            fontSize: 15, color: AppColors.textPrimary)),
-                    subtitle: const Text('Face ID / Touch ID로 보호',
-                        style: TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary)),
-                    value: enabled,
-                    onChanged: (v) =>
-                        ref.read(settingsRepositoryProvider).setPrivacyEnabled(v),
-                    activeThumbColor: AppColors.accent,
+                  return Semantics(
+                    label: '개인 메모 잠금',
+                    hint: 'Face ID 또는 Touch ID로 개인 메모를 보호합니다',
+                    toggled: enabled,
+                    child: SwitchListTile(
+                      secondary: const Icon(Icons.lock_outline,
+                          color: AppColors.accent),
+                      title: const Text('개인 메모 잠금',
+                          style: TextStyle(
+                              fontSize: 15, color: AppColors.textPrimary)),
+                      subtitle: const Text('Face ID / Touch ID로 보호',
+                          style: TextStyle(
+                              fontSize: 12, color: AppColors.textSecondary)),
+                      value: enabled,
+                      onChanged: (v) => ref
+                          .read(settingsRepositoryProvider)
+                          .setPrivacyEnabled(v),
+                      activeThumbColor: AppColors.accent,
+                    ),
                   );
                 },
               ),

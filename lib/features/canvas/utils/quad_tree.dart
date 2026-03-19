@@ -40,9 +40,9 @@ class _Entry<T> {
   final double y;
 }
 
-/// Generic QuadTree<T>
-/// - Insert item by (x, y) point
-/// - Query all items whose point falls within a [QRect]
+/// Generic QuadTree — insert by point, query by rect.
+/// Insert item by (x, y) point.
+/// Query all items whose point falls within a QRect.
 class QuadTree<T> {
   QuadTree(this.boundary, {this.capacity = 8});
 

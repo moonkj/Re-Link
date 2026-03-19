@@ -209,38 +209,47 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                         ),
                       ),
                     const SizedBox(width: AppSpacing.sm),
-                    GlassCard(
-                      padding: const EdgeInsets.all(AppSpacing.sm),
-                      onTap: () => context.push(AppRoutes.search),
-                      child: const Icon(
-                        Icons.search,
-                        color: AppColors.textSecondary,
-                        size: 20,
+                    Tooltip(
+                      message: '검색',
+                      child: GlassCard(
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        onTap: () => context.push(AppRoutes.search),
+                        child: const Icon(
+                          Icons.search,
+                          color: AppColors.textSecondary,
+                          size: 20,
+                        ),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
-                    GlassCard(
-                      padding: const EdgeInsets.all(AppSpacing.sm),
-                      onTap: () {
-                        HapticService.light();
-                        ref.read(canvasNotifierProvider.notifier).toggleTimeSlider();
-                      },
-                      child: Icon(
-                        Icons.timeline,
-                        color: canvasState.timeSliderVisible
-                            ? AppColors.primary
-                            : AppColors.textSecondary,
-                        size: 20,
+                    Tooltip(
+                      message: '타임라인 필터',
+                      child: GlassCard(
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        onTap: () {
+                          HapticService.light();
+                          ref.read(canvasNotifierProvider.notifier).toggleTimeSlider();
+                        },
+                        child: Icon(
+                          Icons.timeline,
+                          color: canvasState.timeSliderVisible
+                              ? AppColors.primary
+                              : AppColors.textSecondary,
+                          size: 20,
+                        ),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
-                    GlassCard(
-                      padding: const EdgeInsets.all(AppSpacing.sm),
-                      onTap: _resetZoom,
-                      child: const Icon(
-                        Icons.center_focus_strong,
-                        color: AppColors.textSecondary,
-                        size: 20,
+                    Tooltip(
+                      message: '캔버스 중앙으로',
+                      child: GlassCard(
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        onTap: _resetZoom,
+                        child: const Icon(
+                          Icons.center_focus_strong,
+                          color: AppColors.textSecondary,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ],

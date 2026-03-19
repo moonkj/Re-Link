@@ -60,7 +60,15 @@ class _NodeCardState extends State<NodeCard>
     final node = widget.node;
     final tempColor = AppColors.tempColor(node.temperature);
 
-    return GestureDetector(
+    final semanticsLabel = node.isGhost
+        ? '미확인 인물${node.name.isNotEmpty ? " ${node.name}" : ""}'
+        : node.name;
+
+    return Semantics(
+      label: semanticsLabel,
+      hint: '탭하면 상세 정보를 볼 수 있습니다',
+      button: true,
+      child: GestureDetector(
       onTap: widget.onTap,
       onLongPress: widget.onLongPress,
       child: AnimatedBuilder(
@@ -78,6 +86,7 @@ class _NodeCardState extends State<NodeCard>
               ? _GhostContent(node: node)
               : _NormalContent(node: node, tempColor: tempColor),
         ),
+      ),
       ),
     );
   }
@@ -268,7 +277,7 @@ class _NodeAvatar extends StatelessWidget {
     );
     return Hero(
       tag: 'node_avatar_${node.id}',
-      flightShuttleBuilder: (_, animation, __, ___, ____) => ScaleTransition(
+      flightShuttleBuilder: (context, animation, direction, from, to) => ScaleTransition(
         scale: animation,
         child: avatar,
       ),
