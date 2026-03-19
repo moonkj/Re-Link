@@ -25,6 +25,7 @@ class MemoryModel {
     this.dateTaken,
     this.tags = const [],
     required this.createdAt,
+    this.isPrivate = false,
   });
 
   final String id;
@@ -38,6 +39,7 @@ class MemoryModel {
   final DateTime? dateTaken;
   final List<String> tags;
   final DateTime createdAt;
+  final bool isPrivate;
 
   String? get formattedDuration {
     if (durationSeconds == null) return null;
@@ -58,6 +60,7 @@ class MemoryModel {
     DateTime? dateTaken,
     List<String>? tags,
     DateTime? createdAt,
+    bool? isPrivate,
   }) {
     return MemoryModel(
       id: id ?? this.id,
@@ -71,6 +74,7 @@ class MemoryModel {
       dateTaken: dateTaken ?? this.dateTaken,
       tags: tags ?? this.tags,
       createdAt: createdAt ?? this.createdAt,
+      isPrivate: isPrivate ?? this.isPrivate,
     );
   }
 

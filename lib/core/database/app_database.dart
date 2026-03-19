@@ -25,17 +25,19 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
           await m.createAll();
-          // 기본 설정값 삽입
           await _insertDefaultSettings();
         },
         onUpgrade: (m, from, to) async {
-          // 향후 마이그레이션 여기에 추가
+          // v1 → v2: memories.isPrivate 컬럼 추가 (Privacy Layer)
+          if (from < 2) {
+            await m.addColumn(memoriesTable, memoriesTable.isPrivate);
+          }
         },
       );
 
@@ -104,6 +106,12 @@ class AppDatabase extends _$AppDatabase {
 
   // ── Memories ───────────────────────────────────────────────────────────────
 
+  /// 전체 기억 스트림 (Story Feed / Archive용)
+  Stream<List<MemoriesTableData>> watchAllMemories() =>
+      (select(memoriesTable)
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .watch();
+
   Stream<List<MemoriesTableData>> watchMemoriesForNode(String nodeId) =>
       (select(memoriesTable)
             ..where((t) => t.nodeId.equals(nodeId))
@@ -124,6 +132,12 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> deleteMemory(String id) =>
       (delete(memoriesTable)..where((t) => t.id.equals(id))).go();
+
+  /// Privacy Layer: isPrivate 토글
+  Future<void> setMemoryPrivate(String id, {required bool isPrivate}) async {
+    await (update(memoriesTable)..where((t) => t.id.equals(id)))
+        .write(MemoriesTableCompanion(isPrivate: Value(isPrivate)));
+  }
 
   /// 타입별 기억 수 (플랜 제한 체크용)
   Future<int> countMemoriesByType(String type) =>

@@ -26,4 +26,9 @@ abstract final class SettingsKey {
   static const String canvasOffsetX = 'canvas_offset_x';
   static const String canvasOffsetY = 'canvas_offset_y';
   static const String canvasScale = 'canvas_scale';
+
+  // ── UX 모드 ────────────────────────────────────────────────────────────────
+  static const String elderlyMode = 'elderly_mode';       // true / false
+  static const String privacyEnabled = 'privacy_enabled'; // true / false
+  static const String darkMode = 'dark_mode';             // true / false
 }

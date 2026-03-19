@@ -317,28 +317,591 @@
 
 ---
 
-## Phase 4 — 런치 (Week 29–34)
+## Phase 4 — 완성 & 런치 (Week 29–52)
 
-### 앱스토어 준비
-- [ ] 앱 아이콘
-- [ ] 스플래시 화면
-- [ ] 스크린샷 (6.5인치, 5.5인치)
-- [ ] 앱 설명 (한국어)
-- [ ] 개인정보처리방침
-- [ ] 이용약관
+> Phase 4는 5개 서브페이즈로 나뉩니다. 각 서브페이즈는 7단계 워크플로(UX→Architect→Coder→Debugger→Test→Reviewer→Performance)를 따릅니다.
 
-### 성능 최적화
-- [ ] Flutter DevTools 프로파일링
-- [ ] 앱 크기 최적화 (iOS < 50MB, Android < 30MB)
-- [x] 콜드 스타트 최적화 — MobileAds 비동기 초기화, Splash 딜레이 제거, LaunchScreen 배경 어둡게
-- [ ] 캔버스 60fps
+---
 
-### 출시
-- [ ] TestFlight 베타
-- [ ] Google Play 내부 테스트
+## Phase 4a — 화면 완성 (Week 29–34)
+
+> 계획 문서에 정의된 미구현 화면 및 기능 전체 구현
+
+### Splash Screen ✅
+
+#### UX Designer
+- [x] 브랜드 로고 페이드인 애니메이션 시퀀스 설계 (400ms Scene 티어)
+- [x] LaunchScreen → SplashScreen 전환 끊김 없음 검증
+- [x] DB 초기화 완료 → 자동 라우팅 (온보딩 or 캔버스) 플로우 설계
+
+#### Architect
+- [x] `app_router.dart` — `/splash` 최초 진입점 + GoRouter redirect (onboarding flag 체크)
+
+#### Coder
+- [x] `_SplashScreen` — FadeTransition (0→1, 400ms) + CircularProgressIndicator
+- [x] 라우팅: `onboarding_done == false` → `/onboarding`, else → `/canvas`
+
+#### Debugger
+- [x] `flutter analyze lib/` → 0 issues
+
+#### Test Engineer
+- [x] `test/onboarding/onboarding_test.dart` — onboarding_done flag 분기 포함
+
+#### Performance Engineer
+- [x] AnimatedOpacity 페이드인으로 콜드 스타트 흰화면 방지
+
+---
+
+### Onboarding (3스텝) ✅
+
+#### UX Designer
+- [x] 3스텝 스와이프 플로우 설계 (PageView)
+- [x] 스텝별 아이콘 일러스트 + 제목 + 설명 콘텐츠
+- [x] 스킵 버튼(우상단) + 페이지 인디케이터 도트 + 시작하기/다음 CTA
+
+#### Architect
+- [x] `/onboarding` 라우트 추가 (GoRouter)
+
+#### Coder
+- [x] `lib/features/onboarding/presentation/onboarding_screen.dart`
+- [x] `OnboardingPage` 위젯 (3개) — 아이콘 + 텍스트
+- [x] `PageController` + AnimatedContainer 인디케이터
+- [x] "시작하기" → `setOnboardingDone()` → `/profile_setup`
+- [x] 스킵 → `setOnboardingDone()` → `/profile_setup`
+
+#### Debugger
+- [x] `flutter analyze lib/` → 0 issues
+
+#### Test Engineer
+- [x] `test/onboarding/onboarding_test.dart` — 13개 테스트 (onboarding/elderlyMode/privacy)
+
+#### Performance Engineer
+- [x] PageView lazy rendering (itemBuilder)
+
+---
+
+### 5탭 네비게이션 (ShellRoute) 완성 ✅
+
+#### UX Designer
+- [x] 5탭 구조: 홈(캔버스) / 이야기(Story Feed) / + / 보관함 / 설정
+- [x] `_CustomBottomNav` — 커스텀 바텀 바, 가운데 + 글래스 원형 강조
+- [x] 선택/비선택 색상 분기 (primary / white 50%)
+
+#### Architect
+- [x] `app_router.dart` — 5탭 ShellRoute (canvas/story/archive/settings)
+- [x] 기존 3탭 → 5탭 전환, backup 독립 라우트로 이동
+
+#### Coder
+- [x] `lib/core/router/app_router.dart` 전면 재작성
+- [x] `_CustomBottomNav` + `_NavItem` 위젯
+- [x] + 버튼 탭 → canvas 이동 (FAB 연동)
+
+#### Debugger
+- [x] `flutter analyze lib/` → 0 issues
+
+#### Performance Engineer
+- [x] const 위젯 최대 활용
+
+---
+
+### Story Feed Screen (이야기 탭) ✅
+
+#### UX Designer
+- [x] 최근 기억 타임라인 카드 (역순 — 신규→과거)
+- [x] 타입별 카드: 사진(썸네일+설명) / 음성(재생버튼+시간) / 메모(텍스트)
+- [x] 노드 미니 아바타 + 이름 + 날짜 헤더
+- [x] 빈 상태: EmptyStateWidget (auto_stories 아이콘)
+
+#### Architect
+- [x] `StoryFeedNotifier` — watchAll() + watchAll(nodes) 듀얼 스트림 join
+- [x] `StoryFeedItem` 모델 (memory + nodeName + nodePhotoPath)
+- [x] private 기억 피드 제외 로직
+
+#### Coder
+- [x] `lib/features/story/presentation/story_feed_screen.dart`
+- [x] `lib/features/story/providers/story_feed_notifier.dart`
+- [x] `StoryCard` 위젯 (photo/voice/note 분기)
+- [x] `SliverList.builder` lazy 렌더링
+
+#### Debugger
+- [x] `flutter analyze lib/` → 0 issues
+
+#### Test Engineer
+- [x] `test/story/story_feed_test.dart` — 5개 테스트 (StoryFeedItem, isPrivate, formattedDuration)
+
+#### Performance Engineer
+- [x] SliverList.builder lazy 렌더링 (CustomScrollView)
+
+---
+
+### Archive Screen (보관함 탭) ✅
+
+#### UX Designer
+- [x] 전체 가족 기억 통합 + 필터 탭 (전체/사진/음성/메모)
+- [x] 노드별 섹션 그룹핑 (이름 아바타 헤더)
+- [x] 정렬 PopupMenu (최신순/오래된순/이름순)
+- [x] 내부 검색바 (onChange 연동)
+
+#### Architect
+- [x] `ArchiveNotifier` — filter/sortOrder/searchQuery 상태 + 듀얼 스트림
+- [x] `ArchiveFilter` (all/photo/voice/note), `ArchiveSortOrder` (newest/oldest/name)
+- [x] `ArchiveGroup` 모델 (node + memories)
+
+#### Coder
+- [x] `lib/features/archive/presentation/archive_screen.dart`
+- [x] `lib/features/archive/providers/archive_notifier.dart`
+- [x] NestedScrollView + TabBar + ListView.builder
+- [x] `_ArchiveGroup` + `_MemoryTile` 위젯
+- [x] `isPrivate` lock 아이콘 표시
+
+#### Debugger
+- [x] `flutter analyze lib/` → 0 issues
+
+#### Test Engineer
+- [x] `test/archive/archive_filter_test.dart` — 10개 테스트
+
+#### Performance Engineer
+- [x] ListView.builder lazy 렌더링
+
+---
+
+### Focus Mode (캔버스) ✅
+
+#### UX Designer
+- [x] 더블탭 → focusedNodeId 설정
+- [x] 비선택 노드 AnimatedOpacity 0.15 (200ms)
+- [x] 연결 이웃 노드 opacity 0.7
+- [x] 더블탭 재클릭 → clearFocus
+
+#### Architect
+- [x] `CanvasState.focusedNodeId` 추가
+- [x] `nodeOpacity(nodeId)` — 엣지 기반 이웃 계산
+
+#### Coder
+- [x] `CanvasNotifier.setFocus()` / `clearFocus()`
+- [x] `_DraggableNodeCard` — `AnimatedOpacity(focusOpacity)` 래핑
+- [x] `onDoubleTap: _onNodeDoubleTap()` — HapticService.light() 포함
+
+#### Debugger
+- [x] `flutter analyze lib/` → 0 issues
+
+#### Test Engineer
+- [x] `test/canvas_focus/focus_mode_test.dart` — 11개 테스트 (opacity/isFocusMode/copyWith)
+
+#### Performance Engineer
+- [x] `AnimatedOpacity` — duration 200ms, RepaintBoundary 내 독립 렌더
+
+---
+
+### Time Slider (타임라인) ✅
+
+#### UX Designer
+- [x] 앱바 타임라인 아이콘 → `TimeSliderWidget` 펼침 (Positioned 오버레이)
+- [x] 연도 슬라이더 (1900 ~ 현재), "전체" 리셋 버튼, 닫기 버튼
+
+#### Architect
+- [x] `CanvasState.timeSliderVisible` + `timeSliderYear` 추가
+- [x] `nodeVisibleInTime(node)` — birthDate 기반 visibility
+
+#### Coder
+- [x] `lib/features/canvas/widgets/time_slider.dart`
+- [x] `CanvasNotifier.toggleTimeSlider()` / `setTimeSliderYear()`
+- [x] 캔버스 노드 렌더: `nodeVisibleInTime` 필터 적용
+- [x] 앱바 timeline 아이콘 + 활성화 색상 표시
+
+#### Debugger
+- [x] `flutter analyze lib/` → 0 issues
+
+#### Test Engineer
+- [x] `test/canvas_focus/focus_mode_test.dart` — Time Slider 5개 테스트 포함
+
+#### Performance Engineer
+- [x] Slider.onChanged → 즉시 반영 (setState 없이 Riverpod 상태 업데이트)
+
+---
+
+### Heritage Export Screen (가계도 포스터) ✅
+
+#### UX Designer
+- [x] 4개 템플릿: Classic/Modern/Minimal/Festival (배경색+아이콘 분기)
+- [x] 3가지 해상도: SNS(2×)/A4-A2(3×) pixelRatio
+- [x] Premium 비가입 → 워터마크 오버레이
+
+#### Architect
+- [x] `ExportService` — RepaintBoundary → toImage() → File → share_plus
+
+#### Coder
+- [x] `lib/features/export/presentation/heritage_export_screen.dart`
+- [x] `lib/features/export/services/export_service.dart`
+- [x] `_ExportPreview` (4템플릿 분기), `_TemplateChip`, `_ResolutionChip`
+- [x] Settings → 가계도 포스터 내보내기 ListTile 추가
+- [x] planNotifier로 premium 여부 확인
+
+#### Debugger
+- [x] `flutter analyze lib/` → 0 issues
+
+#### Performance Engineer
+- [x] 미리보기: 기본 pixelRatio (낮은 해상도)
+- [x] 내보내기: SNS=2.0×, A4/A2=3.0× (고해상도)
+
+---
+
+### Privacy Layer (개인 메모 잠금) ✅ (일부)
+
+#### UX Designer
+- [x] Settings Privacy Layer 토글 (FaceID/TouchID)
+- [x] Archive: isPrivate 기억에 lock 아이콘 표시
+- [x] StoryFeed: isPrivate 기억 피드 제외
+
+#### Architect
+- [x] `MemoryModel.isPrivate` 필드 추가
+- [x] DB schemaVersion 1→2, `onUpgrade` migration: addColumn(isPrivate)
+- [x] `MemoryRepository.setPrivate()` + `AppDatabase.setMemoryPrivate()`
+
+#### Coder
+- [x] `lib/core/database/tables/memories_table.dart` — isPrivate BoolColumn
+- [x] `lib/core/database/app_database.dart` — migration + setMemoryPrivate()
+- [x] `lib/shared/models/memory_model.dart` — isPrivate 필드
+- [x] `lib/shared/repositories/memory_repository.dart` — setPrivate()
+- [x] `lib/features/settings/presentation/settings_screen.dart` — _AccessibilitySection
+- [ ] local_auth 패키지 연동 + PrivacyService (향후 추가 예정)
+- [ ] 실제 생체인증 게이팅 (MemoryCard 블러 — 향후)
+
+#### Debugger
+- [x] `flutter analyze lib/` → 0 issues
+- [x] DB 마이그레이션 schemaVersion 2
+
+#### Test Engineer
+- [x] `test/onboarding/onboarding_test.dart` — privacyEnabled 설정 2개 테스트
+
+---
+
+### Ghost Node 자동 생성
+
+#### UX Designer
+- [ ] 노드 추가 시 "부모 자동 생성" 옵션 토글 설계
+- [ ] 자동 생성된 Ghost 노드 표시 (점선+? 아이콘)
+- [ ] Ghost → 실제 인물 전환 배너 (NodeDetailSheet)
+
+#### Coder
+- [ ] `NodeNotifier.addNodeWithAutoGhost()` — 부모 Ghost 자동 생성 로직
+- [ ] Ghost 자동 배치 좌표 계산 (부모 노드 상단 y-offset)
+
+#### Debugger
+- [ ] `flutter analyze lib/` → 0 issues
+
+#### Test Engineer
+- [ ] `test/canvas/ghost_auto_create_test.dart`
+
+---
+
+### Family Invite UI (가족 공유 관리)
+
+#### UX Designer
+- [ ] .rlink 보내기/받기 플로우 최종 설계
+- [ ] 트리 병합 미리보기 화면 (노드 수 + 충돌 수 표시)
+- [ ] 충돌 해결 UI (내 노드 유지 / 상대방 노드 유지 / 둘 다)
+
+#### Architect
+- [ ] `MergePreviewNotifier` — .rlink 파싱 + 충돌 감지
+- [ ] `MergeConflict` 모델 (nodeId, myVersion, theirVersion)
+
+#### Coder
+- [ ] `lib/features/family/presentation/merge_preview_screen.dart`
+- [ ] `lib/features/family/presentation/conflict_resolve_screen.dart`
+- [ ] `MergePreviewNotifier` + `MergeConflict` 모델
+- [ ] `BackupService.mergeRlink()` — 충돌 감지 로직
+- [ ] 충돌 해결 후 DB 저장
+
+#### Debugger
+- [ ] `flutter analyze lib/` → 0 issues
+
+#### Test Engineer
+- [ ] `test/family/merge_test.dart` — 충돌 감지 + 해결 로직
+
+---
+
+## Phase 4b — 캔버스 최적화 (Week 35–38)
+
+> 대규모 노드(200+)에서 60fps 달성을 목표로 캔버스 렌더링 최적화
+
+### InteractiveViewer.builder + QuadTree 전환
+
+#### UX Designer
+- [ ] 줌 레벨별 UX 검증 (Bird's Eye → Zoom 전환 시 자연스러움)
+
+#### Architect
+- [ ] `QuadTree<NodeModel>` 자료구조 설계 (viewport 기반 노드 쿼리)
+- [ ] `InteractiveViewer.builder` 전환 계획 (현재 Stack 방식 → builder 방식)
+- [ ] 뷰포트 ±200px 버퍼 렌더링 전략
+
+#### Coder
+- [ ] `lib/features/canvas/utils/quad_tree.dart` — QuadTree 구현
+- [ ] `CanvasScreen` — `InteractiveViewer.builder`로 전환
+- [ ] 줌 레벨 → LOD 단계 매핑 (0.2–0.5: Bird, 0.5–1.0: Overview, 1.0–2.0: Detail, 2.0–3.0: Zoom)
+- [ ] `NodeCardLOD` 위젯 — LOD 단계별 렌더링 분기
+  - Bird's Eye: `Container(width:8, height:8)` 점(dot)만
+  - Overview: 이름 텍스트만
+  - Detail/Zoom: 전체 NodeCard
+
+#### Debugger
+- [ ] `flutter analyze lib/` → 0 issues
+- [ ] QuadTree 쿼리 결과 검증 (경계값 테스트)
+
+#### Test Engineer
+- [ ] `test/canvas/quad_tree_test.dart` — 삽입/쿼리/업데이트
+- [ ] `test/canvas/lod_test.dart` — 줌 레벨 → LOD 매핑
+
+#### Reviewer
+- [ ] QuadTree 업데이트 타이밍 (드래그 중 vs panEnd)
+
+#### Performance Engineer
+- [ ] 노드 200개, Detail 레벨 → 60fps 검증 (Flutter DevTools)
+- [ ] 노드 500개, Bird's Eye 레벨 → 60fps 검증
+- [ ] QuadTree 쿼리 시간 < 1ms
+
+---
+
+### Minimap ✅
+
+#### Coder
+- [x] `lib/features/canvas/widgets/minimap_widget.dart`
+- [x] `_MinimapPainter` — 노드 점 + 뷰포트 사각형 (CustomPainter)
+- [x] `AnimatedBuilder(transformationController)` — 실시간 업데이트
+- [x] 좌하단 `Positioned` (캔버스 FAB와 위치 분리)
+
+#### Debugger
+- [x] `flutter analyze lib/` → 0 issues
+
+#### Performance Engineer
+- [x] `RepaintBoundary` 독립 분리 — 캔버스 노드 repaint와 분리
+
+---
+
+### Hero Transition
+
+#### Coder
+- [ ] `NodeCard` → `NodeDetailSheet`: `Hero(tag: 'node_${node.id}', child: NodeAvatar(...))`
+- [ ] `MemoryThumbnail` → `MemoryDetail`: `Hero(tag: 'photo_${memory.id}', child: Image(...))`
+- [ ] `HeroFlightShuttleBuilder` — 글래스 블러 전환 효과
+
+#### Performance Engineer
+- [ ] Hero 전환 중 60fps (DevTools Timeline 확인)
+
+---
+
+### Pseudo-3D 깊이 (세대별 시각적 계층)
+
+#### Coder
+- [ ] `NodeCard` — `generationDepth` 파라미터 추가
+- [ ] 세대 기반 transform 계산:
+  - 세대 0: scale 1.0, opacity 1.0
+  - 세대 1: scale 0.95, opacity 0.95, translateY -4
+  - 세대 2+: scale 0.90, opacity 0.90, translateY -8
+  - 자녀: scale 0.95, opacity 0.95, translateY +4
+- [ ] `NodeRepository.getNodeGeneration()` — BFS 세대 계산
+
+#### Test Engineer
+- [ ] `test/canvas/generation_depth_test.dart` — BFS 세대 계산
+
+#### Performance Engineer
+- [ ] transform 계산 캐싱 (노드 관계 변경 시만 재계산)
+
+---
+
+## Phase 4c — 디자인 시스템 & 품질 (Week 39–42)
+
+> Glassmorphism 완성도, 햅틱, 접근성, Empty States, 어르신 모드
+
+### Glassmorphism 2.0 완성도
+
+#### UX Designer
+- [ ] 모든 바텀시트 blur:40 / opacity:0.72(라이트) / 0.70(다크) 적용 여부 검토
+- [ ] 노드 카드 blur:20 / opacity:0.15 일관성 검토
+- [ ] glassBorder (0x33FFFFFF) 전체 적용 현황 점검
+
+#### Coder
+- [ ] `GlassCard` — 다크/라이트 opacity 분기 (`brightness` 기반)
+- [ ] 모든 바텀시트 `GlassBottomSheet` 래퍼 통일
+- [ ] 버튼 `GlassButton` — 상태별(normal/pressed/disabled) 효과
+
+#### Reviewer
+- [ ] `BackdropFilter` 중첩 사용 최소화 (성능 영향)
+
+#### Performance Engineer
+- [ ] BackdropFilter 사용 개수 제한 (화면당 최대 3개 레이어)
+
+---
+
+### 햅틱 시스템 (3단계) ✅
+
+#### Coder
+- [x] `lib/core/utils/haptic_service.dart` — HapticFeedback 래퍼 (light/medium/heavy/selection)
+- [x] 노드 더블탭 → HapticService.light()
+- [x] 연결 모드 진입 → HapticService.medium()
+- [x] 타임슬라이더 토글 → HapticService.light()
+
+#### Test Engineer
+- [x] `test/haptic/haptic_service_test.dart` — 4개 테스트 (completes 검증)
+
+---
+
+### 접근성 (Accessibility)
+
+#### UX Designer
+- [ ] VoiceOver/TalkBack Semantics 레이블 전체 목록 작성
+- [ ] 고대비 모드 팔레트 검토 (WCAG AA 기준)
+- [ ] 동적 텍스트 크기 테스트 (최소/최대 textScaleFactor)
+
+#### Coder
+- [ ] 모든 `NodeCard` — `Semantics(label: '${node.name}, ${relation}')` 추가
+- [ ] 모든 아이콘 버튼 — `Tooltip` + `Semantics` 추가
+- [ ] `MediaQuery.textScalerOf` 연동 — Dynamic Type 지원
+- [ ] 고대비 모드: `glassSurface` opacity 상향 (0.1→0.25)
+- [ ] `ExcludeSemantics` — 장식용 요소 제외
+
+#### Test Engineer
+- [ ] `test/accessibility/semantics_test.dart` — 핵심 위젯 Semantics 레이블 검증
+
+#### Reviewer
+- [ ] 최소 터치 타겟 48dp 충족 여부 전체 검토
+
+---
+
+### 어르신 모드 (Elderly Mode)
+
+#### UX Designer
+- [ ] 어르신 모드 ON 시 레이아웃 차이 시각화
+  - 최소 터치 타겟: 60dp (기본 48dp)
+  - 텍스트: 1.3× 배율
+  - 버튼 레이블: 간결한 한국어
+
+#### Coder
+- [ ] `SettingsRepository` — `elderly_mode` 키 추가
+- [ ] `ElderlyModeProvider` — bool 프로바이더
+- [ ] `AppTheme` — ElderlyMode 기반 `textScaler` / `iconSize` 조건부 적용
+- [ ] `NodeCard`, `MemoryCard` — ElderlyMode 시 padding 확대
+
+#### Test Engineer
+- [ ] `test/settings/elderly_mode_test.dart` — 모드 전환 + 설정 저장
+
+---
+
+### Empty States (빈 상태 화면) ✅
+
+#### Coder
+- [x] `lib/shared/widgets/empty_state_widget.dart` — 범용 EmptyState (아이콘+제목+설명+CTA버튼)
+- [x] Story Feed 빈 상태 (auto_stories 아이콘)
+- [x] Archive 빈 상태 (photo_library 아이콘)
+
+---
+
+## Phase 4d — 성능 최적화 & 테스트 (Week 43–46)
+
+> 60fps 캔버스, 앱 크기, 콜드 스타트, 메모리 누수 검증
+
+### Flutter DevTools 프로파일링
+
+#### Performance Engineer
+- [ ] **Timeline**: 캔버스 스크롤 중 frame build 시간 < 16ms
+- [ ] **Widget Rebuild Inspector**: 불필요한 rebuild 식별 + 수정
+- [ ] **Memory**: 30분 사용 후 메모리 누수 없음
+- [ ] **CPU Profiler**: 핫스팟 메서드 최적화
+- [ ] 프로파일링 결과 기록 (노드 50/200/500개 각각)
+
+### 앱 크기 최적화
+
+#### Performance Engineer
+- [ ] `flutter build appbundle --analyze-size` (Android)
+- [ ] `flutter build ipa --analyze-size` (iOS)
+- [ ] 목표: iOS < 50MB, Android < 30MB
+- [ ] 불필요한 에셋/폰트 제거
+- [ ] `--split-debug-info` 적용 (Release 빌드)
+- [ ] `--obfuscate` 적용
+
+### 콜드 스타트
+
+- [x] MobileAds 비동기 초기화 — 메인 스레드 블로킹 없음
+- [x] Splash 딜레이 제거
+- [x] LaunchScreen 배경색 어둡게 (흰화면 방지)
+- [ ] 콜드 스타트 시간 측정: 목표 < 2초 (iPhone 12 기준)
+- [ ] Drift DB 초기화 시간 최적화 (isolate 확인)
+
+### 캔버스 60fps 검증
+
+#### Performance Engineer
+- [ ] 노드 200개 Detail 레벨 스크롤: 60fps 달성
+- [ ] 노드 500개 Bird's Eye 스크롤: 60fps 달성
+- [ ] 연결 모드(연결선 실시간 드래그): 60fps 달성
+- [ ] Focus Mode 전환 애니메이션: 60fps 달성
+
+### 통합 테스트
+
+#### Test Engineer
+- [ ] `integration_test/canvas_flow_test.dart` — 노드 추가/연결/드래그/삭제 전체 플로우
+- [ ] `integration_test/memory_flow_test.dart` — 사진/음성/메모 추가/삭제 플로우
+- [ ] `integration_test/backup_flow_test.dart` — .rlink 생성/복원 플로우
+- [ ] `integration_test/plan_guard_test.dart` — Free 플랜 제한 초과 시나리오
+- [ ] 전체 단위 테스트: 기존 76/76 + 신규 테스트 모두 통과
+
+---
+
+## Phase 4e — 런치 준비 (Week 47–52)
+
+### 앱 아이콘 & 스플래시
+
+#### UX Designer
+- [ ] 앱 아이콘 디자인 (1024×1024 PNG — iOS, 512×512 — Android)
+- [ ] 다크/라이트 아이콘 버전
+
+#### Coder
+- [ ] `flutter_launcher_icons` 패키지 적용
+- [ ] iOS LaunchScreen.storyboard 최종 확인
+- [ ] Android splash12.xml (Android 12+) 적용
+
+---
+
+### App Store / Google Play 준비
+
+#### UX Designer
+- [ ] 스크린샷 촬영 (iPhone 6.9인치, 6.5인치, iPad 12.9인치)
+- [ ] Google Play 스크린샷 (폰/태블릿)
+- [ ] 프리뷰 동영상 (선택)
+
+#### Coder
+- [ ] 앱 설명 한국어 작성 (App Store + Google Play)
+- [ ] 개인정보처리방침 페이지 (웹 URL)
+- [ ] 이용약관 페이지 (웹 URL)
+- [ ] `Info.plist` 권한 설명 최종 검토 (한국어)
+
+---
+
+### TestFlight & 내부 테스트
+
+#### Coder
+- [ ] `flutter build ipa --release` → Xcode Archive → TestFlight 업로드
+- [ ] `flutter build appbundle --release` → Google Play 내부 테스트 트랙
+- [ ] 테스트 디바이스 목록: iPhone SE3/12/15, Galaxy S24
+- [ ] 핵심 플로우 테스트 체크리스트:
+  - [ ] 첫 실행 → 온보딩 → 프로필 설정
+  - [ ] 노드 추가/편집/삭제/연결
+  - [ ] 기억 추가 (사진/음성/메모)
+  - [ ] 클라우드 백업/복원
+  - [ ] .rlink 내보내기/가져오기
+  - [ ] 인앱 구매 (Sandbox)
+  - [ ] 어르신 모드
+  - [ ] Privacy Layer
+
+---
+
+### 심사 제출
+
+- [ ] App Store Connect 메타데이터 완성
+- [ ] Google Play Console 스토어 등록정보 완성
 - [ ] App Store 심사 제출
-- [ ] Google Play 심사 제출
-- [ ] 출시 🎉
+- [ ] Google Play 심사 제출 (프로덕션 트랙)
+- [ ] 심사 피드백 대응
+- [ ] 출시
 
 ---
 
@@ -350,4 +913,9 @@
 | Phase 1 MVP | 100% | ✅ 완료 (Week 7–8 완료) |
 | Phase 2 확장 | 85% | ✅ 완료 (트리 병합 Phase 3 이동) |
 | Phase 3 폴리시 | 80% | ✅ 완료 (히스토리/자동Ghost Phase 4 이동) |
-| Phase 4 런치 | 0% | ⏳ 대기 |
+| Phase 4a 화면 완성 | 85% | 🔄 진행 중 (Splash/Onboarding/5탭/StoryFeed/Archive/FocusMode/TimeSlider/Minimap/Heritage Export/Privacy Layer 완료) |
+| Phase 4b 캔버스 최적화 | 30% | 🔄 진행 중 (Minimap/FocusMode/TimeSlider 완료, QuadTree/LOD/HeroTransition/Pseudo3D 미완) |
+| Phase 4c 디자인 & 품질 | 40% | 🔄 진행 중 (Haptic/EmptyState/Privacy 설정 완료) |
+| Phase 4d 성능 & 테스트 | 10% | ⏳ 대기 (콜드 스타트 완료, DevTools 프로파일링 미완) |
+| Phase 4e 런치 준비 | 0% | ⏳ 대기 |
+| **전체 테스트** | **114/114** | ✅ 전체 통과 |

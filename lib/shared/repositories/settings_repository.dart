@@ -74,4 +74,20 @@ class SettingsRepository {
 
   Future<void> setOnboardingDone() =>
       set(SettingsKey.onboardingDone, 'true');
+
+  // ── 어르신 모드 ───────────────────────────────────────────────────────────
+
+  Future<bool> isElderlyMode() =>
+      getBool(SettingsKey.elderlyMode, defaultValue: false);
+
+  Future<void> setElderlyMode(bool enabled) =>
+      set(SettingsKey.elderlyMode, enabled.toString());
+
+  // ── Privacy Layer ──────────────────────────────────────────────────────────
+
+  Future<bool> isPrivacyEnabled() =>
+      getBool(SettingsKey.privacyEnabled, defaultValue: false);
+
+  Future<void> setPrivacyEnabled(bool enabled) =>
+      set(SettingsKey.privacyEnabled, enabled.toString());
 }

@@ -27,6 +27,9 @@ class MemoriesTable extends Table {
   TextColumn get tagsJson => text().withDefault(const Constant('[]'))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
+  /// Privacy Layer: 개인 메모 잠금 여부
+  BoolColumn get isPrivate => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }

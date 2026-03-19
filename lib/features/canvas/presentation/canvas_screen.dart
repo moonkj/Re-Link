@@ -13,6 +13,9 @@ import '../widgets/edge_painter.dart';
 import '../widgets/add_node_sheet.dart';
 import '../widgets/node_detail_sheet.dart';
 import '../widgets/relation_picker_sheet.dart';
+import '../widgets/time_slider.dart';
+import '../widgets/minimap_widget.dart';
+import '../../../core/utils/haptic_service.dart';
 
 /// 무한 캔버스 메인 화면
 class CanvasScreen extends ConsumerStatefulWidget {
@@ -81,20 +84,24 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                     if (nodes.isEmpty) _EmptyHint(),
 
                     // 노드 카드들
-                    ...nodes.map((node) => _DraggableNodeCard(
-                          key: ValueKey(node.id),
-                          node: node,
-                          canvasState: canvasState,
-                          onDragStarted: () => setState(() => _draggingId = node.id),
-                          onDragEnded: (dx, dy) async {
-                            setState(() => _draggingId = null);
-                            await ref
-                                .read(canvasNotifierProvider.notifier)
-                                .saveNodePosition(node.id, dx, dy);
-                          },
-                          onTap: () => _onNodeTap(node, canvasState),
-                          onLongPress: () => _onNodeLongPress(node),
-                        )),
+                    ...nodes
+                        .where((node) => canvasState.nodeVisibleInTime(node))
+                        .map((node) => _DraggableNodeCard(
+                              key: ValueKey(node.id),
+                              node: node,
+                              canvasState: canvasState,
+                              focusOpacity: canvasState.nodeOpacity(node.id),
+                              onDragStarted: () => setState(() => _draggingId = node.id),
+                              onDragEnded: (dx, dy) async {
+                                setState(() => _draggingId = null);
+                                await ref
+                                    .read(canvasNotifierProvider.notifier)
+                                    .saveNodePosition(node.id, dx, dy);
+                              },
+                              onTap: () => _onNodeTap(node, canvasState),
+                              onLongPress: () => _onNodeLongPress(node),
+                              onDoubleTap: () => _onNodeDoubleTap(node),
+                            )),
                   ],
                 ),
               ),
@@ -150,6 +157,21 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                     const SizedBox(width: AppSpacing.sm),
                     GlassCard(
                       padding: const EdgeInsets.all(AppSpacing.sm),
+                      onTap: () {
+                        HapticService.light();
+                        ref.read(canvasNotifierProvider.notifier).toggleTimeSlider();
+                      },
+                      child: Icon(
+                        Icons.timeline,
+                        color: canvasState.timeSliderVisible
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    GlassCard(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
                       onTap: _resetZoom,
                       child: const Icon(
                         Icons.center_focus_strong,
@@ -189,6 +211,21 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                 ),
               ),
             ),
+
+          // ── Time Slider ─────────────────────────────────────────────────
+          TimeSliderWidget(),
+
+          // ── Minimap (우하단) ─────────────────────────────────────────────
+          Positioned(
+            bottom: AppSpacing.xxl + 90,
+            left: AppSpacing.lg,
+            child: nodes.isEmpty
+                ? const SizedBox.shrink()
+                : MinimapWidget(
+                    nodes: nodes,
+                    transformationController: _transformCtrl,
+                  ),
+          ),
 
           // ── FAB (노드 추가) ──────────────────────────────────────────────
           Positioned(
@@ -269,7 +306,19 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
   }
 
   void _onNodeLongPress(NodeModel node) {
+    HapticService.medium();
     ref.read(canvasNotifierProvider.notifier).startConnectMode(node.id);
+  }
+
+  void _onNodeDoubleTap(NodeModel node) {
+    HapticService.light();
+    final notifier = ref.read(canvasNotifierProvider.notifier);
+    final current = ref.read(canvasNotifierProvider).focusedNodeId;
+    if (current == node.id) {
+      notifier.clearFocus();
+    } else {
+      notifier.setFocus(node.id);
+    }
   }
 
   Future<void> _showAddNodeSheet() async {
@@ -305,16 +354,20 @@ class _DraggableNodeCard extends StatefulWidget {
     super.key,
     required this.node,
     required this.canvasState,
+    required this.focusOpacity,
     required this.onTap,
     required this.onLongPress,
+    required this.onDoubleTap,
     required this.onDragStarted,
     required this.onDragEnded,
   });
 
   final NodeModel node;
   final CanvasState canvasState;
+  final double focusOpacity;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+  final VoidCallback onDoubleTap;
   final VoidCallback onDragStarted;
   final void Function(double dx, double dy) onDragEnded;
 
@@ -351,8 +404,12 @@ class _DraggableNodeCardState extends State<_DraggableNodeCard> {
     return Positioned(
       left: _x,
       top: _y,
-      child: GestureDetector(
+      child: AnimatedOpacity(
+        opacity: widget.focusOpacity,
+        duration: const Duration(milliseconds: 200),
+        child: GestureDetector(
         onTap: widget.onTap,
+        onDoubleTap: widget.onDoubleTap,
         onLongPress: widget.onLongPress,
         onPanStart: (d) {
           _dragStart = d.globalPosition;
@@ -380,6 +437,7 @@ class _DraggableNodeCardState extends State<_DraggableNodeCard> {
           onTap: widget.onTap,
           onLongPress: widget.onLongPress,
           onDragEnd: widget.onDragEnded,
+        ),
         ),
       ),
     );

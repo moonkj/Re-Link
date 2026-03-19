@@ -1854,6 +1854,21 @@ class $MemoriesTableTable extends MemoriesTable
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _isPrivateMeta = const VerificationMeta(
+    'isPrivate',
+  );
+  @override
+  late final GeneratedColumn<bool> isPrivate = GeneratedColumn<bool>(
+    'is_private',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_private" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1867,6 +1882,7 @@ class $MemoriesTableTable extends MemoriesTable
     dateTaken,
     tagsJson,
     createdAt,
+    isPrivate,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1958,6 +1974,12 @@ class $MemoriesTableTable extends MemoriesTable
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
+    if (data.containsKey('is_private')) {
+      context.handle(
+        _isPrivateMeta,
+        isPrivate.isAcceptableOrUnknown(data['is_private']!, _isPrivateMeta),
+      );
+    }
     return context;
   }
 
@@ -2011,6 +2033,10 @@ class $MemoriesTableTable extends MemoriesTable
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      isPrivate: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_private'],
+      )!,
     );
   }
 
@@ -2039,6 +2065,9 @@ class MemoriesTableData extends DataClass
   final DateTime? dateTaken;
   final String tagsJson;
   final DateTime createdAt;
+
+  /// Privacy Layer: 개인 메모 잠금 여부
+  final bool isPrivate;
   const MemoriesTableData({
     required this.id,
     required this.nodeId,
@@ -2051,6 +2080,7 @@ class MemoriesTableData extends DataClass
     this.dateTaken,
     required this.tagsJson,
     required this.createdAt,
+    required this.isPrivate,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2078,6 +2108,7 @@ class MemoriesTableData extends DataClass
     }
     map['tags_json'] = Variable<String>(tagsJson);
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['is_private'] = Variable<bool>(isPrivate);
     return map;
   }
 
@@ -2106,6 +2137,7 @@ class MemoriesTableData extends DataClass
           : Value(dateTaken),
       tagsJson: Value(tagsJson),
       createdAt: Value(createdAt),
+      isPrivate: Value(isPrivate),
     );
   }
 
@@ -2126,6 +2158,7 @@ class MemoriesTableData extends DataClass
       dateTaken: serializer.fromJson<DateTime?>(json['dateTaken']),
       tagsJson: serializer.fromJson<String>(json['tagsJson']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      isPrivate: serializer.fromJson<bool>(json['isPrivate']),
     );
   }
   @override
@@ -2143,6 +2176,7 @@ class MemoriesTableData extends DataClass
       'dateTaken': serializer.toJson<DateTime?>(dateTaken),
       'tagsJson': serializer.toJson<String>(tagsJson),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'isPrivate': serializer.toJson<bool>(isPrivate),
     };
   }
 
@@ -2158,6 +2192,7 @@ class MemoriesTableData extends DataClass
     Value<DateTime?> dateTaken = const Value.absent(),
     String? tagsJson,
     DateTime? createdAt,
+    bool? isPrivate,
   }) => MemoriesTableData(
     id: id ?? this.id,
     nodeId: nodeId ?? this.nodeId,
@@ -2174,6 +2209,7 @@ class MemoriesTableData extends DataClass
     dateTaken: dateTaken.present ? dateTaken.value : this.dateTaken,
     tagsJson: tagsJson ?? this.tagsJson,
     createdAt: createdAt ?? this.createdAt,
+    isPrivate: isPrivate ?? this.isPrivate,
   );
   MemoriesTableData copyWithCompanion(MemoriesTableCompanion data) {
     return MemoriesTableData(
@@ -2194,6 +2230,7 @@ class MemoriesTableData extends DataClass
       dateTaken: data.dateTaken.present ? data.dateTaken.value : this.dateTaken,
       tagsJson: data.tagsJson.present ? data.tagsJson.value : this.tagsJson,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      isPrivate: data.isPrivate.present ? data.isPrivate.value : this.isPrivate,
     );
   }
 
@@ -2210,7 +2247,8 @@ class MemoriesTableData extends DataClass
           ..write('durationSeconds: $durationSeconds, ')
           ..write('dateTaken: $dateTaken, ')
           ..write('tagsJson: $tagsJson, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('isPrivate: $isPrivate')
           ..write(')'))
         .toString();
   }
@@ -2228,6 +2266,7 @@ class MemoriesTableData extends DataClass
     dateTaken,
     tagsJson,
     createdAt,
+    isPrivate,
   );
   @override
   bool operator ==(Object other) =>
@@ -2243,7 +2282,8 @@ class MemoriesTableData extends DataClass
           other.durationSeconds == this.durationSeconds &&
           other.dateTaken == this.dateTaken &&
           other.tagsJson == this.tagsJson &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.isPrivate == this.isPrivate);
 }
 
 class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
@@ -2258,6 +2298,7 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
   final Value<DateTime?> dateTaken;
   final Value<String> tagsJson;
   final Value<DateTime> createdAt;
+  final Value<bool> isPrivate;
   final Value<int> rowid;
   const MemoriesTableCompanion({
     this.id = const Value.absent(),
@@ -2271,6 +2312,7 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
     this.dateTaken = const Value.absent(),
     this.tagsJson = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.isPrivate = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MemoriesTableCompanion.insert({
@@ -2285,6 +2327,7 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
     this.dateTaken = const Value.absent(),
     this.tagsJson = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.isPrivate = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        nodeId = Value(nodeId),
@@ -2301,6 +2344,7 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
     Expression<DateTime>? dateTaken,
     Expression<String>? tagsJson,
     Expression<DateTime>? createdAt,
+    Expression<bool>? isPrivate,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2315,6 +2359,7 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
       if (dateTaken != null) 'date_taken': dateTaken,
       if (tagsJson != null) 'tags_json': tagsJson,
       if (createdAt != null) 'created_at': createdAt,
+      if (isPrivate != null) 'is_private': isPrivate,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2331,6 +2376,7 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
     Value<DateTime?>? dateTaken,
     Value<String>? tagsJson,
     Value<DateTime>? createdAt,
+    Value<bool>? isPrivate,
     Value<int>? rowid,
   }) {
     return MemoriesTableCompanion(
@@ -2345,6 +2391,7 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
       dateTaken: dateTaken ?? this.dateTaken,
       tagsJson: tagsJson ?? this.tagsJson,
       createdAt: createdAt ?? this.createdAt,
+      isPrivate: isPrivate ?? this.isPrivate,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2385,6 +2432,9 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (isPrivate.present) {
+      map['is_private'] = Variable<bool>(isPrivate.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2405,6 +2455,7 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
           ..write('dateTaken: $dateTaken, ')
           ..write('tagsJson: $tagsJson, ')
           ..write('createdAt: $createdAt, ')
+          ..write('isPrivate: $isPrivate, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3899,6 +3950,7 @@ typedef $$MemoriesTableTableCreateCompanionBuilder =
       Value<DateTime?> dateTaken,
       Value<String> tagsJson,
       Value<DateTime> createdAt,
+      Value<bool> isPrivate,
       Value<int> rowid,
     });
 typedef $$MemoriesTableTableUpdateCompanionBuilder =
@@ -3914,6 +3966,7 @@ typedef $$MemoriesTableTableUpdateCompanionBuilder =
       Value<DateTime?> dateTaken,
       Value<String> tagsJson,
       Value<DateTime> createdAt,
+      Value<bool> isPrivate,
       Value<int> rowid,
     });
 
@@ -4005,6 +4058,11 @@ class $$MemoriesTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get isPrivate => $composableBuilder(
+    column: $table.isPrivate,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$NodesTableTableFilterComposer get nodeId {
     final $$NodesTableTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -4088,6 +4146,11 @@ class $$MemoriesTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isPrivate => $composableBuilder(
+    column: $table.isPrivate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$NodesTableTableOrderingComposer get nodeId {
     final $$NodesTableTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -4157,6 +4220,9 @@ class $$MemoriesTableTableAnnotationComposer
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
+  GeneratedColumn<bool> get isPrivate =>
+      $composableBuilder(column: $table.isPrivate, builder: (column) => column);
+
   $$NodesTableTableAnnotationComposer get nodeId {
     final $$NodesTableTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -4220,6 +4286,7 @@ class $$MemoriesTableTableTableManager
                 Value<DateTime?> dateTaken = const Value.absent(),
                 Value<String> tagsJson = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<bool> isPrivate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MemoriesTableCompanion(
                 id: id,
@@ -4233,6 +4300,7 @@ class $$MemoriesTableTableTableManager
                 dateTaken: dateTaken,
                 tagsJson: tagsJson,
                 createdAt: createdAt,
+                isPrivate: isPrivate,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -4248,6 +4316,7 @@ class $$MemoriesTableTableTableManager
                 Value<DateTime?> dateTaken = const Value.absent(),
                 Value<String> tagsJson = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<bool> isPrivate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MemoriesTableCompanion.insert(
                 id: id,
@@ -4261,6 +4330,7 @@ class $$MemoriesTableTableTableManager
                 dateTaken: dateTaken,
                 tagsJson: tagsJson,
                 createdAt: createdAt,
+                isPrivate: isPrivate,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

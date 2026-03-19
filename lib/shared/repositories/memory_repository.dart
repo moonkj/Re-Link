@@ -20,6 +20,10 @@ class MemoryRepository {
 
   // ── 조회 ──────────────────────────────────────────────────────────────────
 
+  /// 전체 기억 스트림 (Story Feed / Archive용)
+  Stream<List<MemoryModel>> watchAll() =>
+      _db.watchAllMemories().map((rows) => rows.map(_rowToModel).toList());
+
   Stream<List<MemoryModel>> watchForNode(String nodeId) =>
       _db.watchMemoriesForNode(nodeId).map((rows) => rows.map(_rowToModel).toList());
 
@@ -105,6 +109,12 @@ class MemoryRepository {
       dateTaken: row.dateTaken,
       tags: tags,
       createdAt: row.createdAt,
+      isPrivate: row.isPrivate,
     );
   }
+
+  // ── Privacy Layer ──────────────────────────────────────────────────────────
+
+  Future<void> setPrivate(String memoryId, {required bool isPrivate}) =>
+      _db.setMemoryPrivate(memoryId, isPrivate: isPrivate);
 }

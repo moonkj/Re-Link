@@ -155,7 +155,7 @@ class _CanvasNodeProviderElement extends AutoDisposeProviderElement<NodeModel?>
   String get id => (origin as CanvasNodeProvider).id;
 }
 
-String _$canvasNotifierHash() => r'df6da0ab309788612a379bc045c52d07bf30896f';
+String _$canvasNotifierHash() => r'4f697e9cb5286ad2ee7f55b75cdc5097b6b12ecd';
 
 /// See also [CanvasNotifier].
 @ProviderFor(CanvasNotifier)
