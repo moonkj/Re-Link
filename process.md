@@ -840,7 +840,7 @@
 - [x] `test/canvas/quad_tree_test.dart`, `lod_test.dart`, `generation_depth_test.dart` — 31개
 - [x] `test/settings/elderly_mode_notifier_test.dart` — 5개
 - [x] `test/accessibility/semantics_test.dart` — 4개
-- [x] 전체 단위 테스트 164/164 통과
+- [x] 전체 단위 테스트 407/407 통과
 
 #### Performance Engineer (코드 레벨 최적화)
 - [x] QuadTree 캐싱: `_qtSourceNodes != nodes` 체크로 노드 변경 시만 재빌드
@@ -1020,7 +1020,7 @@
 
 #### Debugger
 - [x] `flutter analyze lib/` → 0 issues
-- [x] `flutter test test/` → 169/169 통과
+- [x] `flutter test test/` → 407/407 통과 (커버리지 81.1% ≥ 80% 목표)
 
 ---
 
@@ -1038,4 +1038,5 @@
 | Phase 4d 성능 & 테스트 | 80% | ✅ 완료 (패키지 정리/QuadTree캐싱/통합테스트/단위164개, DevTools는 실디바이스) |
 | Phase 4e 런치 준비 | 0% | ⏳ 대기 |
 | Phase 4f UX 고도화 | 100% | ✅ 완료 (Spring/Haptic/VoiceSpeed/FocusPanel/GhostAnim/VibeMeter/MergePreview) |
-| **전체 테스트** | **169/169** | ✅ 전체 통과 |
+| **전체 테스트** | **407/407** | ✅ 전체 통과 |
+| **커버리지** | **81.1%** | ✅ 목표 80% 달성 (771/951 라인, .g.dart 제외) |
