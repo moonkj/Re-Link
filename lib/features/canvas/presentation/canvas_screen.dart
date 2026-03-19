@@ -90,11 +90,6 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                                 .read(canvasNotifierProvider.notifier)
                                 .saveNodePosition(node.id, dx, dy);
                           },
-                          onPositionUpdate: (dx, dy) {
-                            ref
-                                .read(canvasNotifierProvider.notifier)
-                                .updateNodePosition(node.id, dx, dy);
-                          },
                           onTap: () => _onNodeTap(node, canvasState),
                           onLongPress: () => _onNodeLongPress(node),
                         )),
@@ -302,7 +297,6 @@ class _DraggableNodeCard extends StatefulWidget {
     required this.onLongPress,
     required this.onDragStarted,
     required this.onDragEnded,
-    required this.onPositionUpdate,
   });
 
   final NodeModel node;
@@ -311,7 +305,6 @@ class _DraggableNodeCard extends StatefulWidget {
   final VoidCallback onLongPress;
   final VoidCallback onDragStarted;
   final void Function(double dx, double dy) onDragEnded;
-  final void Function(double dx, double dy) onPositionUpdate;
 
   @override
   State<_DraggableNodeCard> createState() => _DraggableNodeCardState();
@@ -361,7 +354,6 @@ class _DraggableNodeCardState extends State<_DraggableNodeCard> {
             _x = (_posStart!.dx + delta.dx).clamp(0.0, 3900.0);
             _y = (_posStart!.dy + delta.dy).clamp(0.0, 3900.0);
           });
-          widget.onPositionUpdate(_x, _y);
         },
         onPanEnd: (_) {
           _dragStart = null;

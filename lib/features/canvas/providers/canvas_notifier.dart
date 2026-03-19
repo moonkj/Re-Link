@@ -101,14 +101,6 @@ class CanvasNotifier extends _$CanvasNotifier {
 
   // ── 노드 위치 드래그 저장 ─────────────────────────────────────────────────
 
-  Future<void> updateNodePosition(String id, double x, double y) async {
-    // 즉시 로컬 상태 업데이트 (드래그 중 부드럽게)
-    final updatedNodes = state.nodes.map((n) {
-      return n.id == id ? n.copyWith(positionX: x, positionY: y) : n;
-    }).toList();
-    state = state.copyWith(nodes: updatedNodes);
-  }
-
   Future<void> saveNodePosition(String id, double x, double y) async {
     await ref.read(nodeRepositoryProvider).updatePosition(id, x, y);
   }
