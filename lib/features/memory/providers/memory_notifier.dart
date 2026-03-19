@@ -14,6 +14,16 @@ part 'memory_notifier.g.dart';
 Stream<List<MemoryModel>> memoriesForNode(Ref ref, String nodeId) =>
     ref.watch(memoryRepositoryProvider).watchForNode(nodeId);
 
+/// 전체 음성 사용량 (분 단위)
+@riverpod
+Future<int> totalVoiceMinutes(Ref ref) =>
+    ref.watch(memoryRepositoryProvider).totalVoiceMinutes();
+
+/// 전체 사진 수
+@riverpod
+Future<int> totalPhotoCount(Ref ref) =>
+    ref.watch(memoryRepositoryProvider).totalPhotoCount();
+
 /// 기억 CRUD 오퍼레이션
 @riverpod
 class MemoryNotifier extends _$MemoryNotifier {

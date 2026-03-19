@@ -160,6 +160,44 @@ class _MemoriesForNodeProviderElement
   String get nodeId => (origin as MemoriesForNodeProvider).nodeId;
 }
 
+String _$totalVoiceMinutesHash() => r'45aa267dcf69ab3bdc1b6e9de6b52a41514095ca';
+
+/// 전체 음성 사용량 (분 단위)
+///
+/// Copied from [totalVoiceMinutes].
+@ProviderFor(totalVoiceMinutes)
+final totalVoiceMinutesProvider = AutoDisposeFutureProvider<int>.internal(
+  totalVoiceMinutes,
+  name: r'totalVoiceMinutesProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$totalVoiceMinutesHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef TotalVoiceMinutesRef = AutoDisposeFutureProviderRef<int>;
+String _$totalPhotoCountHash() => r'6b25ffd475c94eec8080091922a1929e1cd3f328';
+
+/// 전체 사진 수
+///
+/// Copied from [totalPhotoCount].
+@ProviderFor(totalPhotoCount)
+final totalPhotoCountProvider = AutoDisposeFutureProvider<int>.internal(
+  totalPhotoCount,
+  name: r'totalPhotoCountProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$totalPhotoCountHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef TotalPhotoCountRef = AutoDisposeFutureProviderRef<int>;
 String _$memoryNotifierHash() => r'baf7e7e80562afe72cf139de70243bea4a0a82a0';
 
 /// 기억 CRUD 오퍼레이션

@@ -5,6 +5,8 @@ import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/memory_model.dart';
+import '../../../shared/models/user_plan.dart';
+import '../../../shared/repositories/settings_repository.dart';
 import '../providers/memory_notifier.dart';
 import '../widgets/add_memory_sheet.dart';
 import '../widgets/memory_detail_sheet.dart';
@@ -230,7 +232,24 @@ class _MemoryTabContent extends StatelessWidget {
       return _MixedList(memories: memories, onTap: onTap);
     }
 
-    // 음성/메모 탭 → 리스트
+    // 음성 탭 → 사용량 표시 + 리스트
+    if (filterType == MemoryType.voice) {
+      return Column(
+        children: [
+          _VoiceUsageBanner(),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 100),
+              itemCount: memories.length,
+              separatorBuilder: (i, s) => const SizedBox(height: AppSpacing.sm),
+              itemBuilder: (_, i) => _MemoryListTile(memory: memories[i], onTap: () => onTap(memories[i])),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // 메모 탭 → 리스트
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 100),
       itemCount: memories.length,
@@ -397,6 +416,75 @@ class _MemoryListTile extends StatelessWidget {
   }
 
   String _formatDate(DateTime dt) => '${dt.month}/${dt.day}';
+}
+
+// ── 음성 사용량 배너 ─────────────────────────────────────────────────────────
+
+class _VoiceUsageBanner extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final usedAsync = ref.watch(totalVoiceMinutesProvider);
+    final planAsync = ref.watch(
+      settingsRepositoryProvider.select((r) => r.getUserPlan()),
+    );
+
+    return FutureBuilder<UserPlan>(
+      future: planAsync,
+      builder: (context, planSnap) {
+        final plan = planSnap.data ?? UserPlan.free;
+        if (!plan.hasVoice) return const SizedBox.shrink();
+
+        return usedAsync.when(
+          data: (used) {
+            final max = plan.maxVoiceMinutes;
+            final ratio = (used / max).clamp(0.0, 1.0);
+            final isWarning = ratio >= 0.8;
+
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 0),
+              child: GlassCard(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.mic_outlined,
+                            size: 14,
+                            color: isWarning ? AppColors.accent : AppColors.textSecondary),
+                        const SizedBox(width: 4),
+                        Text(
+                          '음성 $used분 / $max분 사용',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isWarning ? AppColors.accent : AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: ratio,
+                        minHeight: 6,
+                        backgroundColor: AppColors.glassSurface,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          isWarning ? AppColors.accent : AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (e, s) => const SizedBox.shrink(),
+        );
+      },
+    );
+  }
 }
 
 // ── 빈 상태 ──────────────────────────────────────────────────────────────────

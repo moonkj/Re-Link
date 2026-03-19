@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-19
-> 현재 단계: 아이패드 테스트 환경 구성 완료 → Phase 2 클라우드 백업 연동 예정
+> 현재 단계: Phase 2 클라우드 백업 + 가족 공유 + 음성 캡슐 고도화 완료
 
 ---
 
@@ -199,25 +199,59 @@
 
 ---
 
-## Phase 2 — 확장 (Week 9–20)
+## Phase 2 — 확장 (Week 9–20) ✅
 
-### 클라우드 백업 연동
-- [ ] iOS iCloud Drive 실제 업로드/다운로드
-- [ ] Android Google Drive 실제 업로드/다운로드
-- [ ] 자동 백업 스케줄 (백그라운드)
-- [ ] 백업 목록 조회 + 선택 복원
-- [ ] 오래된 백업 자동 삭제 (최대 5개)
+### 클라우드 백업 연동 ✅
 
-### 가족 공유
-- [ ] .rlink 파일 내보내기 (OS 공유시트)
-- [ ] .rlink 파일 가져오기 (파일 앱 / 공유 수신)
-- [ ] 트리 병합 미리보기 화면
-- [ ] 충돌 해결 UI (같은 이름 노드)
+#### UX Designer
+- [x] 백업 화면 흐름 설계 (상태 카드 + 액션 타일 + 클라우드 목록)
+- [x] 자동 백업 토글 UX (24시간 주기)
+- [x] 복원 확인 다이얼로그 (데이터 덮어쓰기 경고)
 
-### 음성 캡슐 고도화
-- [ ] 녹음 시간 제한 (플랜별: 30분/300분)
-- [ ] 음성 목록 관리
-- [ ] 음성 파일 정리 (용량 표시)
+#### Architect
+- [x] `CloudBackupProvider` 추상 인터페이스 (upload/listBackups/download/prune/isAvailable)
+- [x] `BackupState` 불변 상태 (isLoading, lastBackupAt, cloudBackups, cloudProvider, error)
+- [x] `BackupNotifier` (플랫폼별 클라우드 자동 선택: iOS→iCloud, Android→Google Drive)
+
+#### Coder
+- [x] `lib/core/services/cloud/icloud_backup.dart` — icloud_storage 2.2.0 실제 구현
+- [x] `lib/core/services/cloud/google_drive_backup.dart` — googleapis + google_sign_in 구현
+- [x] `lib/features/backup/providers/backup_notifier.dart` — BackupState + BackupNotifier
+- [x] `lib/features/backup/presentation/backup_screen.dart` — 전체 백업 UI
+- [x] `pubspec.yaml` — file_picker 추가
+- [x] 자동 백업 (`checkAutoBackup`) — 앱 포그라운드 진입 시 24시간 체크
+- [x] 오래된 백업 자동 삭제 (`pruneOldBackups`, 최대 5개)
+
+#### Debugger
+- [x] `flutter pub run build_runner build` → 142 outputs
+- [x] `flutter analyze lib/` → 0 issues
+- [x] icloud_storage 2.2.0 API 타입 수정 (non-nullable returns, int sizeInBytes)
+- [x] Switch.activeColor → activeThumbColor deprecation 수정
+
+#### Test Engineer
+- [x] `test/backup/backup_format_test.dart` — 7개 테스트 (BackupManifest + BackupInfo)
+- [x] 전체 65/65 통과
+
+#### Reviewer
+- [x] `mounted` 체크 위치 정상 (BuildContext across async gap 없음)
+- [x] `pruneOldBackups` Future.wait 병렬 삭제 적용
+
+#### Performance
+- [x] 클라우드 목록 로드는 initState 한 번만 (addPostFrameCallback)
+- [x] BackupState copyWith 불변 패턴으로 불필요한 rebuild 최소화
+
+### 가족 공유 ✅
+- [x] .rlink 파일 내보내기 (OS 공유시트 — share_plus)
+- [x] .rlink 파일 가져오기 (FilePicker .rlink 확장자 필터)
+- [x] iOS Entitlements 설정 (iCloud.com.relink 컨테이너)
+- [ ] 트리 병합 미리보기 화면 (Phase 3로 이동)
+- [ ] 충돌 해결 UI (Phase 3로 이동)
+
+### 음성 캡슐 고도화 ✅
+- [x] 녹음 시간 제한 (플랜별: Basic 30분/Premium 300분) — `_checkVoiceLimit`
+- [x] 음성 목록 관리 — MemoryScreen 음성 탭
+- [x] 음성 사용량 배너 (`_VoiceUsageBanner`, LinearProgressIndicator)
+- [x] `totalVoiceMinutes` / `totalPhotoCount` Riverpod 프로바이더
 
 ---
 
@@ -275,6 +309,6 @@
 |-------|--------|------|
 | Phase 0 초기화 | 100% | ✅ 완료 |
 | Phase 1 MVP | 100% | ✅ 완료 (Week 7–8 완료) |
-| Phase 2 확장 | 0% | ⏳ 대기 |
+| Phase 2 확장 | 85% | ✅ 완료 (트리 병합 Phase 3 이동) |
 | Phase 3 폴리시 | 0% | ⏳ 대기 |
 | Phase 4 런치 | 0% | ⏳ 대기 |
