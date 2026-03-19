@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'app.dart';
 
 Future<void> main() async {
@@ -19,6 +20,9 @@ Future<void> main() async {
       statusBarIconBrightness: Brightness.light,
     ),
   );
+
+  // AdMob 초기화
+  await MobileAds.instance.initialize();
 
   // 서버 없음 — Drift DB는 첫 사용 시 자동 생성됨
   runApp(const ProviderScope(child: ReLink()));

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../features/profile_setup/presentation/profile_setup_screen.dart';
 import '../../features/canvas/presentation/canvas_screen.dart';
 import '../../features/backup/presentation/backup_screen.dart';
 import '../../features/memory/presentation/memory_screen.dart';
+import '../../features/subscription/presentation/subscription_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
+import '../../shared/widgets/ad_banner_widget.dart';
 
 /// 라우트 경로 상수
 abstract final class AppRoutes {
@@ -70,7 +72,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.subscription,
-        builder: (_, s) => const _PlaceholderScreen(title: '요금제'),
+        builder: (_, s) => const SubscriptionScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
@@ -129,7 +131,7 @@ class _SplashScreenState extends State<_SplashScreen> {
 
 // ── Main Shell (하단 네비게이션) ───────────────────────────────────────────────
 
-class _MainShell extends StatelessWidget {
+class _MainShell extends ConsumerWidget {
   const _MainShell({required this.child});
   final Widget child;
 
@@ -141,28 +143,34 @@ class _MainShell extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).matchedLocation;
     final idx = _indexFromLocation(location);
 
     return Scaffold(
       body: child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: idx,
-        onDestinationSelected: (i) {
-          switch (i) {
-            case 0:
-              context.go(AppRoutes.canvas);
-            case 1:
-              context.go(AppRoutes.backup);
-            case 2:
-              context.go(AppRoutes.settings);
-          }
-        },
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.account_tree), label: '트리'),
-          NavigationDestination(icon: Icon(Icons.cloud_sync), label: '백업'),
-          NavigationDestination(icon: Icon(Icons.settings), label: '설정'),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const AdBannerWidget(),
+          NavigationBar(
+            selectedIndex: idx,
+            onDestinationSelected: (i) {
+              switch (i) {
+                case 0:
+                  context.go(AppRoutes.canvas);
+                case 1:
+                  context.go(AppRoutes.backup);
+                case 2:
+                  context.go(AppRoutes.settings);
+              }
+            },
+            destinations: const [
+              NavigationDestination(icon: Icon(Icons.account_tree), label: '트리'),
+              NavigationDestination(icon: Icon(Icons.cloud_sync), label: '백업'),
+              NavigationDestination(icon: Icon(Icons.settings), label: '설정'),
+            ],
+          ),
         ],
       ),
     );

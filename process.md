@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-19
-> 현재 단계: Phase 1 Week 5–6 완료 → Week 7–8 플랜 시스템 + AdMob 예정
+> 현재 단계: Phase 1 Week 7–8 완료 → Phase 2 클라우드 백업 연동 예정
 
 ---
 
@@ -158,17 +158,37 @@
 
 ---
 
-### Week 7–8: 플랜 시스템 + AdMob
+### Week 7–8: 플랜 시스템 + AdMob ✅
+
+#### UX Designer
+- [x] 플랜 선택 화면 흐름 설계 (3플랜 카드, 현재 플랜 하이라이트, 구매/업그레이드 CTA)
+- [x] 플랜 제한 UX (SnackBar + 업그레이드 버튼)
+- [x] 구매 복원 버튼
 
 #### Coder
-- [ ] `in_app_purchase` 초기화
-- [ ] 상품 목록 조회 (BASIC ₩4,900, PREMIUM ₩14,900)
-- [ ] 구매 플로우
-- [ ] 구매 복원
-- [ ] `PlanGuard` (노드/사진/음성 제한 체크)
-- [ ] AdMob 배너 광고 (Free/Basic)
-- [ ] AdMob 네이티브 광고 (Free/Basic)
-- [ ] Premium 광고 제거
+- [x] `lib/core/services/plan/plan_service.dart` — InAppPurchase 래퍼
+- [x] `lib/features/subscription/providers/plan_notifier.dart` — Riverpod AsyncNotifier
+- [x] `lib/features/subscription/presentation/subscription_screen.dart` — 플랜 선택 화면
+- [x] `lib/shared/widgets/ad_banner_widget.dart` — AdMob 배너 (Free/Basic)
+- [x] `lib/shared/widgets/plan_limit_banner.dart` — 제한 초과 SnackBar 헬퍼
+- [x] `user_plan.dart` — maxAiCallsPerMonth 제거
+- [x] `main.dart` — MobileAds.instance.initialize() 추가
+- [x] `app_router.dart` — /subscription 실제 화면 연결, AdBanner 메인 셸 통합
+- [x] 구매 플로우 (buy, restore, pendingCompletePurchase)
+- [x] Premium 광고 제거 (hasAds 기반 조건부 렌더링)
+
+#### Debugger
+- [x] `flutter pub run build_runner build` → 89 outputs
+- [x] `flutter analyze lib/` → 0 issues
+
+#### Test Engineer
+- [x] `test/subscription/plan_service_test.dart` — 14개 테스트 (planFromProductId, UserPlan 제한값, 광고 여부)
+- [x] 전체 58/58 통과
+
+#### Performance
+- [x] Premium 플랜 시 AdBanner 즉시 SizedBox.shrink() 반환 (ad 로드 없음)
+- [x] PlanNotifier AsyncNotifier 비동기 초기화
+- [x] const 위젯 최대 활용
 
 ---
 
@@ -247,7 +267,7 @@
 | Phase | 진행율 | 상태 |
 |-------|--------|------|
 | Phase 0 초기화 | 100% | ✅ 완료 |
-| Phase 1 MVP | 65% | 🔄 진행 중 (Week 5–6 완료) |
+| Phase 1 MVP | 100% | ✅ 완료 (Week 7–8 완료) |
 | Phase 2 확장 | 0% | ⏳ 대기 |
 | Phase 3 폴리시 | 0% | ⏳ 대기 |
 | Phase 4 런치 | 0% | ⏳ 대기 |

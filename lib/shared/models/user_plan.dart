@@ -28,12 +28,6 @@ enum UserPlan {
         premium => 999999, // 무제한
       };
 
-  int get maxAiCallsPerMonth => switch (this) {
-        free => 10,
-        basic => 100,
-        premium => 999999, // 무제한
-      };
-
   int get maxVoiceMinutes => switch (this) {
         free => 0, // 음성 미지원
         basic => 30,
