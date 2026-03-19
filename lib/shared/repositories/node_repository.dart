@@ -147,6 +147,12 @@ class NodeRepository {
 
   Future<void> deleteEdge(String id) => _db.deleteEdge(id);
 
+  /// [nodeId] 노드에 배우자(spouse) 관계가 하나라도 있는지 확인합니다.
+  Future<bool> hasSpouse(String nodeId) async {
+    final edges = await getEdgesForNode(nodeId);
+    return edges.any((e) => e.relation == RelationType.spouse);
+  }
+
   // ── 변환 ──────────────────────────────────────────────────────────────────
 
   NodeModel _rowToModel(NodesTableData row) {

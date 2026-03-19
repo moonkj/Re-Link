@@ -120,6 +120,78 @@ class NodeNotifier extends _$NodeNotifier {
     }
   }
 
+  // ── Ghost Node 자동 생성 ─────────────────────────────────────────────────
+
+  /// 새 노드를 생성하고 [anchorId] 노드와 [relation]으로 연결합니다.
+  /// child / parent 관계인 경우, anchor 노드에 배우자가 없으면
+  /// Ghost 배우자 노드를 자동으로 생성합니다.
+  Future<NodeModel?> createNodeWithAutoGhost({
+    required String name,
+    required String anchorId,
+    required RelationType relation,
+    String? nickname,
+    bool isGhost = false,
+    double positionX = 0.0,
+    double positionY = 0.0,
+  }) async {
+    state = const AsyncLoading();
+    try {
+      await _checkNodeLimit();
+
+      // 1. 새 노드 생성
+      final node = await _repo.create(
+        name: name,
+        nickname: nickname,
+        isGhost: isGhost,
+        positionX: positionX,
+        positionY: positionY,
+      );
+
+      // 2. anchor ↔ new 노드 관계 연결
+      await _repo.addEdge(
+        fromNodeId: anchorId,
+        toNodeId: node.id,
+        relation: relation,
+      );
+
+      // 3. child/parent 관계 시 배우자 Ghost 자동 생성
+      if (relation == RelationType.child || relation == RelationType.parent) {
+        final parentId =
+            relation == RelationType.child ? anchorId : node.id;
+        final parentNode = await _repo.getById(parentId);
+        if (parentNode != null) {
+          final hasSpouse = await _repo.hasSpouse(parentId);
+          if (!hasSpouse) {
+            final plan = await _settings.getUserPlan();
+            final count = await _repo.count();
+            if (count < plan.maxNodes) {
+              final ghostSpouse = await _repo.create(
+                name: '미확인 배우자',
+                isGhost: true,
+                positionX: parentNode.positionX + 220,
+                positionY: parentNode.positionY,
+              );
+              await _repo.addEdge(
+                fromNodeId: parentId,
+                toNodeId: ghostSpouse.id,
+                relation: RelationType.spouse,
+              );
+            }
+          }
+        }
+      }
+
+      state = const AsyncData(null);
+      return node;
+    } on PlanLimitError {
+      state = const AsyncData(null);
+      rethrow;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return null;
+    }
+  }
+
   // ── 플랜 제한 체크 ────────────────────────────────────────────────────────
 
   Future<void> _checkNodeLimit() async {

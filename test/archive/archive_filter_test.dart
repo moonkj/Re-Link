@@ -56,6 +56,7 @@ void main() {
   });
 
   group('ArchiveGroup 필터링 로직 검증', () {
+    // ignore: unused_local_variable
     final node = NodeModel(id: 'n1', name: '테스트', createdAt: DateTime.now());
     final photoMemory = MemoryModel(
       id: 'm1', nodeId: 'n1', type: MemoryType.photo,

@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:re_link/features/story/providers/story_feed_notifier.dart';
 import 'package:re_link/shared/models/memory_model.dart';
-import 'package:re_link/shared/models/node_model.dart';
 
 void main() {
   group('StoryFeedItem', () {

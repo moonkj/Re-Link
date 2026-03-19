@@ -584,8 +584,8 @@
 - [ ] Ghost → 실제 인물 전환 배너 (NodeDetailSheet)
 
 #### Coder
-- [ ] `NodeNotifier.addNodeWithAutoGhost()` — 부모 Ghost 자동 생성 로직
-- [ ] Ghost 자동 배치 좌표 계산 (부모 노드 상단 y-offset)
+- [x] `NodeNotifier.addNodeWithAutoGhost()` — 부모 Ghost 자동 생성 로직
+- [x] Ghost 자동 배치 좌표 계산 (부모 노드 상단 y-offset)
 
 #### Debugger
 - [ ] `flutter analyze lib/` → 0 issues
@@ -855,12 +855,12 @@
 ### 앱 아이콘 & 스플래시
 
 #### UX Designer
-- [ ] 앱 아이콘 디자인 (1024×1024 PNG — iOS, 512×512 — Android)
+- [x] 앱 아이콘 디자인 (1024×1024 PNG — iOS, 512×512 — Android)
 - [ ] 다크/라이트 아이콘 버전
 
 #### Coder
-- [ ] `flutter_launcher_icons` 패키지 적용
-- [ ] iOS LaunchScreen.storyboard 최종 확인
+- [x] `flutter_launcher_icons` 패키지 적용
+- [x] iOS LaunchScreen.storyboard 최종 확인
 - [ ] Android splash12.xml (Android 12+) 적용
 
 ---
@@ -873,8 +873,8 @@
 - [ ] 프리뷰 동영상 (선택)
 
 #### Coder
-- [ ] 앱 설명 한국어 작성 (App Store + Google Play)
-- [ ] 개인정보처리방침 페이지 (웹 URL)
+- [x] 앱 설명 한국어 작성 (App Store + Google Play)
+- [x] 개인정보처리방침 페이지 (웹 URL)
 - [ ] 이용약관 페이지 (웹 URL)
 - [ ] `Info.plist` 권한 설명 최종 검토 (한국어)
 

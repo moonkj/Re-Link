@@ -1,0 +1,7 @@
+• 무한 캔버스 가족 트리 출시
+• 사진·음성·메모 기억 캡슐
+• iCloud / Google Drive 자동 백업
+• 가족 공유 (.rlink 파일)
+• Ghost 노드 지원
+• 온도계 (Vibe Meter)
+• 큰 글씨 접근성 모드

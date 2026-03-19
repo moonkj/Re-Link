@@ -11,6 +11,7 @@ import '../../features/memory/presentation/memory_screen.dart';
 import '../../features/search/presentation/search_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/subscription/presentation/subscription_screen.dart';
+import '../../features/settings/presentation/privacy_policy_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
 import '../../shared/widgets/ad_banner_widget.dart';
 
@@ -27,6 +28,7 @@ abstract final class AppRoutes {
   static const String settings = '/settings';
   static const String search = '/search';
   static const String subscription = '/subscription';
+  static const String privacyPolicy = '/privacy-policy';
 
   static String memoryPath(String nodeId) => '/memory/$nodeId';
 }
@@ -98,6 +100,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.backup,
         builder: (_, s) => const BackupScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.privacyPolicy,
+        builder: (_, s) => const PrivacyPolicyScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

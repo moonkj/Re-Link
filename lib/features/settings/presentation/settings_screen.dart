@@ -569,6 +569,17 @@ class _AppInfoSection extends StatelessWidget {
               ),
               const Divider(color: AppColors.glassBorder, height: 1),
               ListTile(
+                leading: const Icon(Icons.privacy_tip_outlined,
+                    color: AppColors.primary),
+                title: const Text('개인정보 처리방침',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                trailing: const Icon(Icons.chevron_right,
+                    color: AppColors.textTertiary),
+                onTap: () => context.push(AppRoutes.privacyPolicy),
+              ),
+              const Divider(color: AppColors.glassBorder, height: 1),
+              ListTile(
                 leading: const Icon(Icons.article_outlined,
                     color: AppColors.primary),
                 title: const Text('오픈소스 라이선스',
