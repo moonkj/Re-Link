@@ -52,7 +52,24 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     super.dispose();
   }
 
-  /// 뷰포트 내 가시 노드를 QuadTree로 계산
+  /// 노드 목록이 바뀔 때만 QuadTree를 재빌드 (캐시)
+  List<NodeModel>? _qtSourceNodes;
+  QuadTree<NodeModel>? _cachedQt;
+
+  QuadTree<NodeModel> _getQuadTree(List<NodeModel> nodes) {
+    if (_qtSourceNodes != nodes) {
+      _qtSourceNodes = nodes;
+      _cachedQt = QuadTree<NodeModel>(
+        const QRect(left: 0, top: 0, right: 4000, bottom: 4000),
+      );
+      for (final node in nodes) {
+        _cachedQt!.insert(node, node.positionX, node.positionY);
+      }
+    }
+    return _cachedQt!;
+  }
+
+  /// 뷰포트 내 가시 노드를 QuadTree로 계산 (매 pan/zoom 프레임)
   void _updateVisibleNodes(
     List<NodeModel> nodes,
     Size screenSize,
@@ -66,14 +83,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     final vpRight = vpLeft + screenSize.width / scale + _kViewportMargin * 2;
     final vpBottom = vpTop + screenSize.height / scale + _kViewportMargin * 2;
 
-    final qt = QuadTree<NodeModel>(
-      const QRect(left: 0, top: 0, right: 4000, bottom: 4000),
-    );
-    for (final node in nodes) {
-      qt.insert(node, node.positionX, node.positionY);
-    }
-
-    _visibleNodes = qt.query(
+    _visibleNodes = _getQuadTree(nodes).query(
       QRect(left: vpLeft, top: vpTop, right: vpRight, bottom: vpBottom),
     );
   }
@@ -575,8 +585,19 @@ class _EmptyHint extends StatelessWidget {
   }
 }
 
-/// 배경 (그라디언트 + 그리드 점)
+/// 배경 (그라디언트 + 그리드 점) — RepaintBoundary로 캔버스 재페인트와 분리
 class _CanvasBackground extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const RepaintBoundary(
+      child: _StaticBackground(),
+    );
+  }
+}
+
+class _StaticBackground extends StatelessWidget {
+  const _StaticBackground();
+
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
