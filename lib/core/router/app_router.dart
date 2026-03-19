@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/profile_setup/presentation/profile_setup_screen.dart';
 import '../../features/canvas/presentation/canvas_screen.dart';
 import '../../features/backup/presentation/backup_screen.dart';
+import '../../features/memory/presentation/memory_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
 
 /// 라우트 경로 상수
@@ -11,11 +12,12 @@ abstract final class AppRoutes {
   static const String splash = '/';
   static const String profileSetup = '/profile-setup';
   static const String canvas = '/canvas';
-  static const String nodeDetail = '/node/:id';
-  static const String nodeCreate = '/node/create';
+  static const String memory = '/memory/:nodeId';
   static const String backup = '/backup';
   static const String settings = '/settings';
   static const String subscription = '/subscription';
+
+  static String memoryPath(String nodeId) => '/memory/$nodeId';
 }
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -58,6 +60,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (_, s) => const _PlaceholderScreen(title: '설정'),
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoutes.memory,
+        builder: (_, s) => MemoryScreen(
+          nodeId: s.pathParameters['nodeId']!,
+          nodeName: (s.extra as String?) ?? '',
+        ),
       ),
       GoRoute(
         path: AppRoutes.subscription,

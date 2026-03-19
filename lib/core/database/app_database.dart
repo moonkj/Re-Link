@@ -116,11 +116,28 @@ class AppDatabase extends _$AppDatabase {
             ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
           .get();
 
+  Future<MemoriesTableData?> getMemory(String id) =>
+      (select(memoriesTable)..where((t) => t.id.equals(id))).getSingleOrNull();
+
   Future<void> upsertMemory(MemoriesTableCompanion memory) =>
       into(memoriesTable).insertOnConflictUpdate(memory);
 
   Future<int> deleteMemory(String id) =>
       (delete(memoriesTable)..where((t) => t.id.equals(id))).go();
+
+  /// 타입별 기억 수 (플랜 제한 체크용)
+  Future<int> countMemoriesByType(String type) =>
+      (select(memoriesTable)..where((t) => t.type.equals(type)))
+          .get()
+          .then((rows) => rows.length);
+
+  /// 전체 음성 길이 합 (초, 플랜 제한용)
+  Future<int> sumVoiceDuration() async {
+    final rows = await (select(memoriesTable)
+          ..where((t) => t.type.equals('voice')))
+        .get();
+    return rows.fold<int>(0, (sum, r) => sum + (r.durationSeconds ?? 0));
+  }
 
   // ── Settings ───────────────────────────────────────────────────────────────
 

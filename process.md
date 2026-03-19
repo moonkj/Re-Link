@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-19
-> 현재 단계: Phase 1 Week 3–4 완료 → Week 5–6 기억 저장 예정
+> 현재 단계: Phase 1 Week 5–6 완료 → Week 7–8 플랜 시스템 + AdMob 예정
 
 ---
 
@@ -125,19 +125,36 @@
 
 ---
 
-### Week 5–6: 기억 저장 (사진 / 음성 / 메모)
+### Week 5–6: 기억 저장 (사진 / 음성 / 메모) ✅
+
+#### UX Designer
+- [x] 기억 목록 화면 흐름 (NodeDetailSheet → MemoryScreen)
+- [x] 타입별 UX 설계 (사진 그리드 / 음성 파형 / 메모 리스트)
+- [x] 플랜 제한 UX (PlanLimitError → SnackBar + 업그레이드 버튼)
 
 #### Coder
-- [ ] 기억 추가 화면 (타입 선택: 사진/음성/메모)
-- [ ] 사진 선택 → WebP 압축 → 로컬 저장
-- [ ] 사진 갤러리 뷰 (노드별)
-- [ ] 메모 작성 + 저장
-- [ ] 음성 녹음 (`record` 패키지, Opus 24kbps)
-- [ ] 음성 파형 시각화 (`audio_waveforms`)
-- [ ] 음성 재생 UI
-- [ ] 기억 리스트 (노드 상세 화면)
-- [ ] 기억 삭제 (파일 + DB 동시 삭제)
-- [ ] `MemoryRepository` + `MemoryNotifier`
+- [x] `AppDatabase`: `getMemory`, `countMemoriesByType`, `sumVoiceDuration` 추가
+- [x] `MemoryRepository`: CRUD + 스트림 + 플랜 제한 쿼리
+- [x] `MemoryNotifier`: addPhoto/Voice/Note, deleteMemory, 플랜 체크
+- [x] `memoriesForNodeProvider`: 노드별 기억 스트림
+- [x] `AddMemorySheet`: 타입 선택 (사진/음성/메모) + 사진/메모 폼
+- [x] `VoiceRecorderSheet`: RecorderController 파형 + 타이머 + 저장
+- [x] `MemoryDetailSheet`: 타입별 상세 (사진 전체화면/음성 재생/메모)
+- [x] `MemoryScreen`: 필터 탭 + 사진 그리드 + 음성/메모 리스트 + FAB
+- [x] `AppRoutes.memory` + go_router 연결
+- [x] `NodeDetailSheet` "기억" 버튼 → `MemoryScreen` 라우팅
+
+#### Debugger
+- [x] `flutter analyze lib/` → 0 issues
+- [x] audio_waveforms v2.0.2 API 호환 (RecorderSettings, startPlayer)
+
+#### Test Engineer
+- [x] `test/memory/memory_repository_test.dart` — 16개 테스트 (CRUD + cascade + 플랜)
+- [x] 전체 44/44 통과
+
+#### Performance
+- [x] 사진 썸네일 그리드 (300px WebP) — 원본 lazy load
+- [x] 음성 파형 waveform 한 번만 추출 (`shouldExtractWaveform: true`)
 
 ---
 
@@ -230,7 +247,7 @@
 | Phase | 진행율 | 상태 |
 |-------|--------|------|
 | Phase 0 초기화 | 100% | ✅ 완료 |
-| Phase 1 MVP | 35% | 🔄 진행 중 (Week 3–4 완료) |
+| Phase 1 MVP | 65% | 🔄 진행 중 (Week 5–6 완료) |
 | Phase 2 확장 | 0% | ⏳ 대기 |
 | Phase 3 폴리시 | 0% | ⏳ 대기 |
 | Phase 4 런치 | 0% | ⏳ 대기 |

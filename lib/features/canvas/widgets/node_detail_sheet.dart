@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/router/app_router.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -119,7 +121,10 @@ class NodeDetailSheet extends ConsumerWidget {
                     label: '기억',
                     onTap: () {
                       Navigator.of(context).pop();
-                      // TODO: 기억 화면으로 이동
+                      context.push(
+                        AppRoutes.memoryPath(node.id),
+                        extra: node.name,
+                      );
                     },
                   ),
                 ),
