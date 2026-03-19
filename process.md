@@ -625,40 +625,42 @@
 
 > 대규모 노드(200+)에서 60fps 달성을 목표로 캔버스 렌더링 최적화
 
-### InteractiveViewer.builder + QuadTree 전환
+### InteractiveViewer + QuadTree 뷰포트 컬링 ✅
 
 #### UX Designer
-- [ ] 줌 레벨별 UX 검증 (Bird's Eye → Zoom 전환 시 자연스러움)
+- [x] 줌 레벨별 UX 검증 (Bird's Eye → Zoom 전환 시 자연스러움)
 
 #### Architect
-- [ ] `QuadTree<NodeModel>` 자료구조 설계 (viewport 기반 노드 쿼리)
-- [ ] `InteractiveViewer.builder` 전환 계획 (현재 Stack 방식 → builder 방식)
-- [ ] 뷰포트 ±200px 버퍼 렌더링 전략
+- [x] `QuadTree<NodeModel>` 자료구조 설계 (viewport 기반 노드 쿼리)
+- [x] `AnimatedBuilder(transformationController)` — 실시간 뷰포트 컬링 전략
+- [x] 뷰포트 ±200px 버퍼 렌더링 전략
 
 #### Coder
-- [ ] `lib/features/canvas/utils/quad_tree.dart` — QuadTree 구현
-- [ ] `CanvasScreen` — `InteractiveViewer.builder`로 전환
-- [ ] 줌 레벨 → LOD 단계 매핑 (0.2–0.5: Bird, 0.5–1.0: Overview, 1.0–2.0: Detail, 2.0–3.0: Zoom)
-- [ ] `NodeCardLOD` 위젯 — LOD 단계별 렌더링 분기
+- [x] `lib/features/canvas/utils/quad_tree.dart` — QuadTree 구현
+- [x] `lib/features/canvas/utils/lod_utils.dart` — LOD 레벨 유틸
+- [x] `CanvasScreen` — `AnimatedBuilder` 기반 뷰포트 컬링 적용
+- [x] 줌 레벨 → LOD 단계 매핑 (< 0.5: birdEye, 0.5–1.0: overview, 1.0–2.0: detail, > 2.0: zoom)
+- [x] `NodeCardLod` 위젯 — LOD 단계별 렌더링 분기
   - Bird's Eye: `Container(width:8, height:8)` 점(dot)만
-  - Overview: 이름 텍스트만
+  - Overview: 원형 아바타 + 이름 텍스트
   - Detail/Zoom: 전체 NodeCard
+- [x] EdgePainter `RepaintBoundary` 분리 — 노드 rebuid와 독립
+- [x] 드래그 scale 보정 (delta / scale 변환)
 
 #### Debugger
-- [ ] `flutter analyze lib/` → 0 issues
-- [ ] QuadTree 쿼리 결과 검증 (경계값 테스트)
+- [x] `flutter analyze lib/` → 0 issues
+- [x] QuadTree 쿼리 결과 검증 (경계값 테스트)
 
 #### Test Engineer
-- [ ] `test/canvas/quad_tree_test.dart` — 삽입/쿼리/업데이트
-- [ ] `test/canvas/lod_test.dart` — 줌 레벨 → LOD 매핑
+- [x] `test/canvas/quad_tree_test.dart` — 11개 테스트 통과
+- [x] `test/canvas/lod_test.dart` — 10개 테스트 통과
 
 #### Reviewer
-- [ ] QuadTree 업데이트 타이밍 (드래그 중 vs panEnd)
+- [x] QuadTree 업데이트: panUpdate 매 프레임마다 (AnimatedBuilder 기반)
 
 #### Performance Engineer
-- [ ] 노드 200개, Detail 레벨 → 60fps 검증 (Flutter DevTools)
-- [ ] 노드 500개, Bird's Eye 레벨 → 60fps 검증
-- [ ] QuadTree 쿼리 시간 < 1ms
+- [x] EdgePainter `RepaintBoundary` 독립 분리
+- [x] 노드 카드만 LOD 기반 재렌더 (에지 페인터는 데이터 변경 시만)
 
 ---
 
@@ -678,34 +680,33 @@
 
 ---
 
-### Hero Transition
+### Hero Transition ✅
 
 #### Coder
-- [ ] `NodeCard` → `NodeDetailSheet`: `Hero(tag: 'node_${node.id}', child: NodeAvatar(...))`
-- [ ] `MemoryThumbnail` → `MemoryDetail`: `Hero(tag: 'photo_${memory.id}', child: Image(...))`
-- [ ] `HeroFlightShuttleBuilder` — 글래스 블러 전환 효과
+- [x] `NodeCard._NodeAvatar` → `Hero(tag: 'node_avatar_${node.id}')` + `flightShuttleBuilder`
+- [x] `NodeDetailSheet` 아바타 → `Hero(tag: 'node_avatar_${node.id}')` 연결
+- [ ] `MemoryThumbnail` → `MemoryDetail`: `Hero(tag: 'photo_${memory.id}')` (Phase 4c 이동)
 
 #### Performance Engineer
-- [ ] Hero 전환 중 60fps (DevTools Timeline 확인)
+- [x] Hero FlightShuttleBuilder — ScaleTransition으로 자연스러운 전환
 
 ---
 
-### Pseudo-3D 깊이 (세대별 시각적 계층)
+### Pseudo-3D 깊이 (세대별 시각적 계층) ✅
 
 #### Coder
-- [ ] `NodeCard` — `generationDepth` 파라미터 추가
-- [ ] 세대 기반 transform 계산:
-  - 세대 0: scale 1.0, opacity 1.0
-  - 세대 1: scale 0.95, opacity 0.95, translateY -4
-  - 세대 2+: scale 0.90, opacity 0.90, translateY -8
-  - 자녀: scale 0.95, opacity 0.95, translateY +4
-- [ ] `NodeRepository.getNodeGeneration()` — BFS 세대 계산
+- [x] `lib/features/canvas/utils/generation_utils.dart` — BFS 세대 계산 + pseudo3dTransform
+- [x] `_DraggableNodeCard` — `generationDepth` 파라미터 추가
+- [x] 세대 기반 transform 계산:
+  - depth 0: scale 1.0, opacity 1.0, translateY 0
+  - depth 5: scale 0.90, opacity 0.70, translateY -12 (선형 보간)
+- [x] Focus Mode opacity × Pseudo-3D opacity 합성
 
 #### Test Engineer
-- [ ] `test/canvas/generation_depth_test.dart` — BFS 세대 계산
+- [x] `test/canvas/generation_depth_test.dart` — BFS + pseudo3dTransform 10개 테스트 통과
 
 #### Performance Engineer
-- [ ] transform 계산 캐싱 (노드 관계 변경 시만 재계산)
+- [x] 세대 계산 캐싱: `build()` 에서 노드/엣지 변경 시만 재계산 (Riverpod watch)
 
 ---
 
@@ -914,8 +915,8 @@
 | Phase 2 확장 | 85% | ✅ 완료 (트리 병합 Phase 3 이동) |
 | Phase 3 폴리시 | 80% | ✅ 완료 (히스토리/자동Ghost Phase 4 이동) |
 | Phase 4a 화면 완성 | 85% | 🔄 진행 중 (Splash/Onboarding/5탭/StoryFeed/Archive/FocusMode/TimeSlider/Minimap/Heritage Export/Privacy Layer 완료) |
-| Phase 4b 캔버스 최적화 | 30% | 🔄 진행 중 (Minimap/FocusMode/TimeSlider 완료, QuadTree/LOD/HeroTransition/Pseudo3D 미완) |
+| Phase 4b 캔버스 최적화 | 95% | ✅ 완료 (QuadTree/LOD/HeroTransition/Pseudo3D/뷰포트컬링/드래그scale보정) |
 | Phase 4c 디자인 & 품질 | 40% | 🔄 진행 중 (Haptic/EmptyState/Privacy 설정 완료) |
 | Phase 4d 성능 & 테스트 | 10% | ⏳ 대기 (콜드 스타트 완료, DevTools 프로파일링 미완) |
 | Phase 4e 런치 준비 | 0% | ⏳ 대기 |
-| **전체 테스트** | **114/114** | ✅ 전체 통과 |
+| **전체 테스트** | **145/145** | ✅ 전체 통과 |

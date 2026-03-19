@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../shared/models/node_model.dart';
 import '../../../design/tokens/app_colors.dart';
+import '../utils/lod_utils.dart';
 
 const double kNodeCardWidth = 110.0;
 const double kNodeCardHeight = 130.0;
@@ -229,7 +230,7 @@ class _GhostContent extends StatelessWidget {
   }
 }
 
-/// 노드 아바타 (사진 or 이니셜)
+/// 노드 아바타 (사진 or 이니셜) — Hero 태그 포함
 class _NodeAvatar extends StatelessWidget {
   const _NodeAvatar({required this.node, required this.size});
 
@@ -239,7 +240,7 @@ class _NodeAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasPhoto = node.photoPath != null;
-    return Container(
+    final avatar = Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
@@ -264,6 +265,125 @@ class _NodeAvatar extends StatelessWidget {
                 ),
               ),
             ),
+    );
+    return Hero(
+      tag: 'node_avatar_${node.id}',
+      flightShuttleBuilder: (_, animation, __, ___, ____) => ScaleTransition(
+        scale: animation,
+        child: avatar,
+      ),
+      child: avatar,
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOD 변형 위젯들
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// LOD 기반 노드 렌더러 — 줌 레벨에 따라 다른 표현 사용
+class NodeCardLod extends StatelessWidget {
+  const NodeCardLod({
+    super.key,
+    required this.node,
+    required this.lodLevel,
+    required this.isSelected,
+    required this.isConnectSource,
+    required this.isConnectMode,
+    required this.onTap,
+    required this.onLongPress,
+    required this.onDragEnd,
+  });
+
+  final NodeModel node;
+  final LodLevel lodLevel;
+  final bool isSelected;
+  final bool isConnectSource;
+  final bool isConnectMode;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+  final void Function(double dx, double dy) onDragEnd;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (lodLevel) {
+      LodLevel.birdEye => _BirdEyeDot(node: node),
+      LodLevel.overview => _OverviewCard(node: node, onTap: onTap),
+      LodLevel.detail || LodLevel.zoom => NodeCard(
+          node: node,
+          isSelected: isSelected,
+          isConnectSource: isConnectSource,
+          isConnectMode: isConnectMode,
+          onTap: onTap,
+          onLongPress: onLongPress,
+          onDragEnd: onDragEnd,
+        ),
+    };
+  }
+}
+
+/// Bird's Eye (< 0.5×) — 8×8 컬러 점
+class _BirdEyeDot extends StatelessWidget {
+  const _BirdEyeDot({required this.node});
+  final NodeModel node;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = node.isGhost
+        ? Colors.white38
+        : AppColors.tempColor(node.temperature);
+    return SizedBox(
+      width: kNodeCardWidth,
+      height: kNodeCardHeight,
+      child: Center(
+        child: Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+            boxShadow: [
+              BoxShadow(color: color.withAlpha(120), blurRadius: 6),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Overview (0.5×–1.0×) — 원형 아바타 + 이름
+class _OverviewCard extends StatelessWidget {
+  const _OverviewCard({required this.node, required this.onTap});
+  final NodeModel node;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: kNodeCardWidth,
+        height: kNodeCardHeight,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _NodeAvatar(node: node, size: 40),
+            const SizedBox(height: 4),
+            Text(
+              node.name.isEmpty ? '미확인' : node.name,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textPrimary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

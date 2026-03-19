@@ -36,33 +36,36 @@ class NodeDetailSheet extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                // 아바타
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: tempColor, width: 2.5),
-                    color: AppColors.glassSurface,
-                    image: node.photoPath != null
-                        ? DecorationImage(
-                            image: FileImage(File(node.photoPath!)),
-                            fit: BoxFit.cover,
+                // 아바타 (Hero transition from canvas NodeCard)
+                Hero(
+                  tag: 'node_avatar_${node.id}',
+                  child: Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: tempColor, width: 2.5),
+                      color: AppColors.glassSurface,
+                      image: node.photoPath != null
+                          ? DecorationImage(
+                              image: FileImage(File(node.photoPath!)),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                    ),
+                    child: node.photoPath == null
+                        ? Center(
+                            child: Text(
+                              node.name.isNotEmpty ? node.name[0] : '?',
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
                           )
                         : null,
                   ),
-                  child: node.photoPath == null
-                      ? Center(
-                          child: Text(
-                            node.name.isNotEmpty ? node.name[0] : '?',
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                        )
-                      : null,
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
