@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-19
-> 현재 단계: Phase 3 검색 + 설정 화면 + Ghost 연결 완료
+> 현재 단계: Phase 3 완료 + 콜드 스타트 최적화
 
 ---
 
@@ -330,7 +330,7 @@
 ### 성능 최적화
 - [ ] Flutter DevTools 프로파일링
 - [ ] 앱 크기 최적화 (iOS < 50MB, Android < 30MB)
-- [ ] 콜드 스타트 < 2초
+- [x] 콜드 스타트 최적화 — MobileAds 비동기 초기화, Splash 딜레이 제거, LaunchScreen 배경 어둡게
 - [ ] 캔버스 60fps
 
 ### 출시

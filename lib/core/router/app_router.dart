@@ -101,8 +101,8 @@ class _SplashScreenState extends State<_SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // GoRouter redirect가 자동 처리 — 짧은 딜레이만
-    Future<void>.delayed(const Duration(milliseconds: 800), () {
+    // GoRouter redirect가 자동 처리
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.go(AppRoutes.splash);
     });
   }

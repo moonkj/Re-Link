@@ -21,8 +21,8 @@ Future<void> main() async {
     ),
   );
 
-  // AdMob 초기화
-  await MobileAds.instance.initialize();
+  // AdMob 초기화 — 비동기 실행 (runApp 블로킹 방지)
+  MobileAds.instance.initialize();
 
   // 서버 없음 — Drift DB는 첫 사용 시 자동 생성됨
   runApp(const ProviderScope(child: ReLink()));
