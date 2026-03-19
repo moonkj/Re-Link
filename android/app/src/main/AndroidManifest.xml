@@ -1,8 +1,43 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ── 네트워크 (AdMob, Google Drive) ──────────────────────────────── -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- ── 마이크 (음성 녹음) ────────────────────────────────────────── -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
+    <!-- ── 카메라 ─────────────────────────────────────────────────────── -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+
+    <!-- ── 사진/미디어 읽기 (Android 13+ : READ_MEDIA, 이하 : READ_EXTERNAL) -->
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_IMAGES"
+        android:minSdkVersion="33"/>
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_AUDIO"
+        android:minSdkVersion="33"/>
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
+
+    <!-- ── 외부 저장소 쓰기 (Android 9 이하) ───────────────────────── -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28"/>
+
+    <!-- ── 진동 (선택적 — UX 피드백) ────────────────────────────────── -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
     <application
-        android:label="re_link"
+        android:label="Re-Link"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <!-- ── AdMob App ID (테스트 ID — 출시 전 실제 ID로 교체) ────── -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -12,30 +47,21 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
-            <!-- Specifies an Android theme to apply to this Activity as soon as
-                 the Android process has started. This theme is visible to the user
-                 while the Flutter UI initializes. After that, this theme continues
-                 to determine the Window background behind the Flutter UI. -->
             <meta-data
-              android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme"/>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- Don't delete the meta-data below.
-             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+
+        <!-- Flutter 플러그인 등록 -->
         <meta-data
             android:name="flutterEmbedding"
-            android:value="2" />
+            android:value="2"/>
     </application>
-    <!-- Required to query activities that can process text, see:
-         https://developer.android.com/training/package-visibility and
-         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
 
-         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>

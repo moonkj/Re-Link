@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-19
-> 현재 단계: Phase 1 Week 7–8 완료 → Phase 2 클라우드 백업 연동 예정
+> 현재 단계: 아이패드 테스트 환경 구성 완료 → Phase 2 클라우드 백업 연동 예정
 
 ---
 
@@ -71,6 +71,13 @@
 ### 코드 생성 & 검증
 - [x] `build_runner` 실행 → `.g.dart` 파일 생성
 - [x] `flutter analyze` → 0 issues
+
+### 디바이스 테스트 환경 (아이패드)
+- [x] `ios/Runner/Info.plist` — 권한 설명 추가 (마이크/카메라/앨범) + AdMob App ID
+- [x] `ios/Podfile` — `platform :ios, '13.0'` 활성화
+- [x] `android/AndroidManifest.xml` — 권한 + AdMob 메타데이터 + 앱 라벨
+- [x] `android/app/build.gradle.kts` — `minSdk = 23` 설정
+- [x] `flutter build ios --no-codesign` → 빌드 성공 (39.1MB)
 
 ---
 
