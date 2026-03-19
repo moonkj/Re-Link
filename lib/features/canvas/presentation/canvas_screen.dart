@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/router/app_router.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../design/glass/app_glass.dart';
@@ -135,6 +137,16 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                           ),
                         ),
                       ),
+                    const SizedBox(width: AppSpacing.sm),
+                    GlassCard(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      onTap: () => context.push(AppRoutes.search),
+                      child: const Icon(
+                        Icons.search,
+                        color: AppColors.textSecondary,
+                        size: 20,
+                      ),
+                    ),
                     const SizedBox(width: AppSpacing.sm),
                     GlassCard(
                       padding: const EdgeInsets.all(AppSpacing.sm),

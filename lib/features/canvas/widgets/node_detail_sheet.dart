@@ -95,6 +95,36 @@ class NodeDetailSheet extends ConsumerWidget {
             ),
           ),
 
+          // Ghost 노드 → 실제 인물 연결 배너
+          if (node.isGhost)
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+              child: GlassCard(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                onTap: () => _convertGhost(context, ref, node),
+                child: const Row(
+                  children: [
+                    Icon(Icons.person_add_outlined,
+                        color: AppColors.secondary, size: 20),
+                    SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        '실제 인물로 연결하기',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondary),
+                      ),
+                    ),
+                    Icon(Icons.chevron_right,
+                        color: AppColors.textTertiary, size: 20),
+                  ],
+                ),
+              ),
+            ),
+
           // 온도 슬라이더
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -164,6 +194,17 @@ class NodeDetailSheet extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => EditNodeSheet(node: node),
+    );
+  }
+
+  void _convertGhost(BuildContext context, WidgetRef ref, NodeModel node) {
+    // Ghost 플래그를 false로 설정한 뒤 편집 시트 열기
+    Navigator.of(context).pop();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => EditNodeSheet(node: node.copyWith(isGhost: false)),
     );
   }
 

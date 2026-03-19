@@ -33,6 +33,12 @@ class MemoryRepository {
     return row == null ? null : _rowToModel(row);
   }
 
+  Future<List<MemoryModel>> searchMemories(String query) async {
+    if (query.trim().isEmpty) return [];
+    final rows = await _db.searchMemories(query);
+    return rows.map(_rowToModel).toList();
+  }
+
   // ── 생성 ──────────────────────────────────────────────────────────────────
 
   Future<MemoryModel> create({

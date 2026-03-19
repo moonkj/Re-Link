@@ -153,6 +153,22 @@ class AppDatabase extends _$AppDatabase {
         SettingsTableCompanion.insert(key: key, value: value),
       );
 
+  // ── 검색 ──────────────────────────────────────────────────────────────────
+
+  /// 노드 이름/별명 LIKE 검색
+  Future<List<NodesTableData>> searchNodes(String query) =>
+      (select(nodesTable)
+            ..where((t) => t.name.like('%$query%') | t.nickname.like('%$query%'))
+            ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+          .get();
+
+  /// 기억 제목/설명 LIKE 검색
+  Future<List<MemoriesTableData>> searchMemories(String query) =>
+      (select(memoriesTable)
+            ..where((t) => t.title.like('%$query%') | t.description.like('%$query%'))
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
   // ── 통계 ──────────────────────────────────────────────────────────────────
 
   Future<Map<String, int>> getStats() async {

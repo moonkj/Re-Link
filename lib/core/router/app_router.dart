@@ -5,6 +5,8 @@ import '../../features/profile_setup/presentation/profile_setup_screen.dart';
 import '../../features/canvas/presentation/canvas_screen.dart';
 import '../../features/backup/presentation/backup_screen.dart';
 import '../../features/memory/presentation/memory_screen.dart';
+import '../../features/search/presentation/search_screen.dart';
+import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/subscription/presentation/subscription_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
 import '../../shared/widgets/ad_banner_widget.dart';
@@ -17,6 +19,7 @@ abstract final class AppRoutes {
   static const String memory = '/memory/:nodeId';
   static const String backup = '/backup';
   static const String settings = '/settings';
+  static const String search = '/search';
   static const String subscription = '/subscription';
 
   static String memoryPath(String nodeId) => '/memory/$nodeId';
@@ -59,7 +62,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: AppRoutes.settings,
-            builder: (_, s) => const _PlaceholderScreen(title: '설정'),
+            builder: (_, s) => const SettingsScreen(),
           ),
         ],
       ),
@@ -69,6 +72,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           nodeId: s.pathParameters['nodeId']!,
           nodeName: (s.extra as String?) ?? '',
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.search,
+        builder: (_, s) => const SearchScreen(),
       ),
       GoRoute(
         path: AppRoutes.subscription,
@@ -177,15 +184,3 @@ class _MainShell extends ConsumerWidget {
   }
 }
 
-class _PlaceholderScreen extends StatelessWidget {
-  const _PlaceholderScreen({required this.title});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(child: Text('$title — 개발 예정')),
-    );
-  }
-}

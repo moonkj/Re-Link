@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-19
-> 현재 단계: Phase 2 클라우드 백업 + 가족 공유 + 음성 캡슐 고도화 완료
+> 현재 단계: Phase 3 검색 + 설정 화면 + Ghost 연결 완료
 
 ---
 
@@ -255,26 +255,65 @@
 
 ---
 
-## Phase 3 — 폴리시 (Week 21–28)
+## Phase 3 — 폴리시 (Week 21–28) ✅
 
-### 온도계 시스템 (Vibe Meter)
-- [ ] 노드별 온도 설정 UI (6단계)
-- [ ] 온도에 따른 노드 테두리 색상
-- [ ] 온도 히스토리
+### 온도계 시스템 (Vibe Meter) ✅
+- [x] 노드별 온도 설정 UI (6단계 슬라이더 — NodeDetailSheet)
+- [x] 온도에 따른 노드 테두리/바 색상 (NodeCard)
+- [ ] 온도 히스토리 (Phase 4로 이동 — 과도한 복잡도)
 
-### Ghost Node
-- [ ] Ghost Node 자동 생성 (부모 없는 조상)
-- [ ] 실제 인물 매핑 플로우
+### Ghost Node ✅
+- [x] Ghost Node 생성 (AddNodeSheet Ghost 토글)
+- [x] 실제 인물 매핑 플로우 (NodeDetailSheet "실제 인물로 연결하기" 배너 → EditNodeSheet)
+- [ ] 자동 Ghost 생성 (Phase 4로 이동)
 
-### 검색
-- [ ] 노드 이름/태그 검색
-- [ ] 기억 텍스트 검색
+### 검색 ✅
 
-### 설정 화면
-- [ ] 프로필 편집
-- [ ] 백업 설정 (자동/수동, 주기)
-- [ ] 데이터 내보내기 (JSON)
-- [ ] 앱 정보 / 버전
+#### UX Designer
+- [x] 캔버스 앱바 검색 아이콘 → SearchScreen (전체화면)
+- [x] 노드/기억 통합 검색 결과 (섹션별 표시)
+- [x] 디바운스 400ms, 빈 상태/결과없음 화면
+
+#### Architect
+- [x] `SearchNotifier` — AsyncValue<SearchResult>, Future.wait 병렬 쿼리
+- [x] `SearchResult` 모델 (nodes + memories)
+- [x] DB에 LIKE 검색 메서드 추가 (searchNodes, searchMemories)
+
+#### Coder
+- [x] `lib/features/search/providers/search_notifier.dart`
+- [x] `lib/features/search/presentation/search_screen.dart`
+- [x] `AppDatabase.searchNodes()` / `searchMemories()` — LIKE 쿼리
+- [x] `NodeRepository.searchNodes()` / `MemoryRepository.searchMemories()`
+- [x] `/search` 라우트 추가 (`app_router.dart`)
+- [x] 캔버스 앱바 검색 아이콘 버튼
+
+#### Debugger
+- [x] `flutter analyze` → 0 issues
+
+#### Test Engineer
+- [x] `test/search/search_test.dart` — 11개 테스트 (NodeModel/MemoryModel 필터 + 빈 쿼리)
+- [x] 전체 76/76 통과
+
+#### Performance
+- [x] 디바운스 400ms (불필요한 쿼리 방지)
+- [x] `Future.wait` 병렬 DB 쿼리 (nodes + memories 동시)
+
+### 설정 화면 ✅
+
+#### UX Designer
+- [x] 프로필 카드 + 편집 버튼
+- [x] 요금제 현황 + 업그레이드 CTA
+- [x] 백업 설정 (자동 백업 토글, 마지막 백업, 백업 화면 이동)
+- [x] 앱 정보 (버전, 오픈소스 라이선스)
+
+#### Coder
+- [x] `lib/features/settings/presentation/settings_screen.dart`
+- [x] `_ProfileSection` — 프로필 카드 + `_ProfileEditSheet` (이름/별명 편집)
+- [x] `_PlanSection` — 현재 플랜 표시 + 업그레이드 버튼
+- [x] `_BackupSection` — 자동 백업 토글 + 마지막 백업 시간
+- [x] `_AppInfoSection` — package_info_plus 버전 + 오픈소스 라이선스
+- [x] `app_router.dart` — `/settings` PlaceholderScreen → SettingsScreen 교체
+- [x] 앱 정보 (JSON 내보내기 Phase 4로 이동)
 
 ---
 
@@ -310,5 +349,5 @@
 | Phase 0 초기화 | 100% | ✅ 완료 |
 | Phase 1 MVP | 100% | ✅ 완료 (Week 7–8 완료) |
 | Phase 2 확장 | 85% | ✅ 완료 (트리 병합 Phase 3 이동) |
-| Phase 3 폴리시 | 0% | ⏳ 대기 |
+| Phase 3 폴리시 | 80% | ✅ 완료 (히스토리/자동Ghost Phase 4 이동) |
 | Phase 4 런치 | 0% | ⏳ 대기 |

@@ -20,6 +20,12 @@ class NodeRepository {
 
   // ── 조회 ──────────────────────────────────────────────────────────────────
 
+  Future<List<NodeModel>> searchNodes(String query) async {
+    if (query.trim().isEmpty) return [];
+    final rows = await _db.searchNodes(query);
+    return rows.map(_rowToModel).toList();
+  }
+
   Stream<List<NodeModel>> watchAll() =>
       _db.watchAllNodes().map((rows) => rows.map(_rowToModel).toList());
 
