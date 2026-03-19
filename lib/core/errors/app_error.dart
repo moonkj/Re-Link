@@ -42,8 +42,7 @@ class StorageError extends AppError {
 
 /// 알 수 없는 에러
 class UnknownError extends AppError {
-  const UnknownError([String message = '알 수 없는 오류가 발생했습니다.'])
-      : super(message);
+  const UnknownError([super.message = '알 수 없는 오류가 발생했습니다.']);
 }
 
 /// 에러 메시지 사용자 친화적 변환

@@ -13,28 +13,28 @@
 - [x] `CLAUDE.md` 작성
 - [x] `process.md` 작성 (이 파일)
 - [x] Memory 시스템 구성 (MEMORY.md + 6개 메모리 파일)
-- [ ] `.gitignore` 업데이트
-- [ ] Git 저장소 초기화 (`git init`)
-- [ ] `pubspec.yaml` 의존성 전체 업데이트
-- [ ] `flutter pub get` 실행
-- [ ] `lib/` 폴더 구조 생성
+- [x] `.gitignore` 업데이트
+- [x] Git 저장소 초기화 (`git init`, branch: `main`)
+- [x] `pubspec.yaml` 의존성 전체 업데이트
+- [ ] `flutter pub get` 실행 (패키지 설치)
+- [x] `lib/` 폴더 구조 생성
 
 ### 디자인 토큰 파일
-- [ ] `lib/design/tokens/app_colors.dart`
-- [ ] `lib/design/tokens/app_typography.dart`
-- [ ] `lib/design/tokens/app_spacing.dart`
-- [ ] `lib/design/tokens/app_radius.dart`
-- [ ] `lib/design/tokens/app_shadows.dart`
-- [ ] `lib/design/glass/app_glass.dart`
-- [ ] `lib/design/motion/app_motion.dart`
-- [ ] `lib/design/tokens/app_theme.dart`
+- [x] `lib/design/tokens/app_colors.dart`
+- [x] `lib/design/tokens/app_typography.dart`
+- [x] `lib/design/tokens/app_spacing.dart`
+- [x] `lib/design/tokens/app_radius.dart`
+- [x] `lib/design/tokens/app_shadows.dart`
+- [x] `lib/design/glass/app_glass.dart`
+- [x] `lib/design/motion/app_motion.dart`
+- [x] `lib/design/tokens/app_theme.dart`
 
 ### 핵심 설정 파일
 - [ ] `lib/core/config/supabase_config.dart`
-- [ ] `lib/core/config/env_config.dart`
-- [ ] `lib/core/router/app_router.dart`
-- [ ] `lib/app.dart`
-- [ ] `lib/main.dart` (Supabase 초기화 포함)
+- [x] `lib/core/config/env_config.dart`
+- [x] `lib/core/router/app_router.dart`
+- [x] `lib/app.dart`
+- [x] `lib/main.dart` (Supabase 초기화 포함)
 
 ---
 
@@ -278,7 +278,7 @@
 
 | Phase | 진행율 | 상태 |
 |-------|--------|------|
-| Phase 0 초기화 | 45% | 🔄 진행 중 |
+| Phase 0 초기화 | 90% | 🔄 진행 중 |
 | Phase 1 MVP | 0% | ⏳ 대기 |
 | Phase 2 확장 | 0% | ⏳ 대기 |
 | Phase 3 폴리시 | 0% | ⏳ 대기 |
