@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../shared/models/node_model.dart';
@@ -47,41 +48,26 @@ class CanvasState {
 
 @riverpod
 class CanvasNotifier extends _$CanvasNotifier {
+  StreamSubscription<List<NodeModel>>? _nodesSub;
+  StreamSubscription<List<NodeEdge>>? _edgesSub;
+
   @override
   CanvasState build() {
-    // 노드 스트림 구독
-    ref.listen(
-      nodeRepositoryProvider.select((r) => r.watchAll()),
-      (_, stream) {
-        stream.listen((nodes) {
-          state = state.copyWith(nodes: nodes);
-        });
-      },
-    );
-
-    // 엣지 스트림 구독
-    ref.listen(
-      nodeRepositoryProvider.select((r) => r.watchAllEdges()),
-      (_, stream) {
-        stream.listen((edges) {
-          state = state.copyWith(edges: edges);
-        });
-      },
-    );
-
-    // 초기 스트림 구독 시작
-    _subscribeStreams();
-    return const CanvasState();
-  }
-
-  void _subscribeStreams() {
     final repo = ref.read(nodeRepositoryProvider);
-    repo.watchAll().listen((nodes) {
+
+    _nodesSub = repo.watchAll().listen((nodes) {
       state = state.copyWith(nodes: nodes);
     });
-    repo.watchAllEdges().listen((edges) {
+    _edgesSub = repo.watchAllEdges().listen((edges) {
       state = state.copyWith(edges: edges);
     });
+
+    ref.onDispose(() {
+      _nodesSub?.cancel();
+      _edgesSub?.cancel();
+    });
+
+    return const CanvasState();
   }
 
   // ── 선택 ─────────────────────────────────────────────────────────────────
