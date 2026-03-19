@@ -36,32 +36,32 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: AppRoutes.splash,
-        builder: (_, __) => const _SplashScreen(),
+        builder: (_, s) => const _SplashScreen(),
       ),
       GoRoute(
         path: AppRoutes.profileSetup,
-        builder: (_, __) => const ProfileSetupScreen(),
+        builder: (_, s) => const ProfileSetupScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) => _MainShell(child: child),
         routes: [
           GoRoute(
             path: AppRoutes.canvas,
-            builder: (_, __) => const CanvasScreen(),
+            builder: (_, s) => const CanvasScreen(),
           ),
           GoRoute(
             path: AppRoutes.backup,
-            builder: (_, __) => const BackupScreen(),
+            builder: (_, s) => const BackupScreen(),
           ),
           GoRoute(
             path: AppRoutes.settings,
-            builder: (_, __) => const _PlaceholderScreen(title: '설정'),
+            builder: (_, s) => const _PlaceholderScreen(title: '설정'),
           ),
         ],
       ),
       GoRoute(
         path: AppRoutes.subscription,
-        builder: (_, __) => const _PlaceholderScreen(title: '요금제'),
+        builder: (_, s) => const _PlaceholderScreen(title: '요금제'),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

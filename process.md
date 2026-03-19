@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-19
-> 현재 단계: Phase 1 MVP 시작 대기
+> 현재 단계: Phase 1 Week 3–4 완료 → Week 5–6 기억 저장 예정
 
 ---
 
@@ -86,23 +86,42 @@
 
 ---
 
-### Week 3–4: 무한 캔버스 + 노드 CRUD
+### Week 3–4: 무한 캔버스 + 노드 CRUD ✅
 
 #### UX Designer
-- [ ] 캔버스 인터랙션 설계
-- [ ] 노드 추가/편집 바텀시트 설계
-- [ ] Ghost Node 시각 가이드
+- [x] 캔버스 인터랙션 설계 (InteractiveViewer + 드래그/팬 분리)
+- [x] 노드 추가/편집 바텀시트 설계 (GlassBottomSheet)
+- [x] Ghost Node 시각 가이드 (점선 테두리, 50% 투명)
 
 #### Coder
-- [ ] `genealogy_chart` 또는 `infinite_canvas` 통합
-- [ ] 노드 기본 렌더링 (인물 카드)
-- [ ] Ghost Node 렌더링 (점선, 반투명)
-- [ ] 노드 드래그 & 위치 저장 (Drift 동기화)
-- [ ] 노드 탭 → 상세 바텀시트
-- [ ] 노드 추가 폼 (이름, 사진, 생년월일)
-- [ ] 노드 편집 / 삭제
-- [ ] 관계(Edge) 연결 UI
-- [ ] `NodeNotifier` (Riverpod)
+- [x] `InteractiveViewer` 무한 캔버스 (4000×4000, minScale 0.3, maxScale 3.0)
+- [x] `NodeCard` 렌더링 (110×130px, 온도별 테두리 색상)
+- [x] Ghost Node 렌더링 (GhostNodeBorder, 50% 투명, `?` 아이콘)
+- [x] 노드 드래그 & 위치 저장 (`_DraggableNodeCard` 로컬 상태 → DB write on drag end)
+- [x] `EdgePainter` (베지에 곡선, 관계별 색상, 라벨)
+- [x] 노드 탭 → `NodeDetailSheet` (온도 슬라이더, 액션 버튼)
+- [x] `AddNodeSheet` (이름*, 별명, 사진, 생년월일, Ghost 토글)
+- [x] `EditNodeSheet` (모든 필드 편집)
+- [x] `RelationPickerSheet` (5가지 관계 타입)
+- [x] 연결 모드 (롱프레스 → 배너 → 대상 탭 → 관계 선택)
+- [x] `NodeNotifier` + `CanvasNotifier` (Riverpod)
+- [x] FAB 노드 추가 (캔버스 중심 좌표 계산)
+- [x] 줌 리셋 버튼
+
+#### Debugger
+- [x] `flutter pub run build_runner build` → `.g.dart` 생성
+- [x] `flutter analyze lib/` → 0 issues
+
+#### Test Engineer
+- [x] `test/canvas/node_repository_test.dart` — 17개 테스트 (CRUD + Edge + cascade)
+- [x] `test/canvas/canvas_state_test.dart` — 10개 테스트 (CanvasState 순수 로직)
+- [x] 전체 27/27 통과
+
+#### Performance
+- [x] `RepaintBoundary`로 캔버스 영역 분리
+- [x] 드래그 중 DB write 없음 (onPanEnd에서만 저장)
+- [x] `EdgePainter.shouldRepaint` 최소화
+- [x] `const` 위젯 최대 활용
 
 ---
 
@@ -211,7 +230,7 @@
 | Phase | 진행율 | 상태 |
 |-------|--------|------|
 | Phase 0 초기화 | 100% | ✅ 완료 |
-| Phase 1 MVP | 5% | 🔄 진행 중 |
+| Phase 1 MVP | 35% | 🔄 진행 중 (Week 3–4 완료) |
 | Phase 2 확장 | 0% | ⏳ 대기 |
 | Phase 3 폴리시 | 0% | ⏳ 대기 |
 | Phase 4 런치 | 0% | ⏳ 대기 |

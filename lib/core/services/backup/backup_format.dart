@@ -53,7 +53,7 @@ class BackupManifest {
     final h = dt.hour.toString().padLeft(2, '0');
     final mi = dt.minute.toString().padLeft(2, '0');
     final s = dt.second.toString().padLeft(2, '0');
-    return 'backup_${y}${mo}${d}_${h}${mi}${s}.rlink';
+    return 'backup_$y$mo${d}_$h$mi$s.rlink';
   }
 }
 
