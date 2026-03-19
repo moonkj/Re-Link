@@ -1,5 +1,5 @@
 name: re_link
-description: "Re-Link — 가족 기억 저장소. 노드 기반 가족 트리로 사진, 음성, AI 대화를 저장합니다."
+description: "Re-Link — 가족 기억 저장소. 로컬 퍼스트, 기기에 저장하고 iCloud/Google Drive로 백업합니다."
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -11,15 +11,30 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # ── Supabase ──────────────────────────────────────────────────────────────
-  supabase_flutter: ^2.9.0
-
   # ── 상태 관리 (Riverpod 3.0) ──────────────────────────────────────────────
   flutter_riverpod: ^2.6.1
   riverpod_annotation: ^2.6.1
 
   # ── 라우팅 ────────────────────────────────────────────────────────────────
   go_router: ^14.8.1
+
+  # ── 로컬 DB (SQLite / Drift) ──────────────────────────────────────────────
+  drift: ^2.22.0
+  drift_flutter: ^0.2.4
+  sqlite3_flutter_libs: ^0.5.28
+
+  # ── 백업 — 압축 / 암호화 ──────────────────────────────────────────────────
+  archive: ^4.0.4            # lottie ^3.3.1이 ^4.0.0 요구
+  encrypt: ^5.0.3
+  crypto: ^3.0.6
+
+  # ── 백업 — iCloud (iOS) ──────────────────────────────────────────────────
+  icloud_storage: ^2.0.0
+
+  # ── 백업 — Google Drive (Android) ────────────────────────────────────────
+  googleapis: ^13.2.0
+  google_sign_in: ^6.2.2
+  http: ^1.2.2
 
   # ── 캔버스 / 가족 트리 ────────────────────────────────────────────────────
   genealogy_chart: ^1.0.0
@@ -48,27 +63,28 @@ dependencies:
   google_mobile_ads: ^5.3.0
   in_app_purchase: ^3.2.0
 
-  # ── 로컬 저장 / 오프라인 ──────────────────────────────────────────────────
-  hive_ce: ^2.9.0
-  hive_ce_flutter: ^2.2.0
+  # ── 로컬 저장 / 설정 ──────────────────────────────────────────────────────
   shared_preferences: ^2.3.5
   flutter_secure_storage: ^9.2.4
+  hive_ce: ^2.9.0
+  hive_ce_flutter: ^2.2.0
 
-  # ── 네트워크 ──────────────────────────────────────────────────────────────
-  connectivity_plus: ^6.1.3
-  http: ^1.2.2
-
-  # ── 유틸리티 ──────────────────────────────────────────────────────────────
-  uuid: ^4.5.1
-  intl: ^0.20.2
+  # ── 파일시스템 / 미디어 ───────────────────────────────────────────────────
   path_provider: ^2.1.5
-  url_launcher: ^6.3.1
+  path: ^1.9.1
+
+  # ── 네트워크 / 유틸리티 ───────────────────────────────────────────────────
+  connectivity_plus: ^6.1.3
   share_plus: ^10.1.4
+  url_launcher: ^6.3.1
   permission_handler: ^11.3.1
   package_info_plus: ^8.3.0
   device_info_plus: ^11.2.0
+  uuid: ^4.5.1
+  intl: ^0.20.2
   collection: ^1.19.1
   equatable: ^2.0.7
+  open_filex: ^4.5.0
 
   # ── 아이콘 ────────────────────────────────────────────────────────────────
   cupertino_icons: ^1.0.8
@@ -76,11 +92,10 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  # ── 린트 ──────────────────────────────────────────────────────────────────
   flutter_lints: ^6.0.0
 
   # ── 코드 생성 ─────────────────────────────────────────────────────────────
+  drift_dev: ^2.22.0
   riverpod_generator: ^2.6.2
   build_runner: ^2.4.14
   hive_ce_generator: ^1.8.0
