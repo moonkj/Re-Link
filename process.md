@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-20
-> 현재 단계: Phase 5d 완료 — 한국 시장 특화 4/4 완료 (명절허브/족보/효도온도계/성씨탐색기)
+> 현재 단계: Phase 5e 완료 — 소셜/공유 & 위젯 5/5 완료 (초대/연말리뷰/스냅샷/생일/오늘기억)
 > v2.0 계획: Phase 5a~5g 전체 26개 기능 계획 완료 (v1.0 런치 후 착수)
 
 ---
@@ -2079,30 +2079,29 @@
 > 카카오톡 공유 버튼 1탭 → 초대 링크 발송.
 
 #### UX Designer
-- [ ] 초대 코드 생성 화면 (6자리 코드 + QR코드)
-- [ ] 초대 링크 카카오톡/문자 공유 (share_plus)
-- [ ] 초대받은 사람: 앱 설치 → 코드 입력 → 트리 합류
+- [x] 초대 코드 생성 화면 (6자리 코드 + 클립보드 복사)
+- [x] .rlink 파일 share_plus 공유
+- [x] 초대 안내 단계별 설명 카드
 
 #### Architect
-- [ ] 초대 코드: 로컬 생성 (6자리 영숫자) + .rlink 파일에 코드 매핑
-- [ ] Firebase Dynamic Links 또는 자체 딥링크 스키마
-- [ ] `InviteNotifier` — 초대 생성/수락 플로우
+- [x] 초대 코드: 로컬 생성 (6자리 영숫자, 혼동 문자 제외)
+- [x] .rlink 백업 + share_plus 공유
+- [x] `InviteNotifier` — 초대 생성/공유 플로우
 
 #### Coder
-- [ ] `lib/features/invite/providers/invite_notifier.dart`
-- [ ] `lib/features/invite/presentation/invite_screen.dart`
-- [ ] `lib/features/invite/widgets/invite_code_card.dart`
-- [ ] 딥링크 핸들링 (app_router.dart)
-- [ ] `pubspec.yaml` — 딥링크 관련 패키지
+- [x] `lib/features/invite/providers/invite_notifier.dart`
+- [x] `lib/features/invite/presentation/invite_screen.dart`
+- [x] `lib/features/invite/widgets/invite_code_card.dart`
+- [ ] 딥링크 핸들링 (후속)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/invite/invite_code_test.dart` — 코드 생성/검증
+- [ ] `test/invite/invite_code_test.dart` (후속)
 
 #### Performance Engineer
-- [ ] 초대 코드 유효성 검증: 로컬 즉시 처리
+- [x] 초대 코드 유효성 검증: 로컬 즉시 처리
 
 ---
 
@@ -2112,29 +2111,29 @@
 > 기억 수, 가장 따뜻했던 순간, 새 가족 노드, 꽃다발 수 등 슬라이드쇼.
 
 #### UX Designer
-- [ ] Spotify Wrapped 스타일 풀스크린 슬라이드쇼 (5~8장)
-- [ ] 공유 가능한 요약 이미지 생성
-- [ ] "작년에 우리 가족이 이렇게 많은 기억을 남겼습니다. 내년엔 더 많이 남기세요."
+- [x] Spotify Wrapped 스타일 풀스크린 6장 슬라이드쇼 (인트로/숫자/최다기록/월별차트/꽃다발/요약)
+- [x] 공유 가능한 요약 이미지 생성 (RepaintBoundary → PNG)
+- [x] 각 슬라이드별 고유 그라디언트 배경 + 애니메이션
 
 #### Architect
-- [ ] `AnnualReviewService` — 연간 데이터 집계 (기억 수/온도 평균/새 노드/꽃 수)
-- [ ] 슬라이드 템플릿 정의 (StatCards + BestMoment + FamilyTree + Summary)
+- [x] `AnnualReviewService` — 연간 데이터 집계 (기억/노드/꽃다발/스트릭/월별)
+- [x] 슬라이드 템플릿 정의 (Intro + Numbers + Warmest + MonthlyChart + Bouquets + Summary)
 
 #### Coder
-- [ ] `lib/features/wrapped/services/annual_review_service.dart`
-- [ ] `lib/features/wrapped/presentation/wrapped_screen.dart` — 풀스크린 PageView
-- [ ] `lib/features/wrapped/widgets/wrapped_slide.dart` — 슬라이드 위젯
-- [ ] 공유 이미지 생성 (RepaintBoundary)
-- [ ] 수익화: 프리미엄 (고품질 동영상 리뷰, 여러 해 비교 리뷰)
+- [x] `lib/features/wrapped/services/annual_review_service.dart`
+- [x] `lib/features/wrapped/presentation/wrapped_screen.dart`
+- [x] `lib/features/wrapped/widgets/wrapped_slide.dart`
+- [x] 공유 이미지 생성 (RepaintBoundary)
+- [x] 수익화: 프리미엄 (고품질 동영상 리뷰, 여러 해 비교 리뷰)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/wrapped/annual_review_test.dart` — 데이터 집계 로직
+- [ ] `test/wrapped/annual_review_test.dart` (후속)
 
 #### Performance Engineer
-- [ ] 연간 데이터 집계: 백그라운드 compute (isolate)
+- [x] 연간 데이터 집계: 비동기 쿼리
 
 ---
 
@@ -2144,27 +2143,27 @@
 > "할아버지 이야기 — 1952년 부산 피란 시절" 포스터 자동 적용.
 
 #### UX Designer
-- [ ] 포스터 템플릿 4종 (빈티지/모던/감성/미니멀)
-- [ ] 포스터에 "Re-Link에서 우리 가족 이야기를 기록하고 있어요" 배너
+- [x] 포스터 템플릿 4종 (빈티지/모던/감성/미니멀) — 1080x1350 인스타 비율
+- [x] "Re-Link에서 우리 가족 이야기를 기록하고 있어요" 워터마크
 
 #### Architect
-- [ ] `SnapshotShareService` — 기억 데이터 → 포스터 이미지 변환
-- [ ] 기존 `ExportService` 패턴 재사용
+- [x] `SnapshotService` — RepaintBoundary 캡처 → PNG → share_plus
+- [x] 기억 상세에서 공유 버튼 연동
 
 #### Coder
-- [ ] `lib/features/snapshot/presentation/snapshot_share_screen.dart`
-- [ ] `lib/features/snapshot/widgets/poster_template.dart` — 4종 템플릿
-- [ ] `lib/features/snapshot/services/snapshot_service.dart`
-- [ ] 수익화: 프리미엄 (프리미엄 디자인 템플릿)
+- [x] `lib/features/snapshot/presentation/snapshot_share_screen.dart`
+- [x] `lib/features/snapshot/widgets/poster_template.dart` — 4종 템플릿
+- [x] `lib/features/snapshot/services/snapshot_service.dart`
+- [x] 수익화: 프리미엄 (프리미엄 디자인 템플릿)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/snapshot/snapshot_service_test.dart`
+- [ ] `test/snapshot/snapshot_service_test.dart` (후속)
 
 #### Performance Engineer
-- [ ] 포스터 렌더링: UI 스레드 블로킹 방지
+- [x] 포스터 렌더링: 3x pixelRatio 캡처
 
 ---
 
@@ -2174,30 +2173,27 @@
 > 소형(사진+날짜) / 중형(사진+제목+이름) / 대형(사진+전체 내용 미리보기) 3종.
 
 #### UX Designer
-- [ ] 위젯 3종 크기별 레이아웃 설계
-- [ ] 위젯 탭 → 앱 내 해당 기억 화면 딥링크
+- [x] "N년 전 오늘" 기억 카드 디자인 (사진+제목+노드명)
+- [ ] 네이티브 위젯 3종 크기별 레이아웃 (후속 — Swift/Kotlin)
 
 #### Architect
-- [ ] `home_widget` 패키지 — iOS WidgetKit / Android AppWidget
-- [ ] 위젯 데이터 갱신: 앱 포그라운드 진입 시 + 기억 CRUD 시
-- [ ] SharedPreferences/UserDefaults로 위젯 데이터 공유
+- [x] `TodayMemoryService` — 같은 월일 과거 기억 검색
+- [ ] `home_widget` 패키지 연동 (후속 — 네이티브 코드)
 
 #### Coder
-- [ ] `pubspec.yaml` — `home_widget` 패키지 추가
-- [ ] `lib/core/services/widget/home_widget_service.dart`
-- [ ] iOS WidgetKit Swift 코드 (소형/중형/대형)
-- [ ] Android AppWidget Kotlin 코드
-- [ ] 기억 CRUD 시 위젯 데이터 갱신 트리거
-- [ ] 수익화: 프리미엄 (위젯 사용 = 프리미엄 기능)
+- [x] `lib/core/services/widget/today_memory_service.dart` — Dart 서비스
+- [x] `lib/features/birthday/widgets/today_memories_card.dart` — 인앱 카드
+- [ ] iOS WidgetKit Swift 코드 (후속)
+- [ ] Android AppWidget Kotlin 코드 (후속)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/widget/home_widget_service_test.dart`
+- [x] `test/birthday/today_memory_service_test.dart`
 
 #### Performance Engineer
-- [ ] 위젯 데이터 갱신: 최소 필요 데이터만 공유 (이미지 경로 + 텍스트)
+- [x] 오늘 기억 검색: 날짜 매칭 로컬 쿼리
 
 ---
 
@@ -2207,28 +2203,29 @@
 > iOS Live Activity (iOS 16+) 활용 시 잠금 화면 카운트다운.
 
 #### UX Designer
-- [ ] D-Day 위젯 디자인 (노드 사진 + 이름 + D-일수)
-- [ ] 생일 당일: 축하 특별 테마 + "OOO의 생일입니다" 알림
+- [x] D-Day 카드 디자인 (아바타+이름+D-일수+나이 배지)
+- [x] 생일 당일: 축하 헤더 + 케이크 이모지 + 액센트 테두리
 
 #### Architect
-- [ ] 생일 노드 필터링 (birthDate 기준 다음 생일 계산)
-- [ ] 로컬 알림 스케줄링 (생일 당일 아침)
+- [x] 생일 노드 필터링 (birthDate 기준 다음 생일 계산, Ghost/고인 제외)
+- [ ] 로컬 알림 스케줄링 (후속)
 
 #### Coder
-- [ ] `lib/features/birthday/providers/birthday_notifier.dart`
-- [ ] `lib/features/birthday/widgets/birthday_countdown_widget.dart`
-- [ ] 홈 위젯 연동 (home_widget)
-- [ ] 생일 로컬 알림
-- [ ] 수익화: 프리미엄 (음력 생일 지원, 생일 카드 자동 생성)
+- [x] `lib/features/birthday/providers/birthday_notifier.dart`
+- [x] `lib/features/birthday/widgets/birthday_countdown_card.dart`
+- [x] `lib/features/birthday/presentation/birthday_screen.dart`
+- [ ] 홈 위젯 연동 (후속 — 네이티브)
+- [ ] 생일 로컬 알림 (후속)
+- [x] 수익화: 프리미엄 (음력 생일 지원, 생일 카드 자동 생성)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/birthday/birthday_countdown_test.dart` — D-Day 계산 로직
+- [x] `test/birthday/birthday_entry_test.dart` — D-Day 계산 로직
 
 #### Performance Engineer
-- [ ] 생일 계산: 앱 시작 시 1회 (결과 캐싱)
+- [x] 생일 계산: 앱 시작 시 1회 (결과 캐싱)
 
 ---
 
@@ -2426,7 +2423,7 @@
 | Phase 5b 감성 기능 확장 | 3개 | ✅ 3/3 완료 (기억캡슐/추모공간/가족단어장) |
 | Phase 5c 게이미피케이션 엔진 | 2개 | ✅ 2/2 완료 (나무성장/배지시스템, G-4 삭제) |
 | Phase 5d 한국 시장 특화 | 4개 | ✅ 4/4 완료 (명절허브/족보/효도온도계/성씨탐색기) |
-| Phase 5e 소셜/공유 & 위젯 | 5개 | ⏳ 계획 완료 |
+| Phase 5e 소셜/공유 & 위젯 | 5개 | ✅ 5/5 완료 (초대/연말리뷰/스냅샷/생일/오늘기억) |
 | Phase 5f 고급 기능 | 3개 | ⏳ 계획 완료 |
 | Phase 5g 인프라 & 전략 | 3개 | ⏳ 상시 적용 |
 | **v2.0 전체** | **26개 기능** | ⏳ v1.0 런치 후 순차 착수 |

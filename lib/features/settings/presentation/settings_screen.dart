@@ -55,6 +55,8 @@ class SettingsScreen extends ConsumerWidget {
           SizedBox(height: AppSpacing.xl),
           _ExportSection(),
           SizedBox(height: AppSpacing.xl),
+          _FamilyInviteSection(),
+          SizedBox(height: AppSpacing.xl),
           _FamilyRecordSection(),
           SizedBox(height: AppSpacing.xl),
           _AppInfoSection(),
@@ -745,6 +747,39 @@ class _ExportSection extends StatelessWidget {
   }
 }
 
+// ── 가족 초대 섹션 ──────────────────────────────────────────────────────────────
+
+class _FamilyInviteSection extends StatelessWidget {
+  const _FamilyInviteSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionLabel(label: '가족 공유'),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: EdgeInsets.zero,
+          child: ListTile(
+            leading: const Icon(Icons.group_add_outlined,
+                color: AppColors.primary),
+            title: Text('가족 초대',
+                style: TextStyle(
+                    fontSize: 15, color: AppColors.textPrimary)),
+            subtitle: Text('초대 코드 + .rlink 파일로 가족 트리 공유',
+                style: TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary)),
+            trailing:
+                Icon(Icons.chevron_right, color: AppColors.textTertiary),
+            onTap: () => context.push(AppRoutes.invite),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 // ── 가족 기록 섹션 ──────────────────────────────────────────────────────────────
 
 class _FamilyRecordSection extends StatelessWidget {
@@ -761,6 +796,20 @@ class _FamilyRecordSection extends StatelessWidget {
           padding: EdgeInsets.zero,
           child: Column(
             children: [
+              ListTile(
+                leading: const Icon(Icons.cake_outlined,
+                    color: AppColors.accent),
+                title: Text('가족 생일',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: Text('다가오는 생일 카운트다운',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                trailing:
+                    Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                onTap: () => context.push(AppRoutes.birthday),
+              ),
+              Divider(color: AppColors.glassBorder, height: 1),
               ListTile(
                 leading: const Icon(Icons.account_tree_outlined,
                     color: AppColors.secondary),
@@ -846,6 +895,20 @@ class _FamilyRecordSection extends StatelessWidget {
                 trailing:
                     Icon(Icons.chevron_right, color: AppColors.textTertiary),
                 onTap: () => context.push(AppRoutes.clan),
+              ),
+              Divider(color: AppColors.glassBorder, height: 1),
+              ListTile(
+                leading: const Icon(Icons.auto_awesome,
+                    color: AppColors.accent),
+                title: Text('연말 가족 리뷰',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: Text('올해의 가족 기억 돌아보기',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                trailing:
+                    Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                onTap: () => context.push(AppRoutes.wrapped),
               ),
             ],
           ),

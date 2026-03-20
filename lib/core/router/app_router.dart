@@ -24,6 +24,10 @@ import '../../features/badges/presentation/badge_list_screen.dart';
 import '../../features/hyodo/presentation/hyodo_screen.dart';
 import '../../features/jokbo/presentation/jokbo_import_screen.dart';
 import '../../features/clan/presentation/clan_explorer_screen.dart';
+import '../../features/birthday/presentation/birthday_screen.dart';
+import '../../features/invite/presentation/invite_screen.dart';
+import '../../features/snapshot/presentation/snapshot_share_screen.dart';
+import '../../features/wrapped/presentation/wrapped_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
 import '../../shared/widgets/ad_banner_widget.dart';
 
@@ -52,11 +56,16 @@ abstract final class AppRoutes {
   static const String hyodo = '/hyodo';
   static const String jokbo = '/jokbo';
   static const String clan = '/clan';
+  static const String invite = '/invite';
+  static const String snapshot = '/snapshot/:memoryId';
+  static const String wrapped = '/wrapped';
+  static const String birthday = '/birthday';
 
   static String memoryPath(String nodeId) => '/memory/$nodeId';
   static String temperatureDiaryPath(String nodeId) =>
       '/temperature-diary/$nodeId';
   static String memorialPath(String nodeId) => '/memorial/$nodeId';
+  static String snapshotPath(String memoryId) => '/snapshot/$memoryId';
 }
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -183,6 +192,24 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.clan,
         builder: (_, s) => const ClanExplorerScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.invite,
+        builder: (_, s) => const InviteScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.snapshot,
+        builder: (_, s) => SnapshotShareScreen(
+          memoryId: s.pathParameters['memoryId']!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.wrapped,
+        builder: (_, s) => const WrappedScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.birthday,
+        builder: (_, s) => const BirthdayScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

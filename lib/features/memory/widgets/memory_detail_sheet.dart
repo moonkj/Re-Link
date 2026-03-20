@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/router/app_router.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -65,6 +67,15 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                   ),
                 ),
+                GestureDetector(
+                  onTap: () {
+                    final router = GoRouter.of(context);
+                    Navigator.of(context).pop();
+                    router.push(AppRoutes.snapshotPath(widget.memory.id));
+                  },
+                  child: Icon(Icons.share_outlined, color: AppColors.textSecondary, size: 22),
+                ),
+                const SizedBox(width: AppSpacing.sm),
                 GestureDetector(
                   onTap: () => _confirmDelete(context),
                   child: const Icon(Icons.delete_outline, color: AppColors.error, size: 22),
