@@ -4,6 +4,7 @@ import '../../../core/utils/haptic_service.dart';
 import '../../../design/motion/app_motion.dart';
 import '../../../shared/models/node_model.dart';
 import '../../../design/tokens/app_colors.dart';
+import '../../badges/models/badge_definition.dart';
 import '../utils/lod_utils.dart';
 
 const double kNodeCardWidth = 110.0;
@@ -47,6 +48,8 @@ class NodeCard extends StatefulWidget {
     required this.isConnectSource,
     required this.isConnectMode,
     this.ghostLabel,
+    this.earnedBadgeIds,
+    this.showHolidayGlow = false,
   });
 
   final NodeModel node;
@@ -56,6 +59,12 @@ class NodeCard extends StatefulWidget {
 
   /// Ghost 노드에 표시할 라벨 (null이면 기본 '미확인')
   final String? ghostLabel;
+
+  /// 이 노드에 연관된 획득 배지 ID 목록
+  final List<String>? earnedBadgeIds;
+
+  /// 명절 기간 조상 노드 glow 여부
+  final bool showHolidayGlow;
 
   @override
   State<NodeCard> createState() => _NodeCardState();
@@ -198,6 +207,16 @@ class _NodeCardState extends State<NodeCard>
                             ),
                           ),
                         ),
+                      // 배지 아이콘 (첫 번째 배지만 표시)
+                      if (widget.earnedBadgeIds != null &&
+                          widget.earnedBadgeIds!.isNotEmpty)
+                        Positioned(
+                          bottom: 4,
+                          right: 4,
+                          child: _BadgeIcon(
+                            badgeId: widget.earnedBadgeIds!.first,
+                          ),
+                        ),
                     ],
                   ),
           ),
@@ -225,6 +244,17 @@ class _NodeCardState extends State<NodeCard>
       );
     }
 
+    // 명절 glow 적용
+    final holidayGlowShadows = widget.showHolidayGlow
+        ? const [
+            BoxShadow(
+              color: Color(0x80F4845F),
+              blurRadius: 20,
+              spreadRadius: 6,
+            ),
+          ]
+        : <BoxShadow>[];
+
     return BoxDecoration(
       borderRadius: BorderRadius.circular(16),
       color: AppColors.glassSurface,
@@ -243,6 +273,7 @@ class _NodeCardState extends State<NodeCard>
                 blurRadius: 20,
                 spreadRadius: 2,
               ),
+              ...holidayGlowShadows,
             ]
           : [
               BoxShadow(
@@ -250,6 +281,7 @@ class _NodeCardState extends State<NodeCard>
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
+              ...holidayGlowShadows,
             ],
     );
   }
@@ -410,6 +442,33 @@ class _NodeAvatar extends StatelessWidget {
 // LOD 변형 위젯들
 // ─────────────────────────────────────────────────────────────────────────────
 
+/// 배지 아이콘 위젯 (노드 우하단 16px)
+class _BadgeIcon extends StatelessWidget {
+  const _BadgeIcon({required this.badgeId});
+  final String badgeId;
+
+  @override
+  Widget build(BuildContext context) {
+    final badge = BadgeDefinition.fromId(badgeId);
+    if (badge == null) return const SizedBox.shrink();
+
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.primary.withAlpha(50),
+        border: Border.all(color: AppColors.primary.withAlpha(100), width: 0.5),
+      ),
+      child: Icon(
+        badge.icon,
+        size: 12,
+        color: AppColors.primary,
+      ),
+    );
+  }
+}
+
 /// LOD 기반 노드 렌더러 — 줌 레벨에 따라 다른 표현 사용
 class NodeCardLod extends StatelessWidget {
   const NodeCardLod({
@@ -420,6 +479,8 @@ class NodeCardLod extends StatelessWidget {
     required this.isConnectSource,
     required this.isConnectMode,
     this.ghostLabel,
+    this.earnedBadgeIds,
+    this.showHolidayGlow = false,
   });
 
   final NodeModel node;
@@ -430,6 +491,12 @@ class NodeCardLod extends StatelessWidget {
 
   /// Ghost 노드에 표시할 라벨
   final String? ghostLabel;
+
+  /// 이 노드에 연관된 획득 배지 ID 목록
+  final List<String>? earnedBadgeIds;
+
+  /// 명절 기간 조상 노드 glow 여부
+  final bool showHolidayGlow;
 
   @override
   Widget build(BuildContext context) {
@@ -442,6 +509,8 @@ class NodeCardLod extends StatelessWidget {
           isConnectSource: isConnectSource,
           isConnectMode: isConnectMode,
           ghostLabel: ghostLabel,
+          earnedBadgeIds: earnedBadgeIds,
+          showHolidayGlow: showHolidayGlow,
         ),
     };
   }

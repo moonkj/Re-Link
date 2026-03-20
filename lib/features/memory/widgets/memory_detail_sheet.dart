@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/services/privacy/privacy_service.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -11,7 +13,7 @@ import '../../../shared/models/memory_model.dart';
 import '../providers/memory_notifier.dart';
 import '../../then_now/widgets/memory_picker_sheet.dart';
 
-/// 기억 상세 시트 — 타입별 분기
+/// 기억 상세 시트 — 타입별 분기 + Privacy Layer 게이팅
 class MemoryDetailSheet extends ConsumerStatefulWidget {
   const MemoryDetailSheet({super.key, required this.memory});
   final MemoryModel memory;
@@ -24,12 +26,62 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
   PlayerController? _playerCtrl;
   bool _playerReady = false;
 
+  /// Privacy Layer: 인증 완료 여부
+  bool _privacyUnlocked = false;
+
+  /// Privacy Layer: 활성화 여부 (설정에서)
+  bool _privacyEnabled = false;
+
+  /// Privacy Layer: 로딩 중
+  bool _privacyLoading = true;
+
   @override
   void initState() {
     super.initState();
+    _checkPrivacy();
     if (widget.memory.type == MemoryType.voice && widget.memory.filePath != null) {
       _initPlayer();
     }
+  }
+
+  Future<void> _checkPrivacy() async {
+    if (!widget.memory.isPrivate) {
+      if (mounted) {
+        setState(() {
+          _privacyLoading = false;
+          _privacyUnlocked = true;
+        });
+      }
+      return;
+    }
+
+    final privacy = ref.read(privacyServiceProvider);
+    final enabled = await privacy.isEnabled();
+    if (!mounted) return;
+
+    if (!enabled) {
+      // Privacy Layer 비활성화 → 바로 노출
+      setState(() {
+        _privacyLoading = false;
+        _privacyUnlocked = true;
+      });
+      return;
+    }
+
+    setState(() {
+      _privacyEnabled = true;
+      _privacyLoading = false;
+    });
+
+    // 자동 인증 시도 (세션 유효 시 바로 통과)
+    _attemptAuth();
+  }
+
+  Future<void> _attemptAuth() async {
+    final privacy = ref.read(privacyServiceProvider);
+    final result = await privacy.authenticate();
+    if (!mounted) return;
+    setState(() => _privacyUnlocked = result);
   }
 
   Future<void> _initPlayer() async {
@@ -52,6 +104,28 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
 
   @override
   Widget build(BuildContext context) {
+    // Privacy Layer 로딩 중
+    if (_privacyLoading) {
+      return GlassBottomSheet(
+        padding: EdgeInsets.zero,
+        child: const SizedBox(
+          height: 200,
+          child: Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          ),
+        ),
+      );
+    }
+
+    // Private 기억이고 인증 미완료 → 블러 + 잠금 오버레이
+    if (widget.memory.isPrivate && _privacyEnabled && !_privacyUnlocked) {
+      return _LockedOverlay(
+        memory: widget.memory,
+        onUnlock: _attemptAuth,
+        onClose: () => Navigator.of(context).pop(),
+      );
+    }
+
     return GlassBottomSheet(
       padding: EdgeInsets.zero,
       child: Column(
@@ -63,9 +137,19 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
             child: Row(
               children: [
                 Expanded(
-                  child: Text(
-                    widget.memory.title ?? widget.memory.type.label,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          widget.memory.title ?? widget.memory.type.label,
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                        ),
+                      ),
+                      if (widget.memory.isPrivate) ...[
+                        const SizedBox(width: 6),
+                        Icon(Icons.lock, size: 16, color: AppColors.accent),
+                      ],
+                    ],
                   ),
                 ),
                 GestureDetector(
@@ -225,6 +309,175 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
 
   String _formatDate(DateTime dt) =>
       '${dt.year}년 ${dt.month}월 ${dt.day}일';
+}
+
+// ── 잠금 오버레이 (인증 전) ───────────────────────────────────────────────────
+
+class _LockedOverlay extends StatelessWidget {
+  const _LockedOverlay({
+    required this.memory,
+    required this.onUnlock,
+    required this.onClose,
+  });
+
+  final MemoryModel memory;
+  final VoidCallback onUnlock;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassBottomSheet(
+      padding: EdgeInsets.zero,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 닫기 버튼
+          Padding(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '개인 기억',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: onClose,
+                  child: Icon(Icons.close, color: AppColors.textSecondary, size: 22),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // 블러된 콘텐츠 미리보기 + 잠금 아이콘
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                height: 200,
+                width: double.infinity,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // 배경: 타입에 따른 미리보기 (블러 처리)
+                    _BlurredPreview(memory: memory),
+                    // 블러 필터
+                    BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      child: Container(
+                        color: AppColors.bgBase.withAlpha(80),
+                      ),
+                    ),
+                    // 잠금 아이콘 + 텍스트
+                    Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.accent.withAlpha(30),
+                            ),
+                            child: const Icon(
+                              Icons.lock_rounded,
+                              color: AppColors.accent,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            '인증이 필요한 기억입니다',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: AppSpacing.lg),
+
+          // 잠금 해제 버튼
+          Padding(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
+            child: SizedBox(
+              width: double.infinity,
+              child: GlassButton(
+                onPressed: onUnlock,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.fingerprint, color: AppColors.accent, size: 22),
+                    const SizedBox(width: 8),
+                    Text(
+                      '인증하여 보기',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.accent,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 블러 처리를 위한 배경 미리보기
+class _BlurredPreview extends StatelessWidget {
+  const _BlurredPreview({required this.memory});
+  final MemoryModel memory;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (memory.type) {
+      case MemoryType.photo:
+        if (memory.thumbnailPath != null) {
+          return Image.file(
+            File(memory.thumbnailPath!),
+            fit: BoxFit.cover,
+          );
+        }
+        if (memory.filePath != null) {
+          return Image.file(
+            File(memory.filePath!),
+            fit: BoxFit.cover,
+          );
+        }
+        return Container(color: AppColors.glassSurface);
+      case MemoryType.voice:
+        return Container(
+          color: AppColors.accent.withAlpha(20),
+          child: const Center(
+            child: Icon(Icons.mic_rounded, size: 48, color: AppColors.accent),
+          ),
+        );
+      case MemoryType.note:
+        return Container(
+          color: AppColors.primary.withAlpha(20),
+          child: const Center(
+            child: Icon(Icons.notes_rounded, size: 48, color: AppColors.primary),
+          ),
+        );
+    }
+  }
 }
 
 // ── 사진 ──────────────────────────────────────────────────────────────────────

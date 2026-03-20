@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/database/app_database.dart';
+import '../../../core/services/notification/notification_service.dart';
 import '../../../shared/repositories/voice_legacy_repository.dart';
 
 part 'voice_legacy_notifier.g.dart';
@@ -40,6 +42,10 @@ class VoiceLegacyNotifier extends _$VoiceLegacyNotifier {
         openCondition: openCondition,
         openDate: openDate,
       );
+      // openDate가 있으면 봉인 해제 알림 스케줄
+      if (openDate != null) {
+        _scheduleVoiceLegacyNotification(id, title, openDate);
+      }
       state = const AsyncData(null);
       return id;
     } catch (e, st) {
@@ -61,16 +67,49 @@ class VoiceLegacyNotifier extends _$VoiceLegacyNotifier {
     }
   }
 
-  /// 삭제
+  /// 삭제 — 알림도 함께 취소
   Future<bool> delete(String id) async {
     state = const AsyncLoading();
     try {
+      // 해당 voice legacy 알림 취소
+      _cancelVoiceLegacyNotification(id);
       await _repo.delete(id);
       state = const AsyncData(null);
       return true;
     } catch (e, st) {
       state = AsyncError(e, st);
       return false;
+    }
+  }
+
+  /// 보이스 유언 봉인 해제 알림 스케줄
+  void _scheduleVoiceLegacyNotification(
+    String legacyId,
+    String title,
+    DateTime openDate,
+  ) {
+    try {
+      final svc = ref.read(notificationServiceProvider);
+      svc.scheduleAt(
+        id: NotificationId.voiceLegacyBase.forItem(legacyId),
+        title: '보이스 유언이 공개되었어요',
+        body: '"$title" 봉인이 해제되었습니다. 지금 들어보세요.',
+        dateTime: openDate,
+        channelId: 're_link_event',
+        payload: 'voice_legacy:$legacyId',
+      );
+    } catch (e) {
+      debugPrint('[VoiceLegacyNotifier] 알림 스케줄 실패: $e');
+    }
+  }
+
+  /// 보이스 유언 알림 취소
+  void _cancelVoiceLegacyNotification(String legacyId) {
+    try {
+      final svc = ref.read(notificationServiceProvider);
+      svc.cancel(NotificationId.voiceLegacyBase.forItem(legacyId));
+    } catch (e) {
+      debugPrint('[VoiceLegacyNotifier] 알림 취소 실패: $e');
     }
   }
 }

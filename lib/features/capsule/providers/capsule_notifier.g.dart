@@ -26,7 +26,7 @@ final allCapsulesProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AllCapsulesRef = AutoDisposeStreamProviderRef<List<CapsulesTableData>>;
-String _$capsuleNotifierHash() => r'ef7b71ec69927714aab86af6cc45b1b56b9226a7';
+String _$capsuleNotifierHash() => r'98ce63199b276555482a9be5737074020e827cdc';
 
 /// 캡슐 CRUD 오퍼레이션
 ///

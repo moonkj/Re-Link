@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/services/privacy/privacy_service.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../shared/models/memory_model.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
+import '../../../shared/widgets/private_blur_overlay.dart';
 import '../../../core/router/app_router.dart';
 import '../providers/archive_notifier.dart';
 
@@ -145,18 +147,38 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
                     itemCount: state.groups.length,
                     itemBuilder: (_, i) {
                       final group = state.groups[i];
-                      return _ArchiveGroup(group: group);
+                      return _ArchiveGroup(
+                        group: group,
+                        onPrivateTap: _handlePrivateTap,
+                      );
                     },
                   ),
       ),
     );
   }
+
+  Future<void> _handlePrivateTap(MemoryModel memory) async {
+    final privacy = ref.read(privacyServiceProvider);
+    final enabled = await privacy.isEnabled();
+    if (!mounted) return;
+    if (enabled) {
+      final authed = await privacy.authenticate();
+      if (!mounted) return;
+      if (!authed) return;
+    }
+    if (!mounted) return;
+    context.push(AppRoutes.memoryPath(memory.nodeId));
+  }
 }
 
 /// 노드별 기억 그룹
 class _ArchiveGroup extends StatelessWidget {
-  const _ArchiveGroup({required this.group});
+  const _ArchiveGroup({
+    required this.group,
+    required this.onPrivateTap,
+  });
   final ArchiveGroup group;
+  final void Function(MemoryModel memory) onPrivateTap;
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +236,9 @@ class _ArchiveGroup extends StatelessWidget {
         // 기억 목록
         ...group.memories.map((m) => _MemoryTile(
               memory: m,
-              onTap: () => context.push(AppRoutes.memoryPath(m.nodeId)),
+              onTap: m.isPrivate
+                  ? () => onPrivateTap(m)
+                  : () => context.push(AppRoutes.memoryPath(m.nodeId)),
             )),
         const SizedBox(height: AppSpacing.md),
       ],
@@ -244,45 +268,91 @@ class _MemoryTile extends StatelessWidget {
       onTap: onTap,
       child: Row(
         children: [
-          // 사진 썸네일 또는 아이콘
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: memory.type == MemoryType.photo && memory.thumbnailPath != null
-                ? Image.file(
-                    File(memory.thumbnailPath!),
-                    width: 56,
-                    height: 56,
-                    fit: BoxFit.cover,
-                  )
-                : Container(
-                    width: 56,
-                    height: 56,
-                    color: color.withAlpha(30),
-                    child: Icon(icon, color: color, size: 28),
-                  ),
-          ),
+          // 사진 썸네일 또는 아이콘 — 비공개 시 블러 오버레이
+          if (memory.isPrivate)
+            SizedBox(
+              width: 56,
+              height: 56,
+              child: PrivateBlurOverlay(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(8),
+                showMessage: false,
+                iconSize: 16,
+                blurSigma: 12,
+                child: memory.type == MemoryType.photo && memory.thumbnailPath != null
+                    ? Image.file(
+                        File(memory.thumbnailPath!),
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                      )
+                    : Container(
+                        width: 56,
+                        height: 56,
+                        color: color.withAlpha(30),
+                        child: Icon(icon, color: color, size: 28),
+                      ),
+              ),
+            )
+          else
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: memory.type == MemoryType.photo && memory.thumbnailPath != null
+                  ? Image.file(
+                      File(memory.thumbnailPath!),
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      width: 56,
+                      height: 56,
+                      color: color.withAlpha(30),
+                      child: Icon(icon, color: color, size: 28),
+                    ),
+            ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  memory.title ?? memory.type.label,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        memory.isPrivate
+                            ? '비공개 ${memory.type.label}'
+                            : (memory.title ?? memory.type.label),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: memory.isPrivate
+                              ? AppColors.textTertiary
+                              : AppColors.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (memory.isPrivate) ...[
+                      const SizedBox(width: 4),
+                      Icon(Icons.lock, size: 12, color: AppColors.textTertiary),
+                    ],
+                  ],
                 ),
-                if (memory.description != null) ...[
+                if (!memory.isPrivate && memory.description != null) ...[
                   const SizedBox(height: 2),
                   Text(
                     memory.description!,
                     style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                  ),
+                ] else if (memory.isPrivate) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    '탭하여 인증 후 열기',
+                    style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
                   ),
                 ],
                 const SizedBox(height: 2),
@@ -294,7 +364,7 @@ class _MemoryTile extends StatelessWidget {
                     ),
                     if (memory.isPrivate) ...[
                       const SizedBox(width: 6),
-                      Icon(Icons.lock, size: 12, color: AppColors.textTertiary),
+                      Icon(Icons.lock, size: 12, color: AppColors.accent),
                     ],
                   ],
                 ),

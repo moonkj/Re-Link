@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/haptic_service.dart';
+import '../../../core/utils/lunar_calendar.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
@@ -384,6 +385,12 @@ class _MemorialHeader extends StatelessWidget {
                 ),
               ),
             ),
+
+          // ── 음력/양력 기일 정보 ──────────────────────────────────────
+          if (deathDate != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            _AnniversaryBadge(deathDate: deathDate!),
+          ],
         ],
       ),
     );
@@ -403,5 +410,149 @@ class _MemorialHeader extends StatelessWidget {
       return '${death.year}.${death.month.toString().padLeft(2, '0')}.${death.day.toString().padLeft(2, '0')} 영면';
     }
     return '';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── 음력/양력 기일 뱃지 위젯 ──────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+class _AnniversaryBadge extends StatelessWidget {
+  const _AnniversaryBadge({required this.deathDate});
+  final DateTime deathDate;
+
+  @override
+  Widget build(BuildContext context) {
+    // 양력 기일 → 음력 변환 시도
+    final lunarDate = LunarCalendar.solarToLunar(deathDate);
+
+    // 다음 양력 기일
+    final nextSolar = LunarCalendar.nextSolarAnniversary(
+      month: deathDate.month,
+      day: deathDate.day,
+    );
+
+    // 다음 음력 기일 (음력 변환 성공 시)
+    DateTime? nextLunar;
+    if (lunarDate != null) {
+      nextLunar = LunarCalendar.nextAnniversary(
+        lunarMonth: lunarDate.month,
+        lunarDay: lunarDate.day,
+      );
+    }
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final solarDaysLeft = nextSolar.difference(today).inDays;
+    final lunarDaysLeft = nextLunar?.difference(today).inDays;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.glassSurface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.glassBorder, width: 0.5),
+      ),
+      child: Column(
+        children: [
+          // 양력 기일
+          _AnniversaryRow(
+            label: '양력 기일',
+            dateText: _formatDate(nextSolar),
+            daysLeft: solarDaysLeft,
+          ),
+
+          // 음력 기일
+          if (lunarDate != null && nextLunar != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Divider(color: AppColors.glassBorder, height: 1),
+            const SizedBox(height: AppSpacing.sm),
+            _AnniversaryRow(
+              label: '음력 기일 (${lunarDate.toKorean()})',
+              dateText: _formatDate(nextLunar),
+              daysLeft: lunarDaysLeft!,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime dt) =>
+      '${dt.year}.${dt.month.toString().padLeft(2, '0')}.${dt.day.toString().padLeft(2, '0')}';
+}
+
+class _AnniversaryRow extends StatelessWidget {
+  const _AnniversaryRow({
+    required this.label,
+    required this.dateText,
+    required this.daysLeft,
+  });
+
+  final String label;
+  final String dateText;
+  final int daysLeft;
+
+  @override
+  Widget build(BuildContext context) {
+    final isToday = daysLeft == 0;
+    final isSoon = daysLeft > 0 && daysLeft <= 7;
+
+    return Row(
+      children: [
+        Icon(
+          Icons.event_outlined,
+          size: 14,
+          color: isToday
+              ? AppColors.accent
+              : isSoon
+                  ? AppColors.warning
+                  : AppColors.textTertiary,
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+        Text(
+          dateText,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: isToday
+                ? AppColors.accent.withAlpha(30)
+                : isSoon
+                    ? AppColors.warning.withAlpha(30)
+                    : AppColors.glassSurface,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            isToday ? '오늘' : 'D-$daysLeft',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: isToday
+                  ? AppColors.accent
+                  : isSoon
+                      ? AppColors.warning
+                      : AppColors.textTertiary,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

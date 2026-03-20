@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/data/family_prompts.dart';
 import '../../../core/database/tables/settings_table.dart';
+import '../../../core/services/notification/notification_service.dart';
 import '../../../shared/repositories/settings_repository.dart';
 
 part 'daily_prompt_notifier.g.dart';
@@ -46,6 +48,9 @@ class DailyPromptNotifier extends _$DailyPromptNotifier {
       final isDismissed = dismissedDate == today;
       final prompt = _getTodayPrompt();
 
+      // 매일 오전 8시 데일리 프롬프트 알림 스케줄
+      _scheduleDailyNotification(prompt);
+
       return DailyPromptState(
         currentPrompt: prompt,
         isDismissed: isDismissed,
@@ -90,6 +95,24 @@ class DailyPromptNotifier extends _$DailyPromptNotifier {
     final prev = state.valueOrNull;
     if (prev != null) {
       state = AsyncData(prev.copyWith(isDismissed: true));
+    }
+  }
+
+  /// 매일 오전 8시 데일리 프롬프트 알림 예약
+  void _scheduleDailyNotification(FamilyPrompt prompt) {
+    try {
+      final svc = ref.read(notificationServiceProvider);
+      svc.scheduleDailyAt(
+        id: NotificationId.dailyPrompt.baseId,
+        title: '오늘의 가족 질문',
+        body: prompt.question,
+        hour: 8,
+        minute: 0,
+        channelId: 're_link_daily',
+        payload: 'daily_prompt',
+      );
+    } catch (e) {
+      debugPrint('[DailyPromptNotifier] 알림 스케줄 실패: $e');
     }
   }
 }

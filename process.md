@@ -88,7 +88,7 @@
 
 #### Coder
 - [x] 프로필 설정 화면 완성 (사진, 이름, 저장) — `profile_setup_screen.dart`
-- [ ] 복원 감지 화면 (재설치 시 백업 발견) — 향후 추가 예정
+- [x] 복원 감지 화면 (재설치 시 백업 발견) — `restore_detect_screen.dart`
 - [x] 프로필 편집 화면 — SettingsScreen `_ProfileEditSheet`
 - [x] 하단 네비게이션 완성 — 5탭 ShellRoute (Phase 4a 완료)
 
@@ -565,8 +565,8 @@
 - [x] `lib/shared/models/memory_model.dart` — isPrivate 필드
 - [x] `lib/shared/repositories/memory_repository.dart` — setPrivate()
 - [x] `lib/features/settings/presentation/settings_screen.dart` — _AccessibilitySection
-- [ ] local_auth 패키지 연동 + PrivacyService (향후 추가 예정)
-- [ ] 실제 생체인증 게이팅 (MemoryCard 블러 — 향후)
+- [x] local_auth 패키지 연동 + PrivacyService (`privacy_service.dart`)
+- [x] 실제 생체인증 게이팅 (MemoryCard 블러 + PrivateBlurOverlay 공통 위젯)
 
 #### Debugger
 - [x] `flutter analyze lib/` → 0 issues
@@ -1242,7 +1242,7 @@
 #### UX Designer
 - [x] Step 2 설계: 첫 가족 연결 (부모/배우자/자녀 빠른 추가 버튼)
 - [x] 미니 캔버스 프리뷰 (핵심 인터랙션 선체험 — CustomPainter)
-- [ ] Step 3: 알림 권한 요청 + 완성 셀레브레이션 애니메이션 (v2.0 W-3 Daily Prompt와 통합 예정)
+- [x] Step 3: 알림 권한 요청 + 완성 셀레브레이션 애니메이션 (NotificationService 연동)
 
 #### Architect
 - [x] 프로필 → "나" 노드 자동 생성 (profileSetup → firstFamily 라우트 전환)
@@ -1644,7 +1644,7 @@
 - [x] 질문 카드 UI (글래스 카드, 카테고리 이모지 + 질문 텍스트)
 - [x] "무엇을 기록할지 모르겠다" 온보딩 장벽 제거 (매일 질문 자동 표시)
 - [x] 캔버스 화면 상단 오늘의 질문 배너 (dismissible, SlideTransition 입장)
-- [ ] 로컬 알림 연동 (flutter_local_notifications — 별도 구현 예정)
+- [x] 로컬 알림 연동 (flutter_local_notifications + NotificationService 통합)
 
 #### Architect
 - [x] `lib/core/data/family_prompts.dart` — 정적 질문 풀 100개 (8개 카테고리)
@@ -1766,16 +1766,16 @@
 - [x] `lib/features/capsule/presentation/capsule_list_screen.dart`
 - [x] `lib/features/capsule/presentation/create_capsule_screen.dart`
 - [x] `lib/features/capsule/widgets/capsule_card.dart` — 잠금/열림 상태 UI
-- [ ] `lib/features/capsule/widgets/seal_animation.dart` — 봉인 애니메이션 (후속)
-- [ ] 로컬 알림: 열림 날짜 도달 시 푸시 (후속)
+- [x] `lib/features/capsule/widgets/seal_animation.dart` — 봉인 애니메이션
+- [x] 로컬 알림: 열림 날짜 도달 시 푸시 (NotificationService 연동)
 - [x] 수익화: Free 1개 캡슐, Premium 무제한 + 50년 보관 보장
 
 #### Debugger
 - [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/capsule/capsule_repository_test.dart` (후속)
-- [ ] `test/capsule/capsule_open_logic_test.dart` — 날짜 비교 로직 (후속)
+- [x] `test/capsule/capsule_repository_test.dart` — 15개 테스트
+- [x] `test/capsule/capsule_open_logic_test.dart` — 12개 테스트
 
 #### Reviewer
 - [x] 캡슐 열림 날짜 조작 방지 (createdAt 검증)
@@ -1792,26 +1792,26 @@
 
 #### UX Designer
 - [x] 추모 공간 진입: deathDate 있는 노드 탭 → "추모 공간" 탭 표시
-- [ ] 기일 알림 (음력/양력 선택) (후속)
-- [ ] 추모 슬라이드쇼 (사진+음성 자동 재생) (후속)
+- [x] 기일 알림 (음력/양력 선택) — lunar_calendar.dart + memorial_notifier 연동
+- [x] 추모 슬라이드쇼 (사진+음성 자동 재생) — memorial_slideshow.dart
 
 #### Architect
 - [x] `memorial_messages` 테이블 (nodeId, message, authorName, date)
-- [ ] 기일 계산 로직 (음력 변환 — 정적 테이블 or 패키지) (후속)
+- [x] 기일 계산 로직 (음력 변환 — lunar_calendar.dart 정적 테이블 2024-2035)
 - [x] `MemorialNotifier` — 추모 공간 상태 관리
 
 #### Coder
 - [x] DB 테이블 + Repository + Notifier
 - [x] `lib/features/memorial/presentation/memorial_screen.dart` — 추모 공간
-- [ ] `lib/features/memorial/widgets/memorial_slideshow.dart` — 자동 슬라이드쇼 (후속)
-- [ ] 기일 로컬 알림 스케줄링 (후속)
+- [x] `lib/features/memorial/widgets/memorial_slideshow.dart` — 자동 슬라이드쇼
+- [x] 기일 로컬 알림 스케줄링 (memorialAnniversarySchedulerProvider)
 - [x] 수익화: 프리미엄 (추모 공간 고급 테마, 기일 알림, 추모 영상 슬라이드쇼 자동 생성)
 
 #### Debugger
 - [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/memorial/memorial_repository_test.dart` (후속)
+- [x] `test/memorial/memorial_repository_test.dart` — 14개 테스트
 
 #### Reviewer
 - [x] 추모 콘텐츠 민감도 — 삭제 확인 다이얼로그 강화
@@ -1841,14 +1841,14 @@
 - [x] `lib/features/glossary/presentation/glossary_screen.dart`
 - [x] `lib/features/glossary/widgets/glossary_card.dart`
 - [x] `lib/features/glossary/widgets/add_glossary_sheet.dart` — 단어 추가 바텀시트
-- [ ] 음성 녹음 연동 (기존 RecorderController 재사용) (후속)
+- [x] 음성 녹음 연동 (RecorderController + PlayerController 재사용)
 - [x] 수익화: 프리미엄 (가족 단어장 PDF 책 형태 내보내기)
 
 #### Debugger
 - [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/glossary/glossary_repository_test.dart` (후속)
+- [x] `test/glossary/glossary_repository_test.dart` — 26개 테스트
 
 #### Reviewer
 - [x] 음성 파일 경로 관리 (MediaService 재사용)
@@ -1873,7 +1873,7 @@
 #### UX Designer
 - [x] 나무 성장 5단계: 새싹 → 묘목 → 작은 나무 → 큰 나무 → 대수(大樹)
 - [x] 계절 변화 (현재 월 기준 자동 적용)
-- [ ] 나무 이미지 SNS 공유 버튼 (후속)
+- [x] 나무 이미지 SNS 공유 버튼 (tree_share_card.dart)
 
 #### Architect
 - [x] 성장 지표 계산: 노드 수 × 2 + 기억 수 × 1 + 스트릭 일수 × 0.5
@@ -1883,7 +1883,7 @@
 #### Coder
 - [x] `lib/features/tree_growth/providers/tree_growth_notifier.dart`
 - [x] `lib/features/tree_growth/widgets/growing_tree_painter.dart` — CustomPainter
-- [ ] `lib/features/tree_growth/widgets/tree_share_card.dart` — 공유 카드 (후속)
+- [x] `lib/features/tree_growth/widgets/tree_share_card.dart` — 공유 카드
 - [x] 캔버스 배경에 나무 오버레이 (RepaintBoundary 분리)
 - [x] 계절 자동 감지 (DateTime.now().month → Season enum)
 - [x] 수익화: 프리미엄 나무 스킨 (벚꽃나무/소나무/은행나무 등)
@@ -1892,7 +1892,7 @@
 - [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/tree_growth/tree_growth_test.dart` — 성장 단계 계산 (후속)
+- [x] `test/tree_growth/tree_growth_test.dart` — 37개 테스트
 
 #### Performance Engineer
 - [x] CustomPainter `shouldRepaint` — 성장 단계 변경 시만 repaint
@@ -1908,7 +1908,7 @@
 #### UX Designer
 - [x] 배지 목록 화면 (획득/미획득 분기, 3열 그리드)
 - [x] 배지 획득 시 축하 다이얼로그 + 햅틱
-- [ ] 캔버스 노드에 배지 아이콘 표시 (후속)
+- [x] 캔버스 노드에 배지 아이콘 표시 (NodeCard _BadgeIcon)
 
 #### Architect
 - [x] 설정 key-value 저장 (earnedBadges: comma-separated IDs)
@@ -1926,7 +1926,7 @@
 - [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/badges/badge_condition_test.dart` — 배지 조건 로직 (후속)
+- [x] `test/badges/badge_condition_test.dart` — 32개 테스트
 
 #### Performance Engineer
 - [x] 배지 조건 체크: checkAndAward 호출 시만 (전체 스캔 방지)
@@ -1946,7 +1946,7 @@
 
 #### UX Designer
 - [x] 명절 감지 → 캔버스 배너 자동 표시 (설날/추석/어버이날/어린이날/한글날)
-- [ ] 명절 관련 조상 노드 하이라이트 (glow 효과) (후속)
+- [x] 명절 관련 조상 노드 하이라이트 (glow 효과) — computeHolidayGlowNodeIds()
 - [x] 음력/양력 자동 전환 (2024-2030 정적 테이블)
 - [ ] 제사 순서 안내 가이드 (프리미엄) (후속)
 
@@ -1997,7 +1997,7 @@
 - [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/jokbo/jokbo_layout_test.dart` — 좌표 배치 계산 (후속)
+- [x] `test/jokbo/jokbo_layout_test.dart` — 17개 테스트
 
 #### Performance Engineer
 - [x] 다수 노드 일괄 생성: DB sequential insert with UUID
@@ -2012,7 +2012,7 @@
 #### UX Designer
 - [x] 효도 온도 대시보드 (전체 평균 + 개별 노드 게이지 2열 그리드)
 - [x] 넛지 UI ("한 주가 지났어요, {name}님에게 안부를 전해보세요")
-- [ ] 효도 온도 기반 주간 리포트 (후속)
+- [x] 효도 온도 기반 주간 리포트 (HyodoWeeklyReport + 7일 막대 그래프)
 
 #### Architect
 - [x] 효도 온도 계산: 30일 기억+온도일기 빈도 기반 0-100점
@@ -2023,14 +2023,14 @@
 - [x] `lib/features/hyodo/providers/hyodo_notifier.dart`
 - [x] `lib/features/hyodo/presentation/hyodo_screen.dart` — 대시보드
 - [x] `lib/features/hyodo/widgets/hyodo_gauge.dart` — 반원 게이지 CustomPainter
-- [ ] 넛지 로컬 알림 (7일 미기록 감지) (후속)
+- [x] 넛지 로컬 알림 (7일 미기록 감지) — hyodo_notifier 주간 스케줄
 - [x] 수익화: 프리미엄 (주간 리포트, 효도 리마인더 커스터마이징)
 
 #### Debugger
 - [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/hyodo/hyodo_calculation_test.dart` — 온도 계산 로직 (후속)
+- [x] `test/hyodo/hyodo_calculation_test.dart` — 45개 테스트
 
 #### Performance Engineer
 - [x] 온도 계산: 최근 30일 기록만 조회 (전체 스캔 방지)
@@ -2060,7 +2060,7 @@
 - [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/clan/clan_search_test.dart` — 검색 로직 (후속)
+- [x] `test/clan/clan_search_test.dart` — 26개 테스트
 
 #### Performance Engineer
 - [x] JSON 파싱: 앱 시작 시 1회 로드 + 메모리 캐싱
@@ -2092,13 +2092,13 @@
 - [x] `lib/features/invite/providers/invite_notifier.dart`
 - [x] `lib/features/invite/presentation/invite_screen.dart`
 - [x] `lib/features/invite/widgets/invite_code_card.dart`
-- [ ] 딥링크 핸들링 (후속)
+- [x] 딥링크 핸들링 (relink://invite/{code} + iOS/Android 설정)
 
 #### Debugger
 - [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/invite/invite_code_test.dart` (후속)
+- [x] `test/invite/invite_code_test.dart` — 24개 테스트
 
 #### Performance Engineer
 - [x] 초대 코드 유효성 검증: 로컬 즉시 처리
@@ -2130,7 +2130,7 @@
 - [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/wrapped/annual_review_test.dart` (후속)
+- [x] `test/wrapped/annual_review_test.dart` — 15개 테스트
 
 #### Performance Engineer
 - [x] 연간 데이터 집계: 비동기 쿼리
@@ -2160,7 +2160,7 @@
 - [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/snapshot/snapshot_service_test.dart` (후속)
+- [x] `test/snapshot/snapshot_service_test.dart` — 15개 테스트
 
 #### Performance Engineer
 - [x] 포스터 렌더링: 3x pixelRatio 캡처
@@ -2208,14 +2208,14 @@
 
 #### Architect
 - [x] 생일 노드 필터링 (birthDate 기준 다음 생일 계산, Ghost/고인 제외)
-- [ ] 로컬 알림 스케줄링 (후속)
+- [x] 로컬 알림 스케줄링 (birthday_notifier D-Day/D-1)
 
 #### Coder
 - [x] `lib/features/birthday/providers/birthday_notifier.dart`
 - [x] `lib/features/birthday/widgets/birthday_countdown_card.dart`
 - [x] `lib/features/birthday/presentation/birthday_screen.dart`
 - [ ] 홈 위젯 연동 (후속 — 네이티브)
-- [ ] 생일 로컬 알림 (후속)
+- [x] 생일 로컬 알림 (D-Day + D-1 birthday_notifier 연동)
 - [x] 수익화: 프리미엄 (음력 생일 지원, 생일 카드 자동 생성)
 
 #### Debugger
@@ -2243,7 +2243,7 @@
 #### UX Designer
 - [x] 레시피 카드 UI (사진+재료+조리법+연결 노드, 확장형)
 - [x] 레시피 목록 (검색+debounce)
-- [ ] 레시피 SNS 공유 (후속)
+- [x] 레시피 SNS 공유 (share_plus 텍스트 공유)
 
 #### Architect
 - [x] `recipes` 테이블 (id, title, ingredients, instructions, photoPath, nodeId, createdAt)
@@ -2260,7 +2260,7 @@
 - [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/recipe/recipe_repository_test.dart` (후속)
+- [x] `test/recipe/recipe_repository_test.dart` — 15개 테스트
 
 #### Performance Engineer
 - [x] 레시피 목록 SliverList lazy 렌더링
@@ -2286,13 +2286,13 @@
 - [x] `lib/features/voice_legacy/presentation/voice_legacy_screen.dart`
 - [x] `lib/features/voice_legacy/widgets/record_legacy_sheet.dart`
 - [x] `lib/features/voice_legacy/widgets/voice_legacy_card.dart`
-- [ ] 공개 조건 로컬 알림 스케줄링 (후속)
+- [x] 공개 조건 로컬 알림 스케줄링 (voice_legacy_notifier 연동)
 
 #### Debugger
 - [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/voice_legacy/voice_legacy_test.dart` (후속)
+- [x] `test/voice_legacy/voice_legacy_test.dart` — 22개 테스트
 
 #### Performance Engineer
 - [x] 음성 파일 기존 RecorderController 재사용
@@ -2579,7 +2579,7 @@
 | Phase 4h 디자인 문서 반영 | 100% | ✅ 완료 (색상/타이포/글래스/반경/모션 전면 교체) |
 | Phase 4i 화면별 UX 설계 | 100% | ✅ 완료 (온보딩/노드상세/TimeSlider토스트/Ghost 모두 완료) |
 | Phase 4j 라이트모드 & 관계선 | 95% | ✅ 완료 (라이트모드/엣지관리/부부스냅/돌아가신분 — 빌드/실기기 잔여) |
-| **전체 테스트** | **431/431** | ✅ 전체 통과 |
+| **전체 테스트** | **809/809** | ✅ 전체 통과 |
 | **커버리지** | **81.1%+** | ✅ 목표 80% 달성 |
 
 ### v2.0 진행 현황

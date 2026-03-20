@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../design/tokens/app_colors.dart';
 import '../providers/tree_growth_notifier.dart';
 import 'growing_tree_painter.dart';
+import 'tree_share_card.dart';
 
 /// 캔버스 배경에 표시되는 가족 나무 성장 오버레이
 ///
@@ -42,4 +44,24 @@ class TreeGrowthOverlay extends ConsumerWidget {
         GrowthStage.bigTree => const Size(320, 420),
         GrowthStage.grandTree => const Size(500, 600),
       };
+
+  /// 나무 공유 시트를 표시한다 (설정 등에서 호출)
+  static void showShareSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.bgSurface,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const SafeArea(
+          child: TreeShareCard(),
+        ),
+      ),
+    );
+  }
 }

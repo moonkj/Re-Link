@@ -13,6 +13,7 @@ import '../../../shared/widgets/empty_state_widget.dart';
 import '../providers/capsule_notifier.dart';
 import '../widgets/capsule_card.dart';
 import '../widgets/create_capsule_sheet.dart';
+import '../widgets/seal_animation.dart';
 
 /// 기억 캡슐 목록 화면
 class CapsuleListScreen extends ConsumerWidget {
@@ -175,8 +176,12 @@ class CapsuleListScreen extends ConsumerWidget {
               final success = await ref
                   .read(capsuleNotifierProvider.notifier)
                   .open(capsule.id);
-              if (success) {
-                HapticService.celebration();
+              if (success && context.mounted) {
+                // 열림 애니메이션 표시
+                await showSealAnimation(
+                  context,
+                  type: SealAnimationType.unseal,
+                );
               }
             },
             child: const Text(

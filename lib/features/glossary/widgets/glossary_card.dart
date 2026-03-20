@@ -1,3 +1,4 @@
+import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter/material.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/utils/haptic_service.dart';
@@ -5,7 +6,7 @@ import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 
-/// 단어장 카드 위젯 — 탭하면 확장 토글
+/// 단어장 카드 위젯 — 탭하면 확장 토글, 음성 재생 지원
 class GlossaryCard extends StatefulWidget {
   const GlossaryCard({
     super.key,
@@ -26,9 +27,20 @@ class _GlossaryCardState extends State<GlossaryCard>
     with SingleTickerProviderStateMixin {
   bool _expanded = false;
 
+  // ── 음성 재생 ─────────────────────────────────────────────────────────────
+  PlayerController? _playerCtrl;
+  bool _isPlaying = false;
+
   void _toggleExpand() {
     HapticService.light();
     setState(() => _expanded = !_expanded);
+  }
+
+  @override
+  void dispose() {
+    _playerCtrl?.stopPlayer();
+    _playerCtrl?.dispose();
+    super.dispose();
   }
 
   @override
@@ -41,7 +53,7 @@ class _GlossaryCardState extends State<GlossaryCard>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 단어 (큰 폰트) ────────────────────────────────────
+          // ── 단어 (큰 폰트) + 음성 버튼 ──────────────────────────
           Row(
             children: [
               Expanded(
@@ -54,6 +66,38 @@ class _GlossaryCardState extends State<GlossaryCard>
                   ),
                 ),
               ),
+              // 음성 재생 버튼 (voicePath 있을 때)
+              if (entry.voicePath != null &&
+                  entry.voicePath!.isNotEmpty)
+                GestureDetector(
+                  onTap: _toggleVoicePlayback,
+                  child: Container(
+                    width: 30,
+                    height: 30,
+                    margin: const EdgeInsets.only(right: AppSpacing.xs),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _isPlaying
+                          ? AppColors.primary.withAlpha(30)
+                          : AppColors.glassSurface,
+                      border: Border.all(
+                        color: _isPlaying
+                            ? AppColors.primary.withAlpha(80)
+                            : AppColors.glassBorder,
+                        width: 0.5,
+                      ),
+                    ),
+                    child: Icon(
+                      _isPlaying
+                          ? Icons.stop_rounded
+                          : Icons.play_arrow_rounded,
+                      size: 16,
+                      color: _isPlaying
+                          ? AppColors.primary
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
               // 연결된 노드 뱃지
               if (widget.nodeName != null)
                 Container(
@@ -177,6 +221,39 @@ class _GlossaryCardState extends State<GlossaryCard>
         ),
       ],
     );
+  }
+
+  // ── 음성 재생 제어 ──────────────────────────────────────────────────────────
+
+  Future<void> _toggleVoicePlayback() async {
+    final voicePath = widget.entry.voicePath;
+    if (voicePath == null || voicePath.isEmpty) return;
+
+    HapticService.selection();
+
+    if (_isPlaying) {
+      await _playerCtrl?.stopPlayer();
+      if (mounted) setState(() => _isPlaying = false);
+      return;
+    }
+
+    // 처음 재생이거나 playerCtrl 없으면 초기화
+    if (_playerCtrl == null) {
+      _playerCtrl = PlayerController();
+      await _playerCtrl!.preparePlayer(path: voicePath);
+      _playerCtrl!.onPlayerStateChanged.listen((state) {
+        if (!mounted) return;
+        if (state == PlayerState.stopped || state == PlayerState.paused) {
+          setState(() => _isPlaying = false);
+        }
+      });
+      _playerCtrl!.onCompletion.listen((_) {
+        if (mounted) setState(() => _isPlaying = false);
+      });
+    }
+
+    await _playerCtrl!.startPlayer();
+    if (mounted) setState(() => _isPlaying = true);
   }
 
   void _showDeleteConfirm(BuildContext context) {

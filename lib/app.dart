@@ -7,6 +7,7 @@ import 'design/tokens/app_colors.dart';
 import 'design/tokens/app_theme.dart';
 import 'features/changelog/presentation/changelog_modal.dart';
 import 'features/changelog/providers/changelog_notifier.dart';
+import 'features/memorial/providers/memorial_notifier.dart';
 import 'features/settings/providers/elderly_mode_notifier.dart';
 import 'features/settings/providers/haptic_notifier.dart';
 import 'features/settings/providers/theme_mode_notifier.dart';
@@ -110,6 +111,9 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker> {
 
       // AsyncNotifier가 build() 완료될 때까지 대기
       await ref.read(changelogNotifierProvider.future);
+
+      // 기일 알림 스케줄 (앱 시작 시 1회)
+      ref.read(memorialAnniversarySchedulerProvider);
 
       final shouldShow = await notifier.shouldShowChangelog();
       if (!shouldShow) return;

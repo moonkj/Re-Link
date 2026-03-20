@@ -7,6 +7,7 @@ import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/memory_model.dart';
 import '../../../shared/repositories/memory_repository.dart';
 import '../providers/capsule_notifier.dart';
+import 'seal_animation.dart';
 
 /// 캡슐 생성 바텀시트
 class CreateCapsuleSheet extends ConsumerStatefulWidget {
@@ -212,7 +213,9 @@ class _CreateCapsuleSheetState extends ConsumerState<CreateCapsuleSheet> {
     if (!mounted) return;
 
     if (id != null) {
-      HapticService.celebration();
+      // 봉인 애니메이션 표시 후 시트 닫기
+      await showSealAnimation(context, type: SealAnimationType.seal);
+      if (!mounted) return;
       Navigator.of(context).pop(true);
     } else {
       setState(() => _saving = false);

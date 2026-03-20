@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/utils/haptic_service.dart';
 import '../../../design/glass/app_glass.dart';
@@ -255,7 +256,7 @@ class _RecipeCardState extends State<RecipeCard> {
 
         const SizedBox(height: AppSpacing.md),
 
-        // -- 등록 날짜 + 삭제 ------------------------------------------
+        // -- 등록 날짜 + 공유 + 삭제 ------------------------------------
         Row(
           children: [
             Icon(Icons.access_time, size: 12, color: AppColors.textTertiary),
@@ -268,6 +269,36 @@ class _RecipeCardState extends State<RecipeCard> {
               ),
             ),
             const Spacer(),
+            // 공유 버튼
+            GestureDetector(
+              onTap: () {
+                HapticService.light();
+                _shareRecipe(recipe);
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xs,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.share,
+                        size: 14, color: AppColors.primary.withAlpha(180)),
+                    const SizedBox(width: 4),
+                    Text(
+                      '공유',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.primary.withAlpha(180),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            // 삭제 버튼
             GestureDetector(
               onTap: () {
                 HapticService.medium();
@@ -299,6 +330,22 @@ class _RecipeCardState extends State<RecipeCard> {
         ),
       ],
     );
+  }
+
+  void _shareRecipe(RecipesTableData recipe) {
+    final ingredientSummary = recipe.ingredients
+        .split('\n')
+        .where((l) => l.trim().isNotEmpty)
+        .take(5)
+        .join(', ');
+    final creatorLine = widget.nodeName != null
+        ? '\n만든 사람: ${widget.nodeName}'
+        : '';
+    final text = '\u{1F373} ${recipe.title}\n\n'
+        '재료: $ingredientSummary'
+        '$creatorLine\n\n'
+        '\u{2014} Re-Link에서 기록한 가족 레시피';
+    Share.share(text);
   }
 
   void _showDeleteConfirm(BuildContext context) {

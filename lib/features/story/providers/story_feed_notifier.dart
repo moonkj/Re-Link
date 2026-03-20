@@ -71,7 +71,6 @@ class StoryFeedNotifier extends _$StoryFeedNotifier {
   void _rebuild() {
     final nodeMap = {for (final n in _nodes) n.id: n};
     final items = _memories
-        .where((m) => !m.isPrivate) // private 기억은 피드에 노출 안 함
         .map((m) {
           final node = nodeMap[m.nodeId];
           return StoryFeedItem(

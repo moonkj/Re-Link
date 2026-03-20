@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../../../shared/repositories/db_provider.dart';
 import '../../../core/database/app_database.dart';
+import '../../../core/services/notification/notification_service.dart';
+import '../../../shared/repositories/db_provider.dart';
 
 part 'hyodo_notifier.g.dart';
 
@@ -67,6 +69,28 @@ class HyodoState {
     averageScore: 0,
     needsAttention: [],
   );
+}
+
+/// 주간 리포트 데이터
+class HyodoWeeklyReport {
+  const HyodoWeeklyReport({
+    required this.weeklyRecordCount,
+    required this.averageTempChange,
+    required this.needsAttentionNodes,
+    required this.dailyCounts,
+  });
+
+  /// 이번 주 총 기록 횟수
+  final int weeklyRecordCount;
+
+  /// 평균 온도 변화 (양수 = 상승, 음수 = 하락)
+  final double averageTempChange;
+
+  /// 관심 필요 노드 이름 목록
+  final List<String> needsAttentionNodes;
+
+  /// 7일간 일별 기록 수 (index 0 = 6일 전, index 6 = 오늘)
+  final List<int> dailyCounts;
 }
 
 // ── 유틸 ──────────────────────────────────────────────────────────────────────
@@ -182,10 +206,113 @@ class HyodoNotifier extends _$HyodoNotifier {
 
     final needsAttention = entries.where((e) => e.score < 30).toList();
 
-    return HyodoState(
+    final hyodoState = HyodoState(
       entries: entries,
       averageScore: averageScore,
       needsAttention: needsAttention,
     );
+
+    // 관심 필요 노드가 있으면 주간 넛지 알림 스케줄
+    _scheduleHyodoNudge(needsAttention);
+
+    return hyodoState;
+  }
+
+  /// 주간 리포트 계산
+  Future<HyodoWeeklyReport> getWeeklyReport() async {
+    final db = ref.read(appDatabaseProvider);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final sevenDaysAgo = today.subtract(const Duration(days: 6));
+
+    final allNodes = await db.getAllNodes();
+    final targetNodes = allNodes.where((n) => !n.isGhost && n.deathDate == null).toList();
+
+    // 일별 기록 수 (7일)
+    final dailyCounts = List<int>.filled(7, 0);
+    var totalRecords = 0;
+
+    for (final node in targetNodes) {
+      final memories = await db.getMemoriesForNode(node.id);
+      final tempLogs = await db.getTemperatureLogsForNode(
+        node.id,
+        from: sevenDaysAgo,
+        to: now,
+      );
+
+      for (final m in memories) {
+        final mDate = DateTime(m.createdAt.year, m.createdAt.month, m.createdAt.day);
+        final dayIndex = mDate.difference(sevenDaysAgo).inDays;
+        if (dayIndex >= 0 && dayIndex < 7) {
+          dailyCounts[dayIndex]++;
+          totalRecords++;
+        }
+      }
+      for (final t in tempLogs) {
+        final tDate = DateTime(t.date.year, t.date.month, t.date.day);
+        final dayIndex = tDate.difference(sevenDaysAgo).inDays;
+        if (dayIndex >= 0 && dayIndex < 7) {
+          dailyCounts[dayIndex]++;
+          totalRecords++;
+        }
+      }
+    }
+
+    // 평균 온도 변화 계산 (현재 온도 - 7일 전 기준 온도)
+    double totalTempChange = 0;
+    int tempCount = 0;
+    for (final node in targetNodes) {
+      final currentTemp = node.temperature.toDouble();
+      // 기본 온도 2 (보통) 대비 변화
+      totalTempChange += currentTemp - 2.0;
+      tempCount++;
+    }
+    final avgTempChange = tempCount > 0 ? totalTempChange / tempCount : 0.0;
+
+    // 관심 필요 노드
+    final currentState = state.valueOrNull;
+    final needsAttentionNames = currentState?.needsAttention
+            .map((e) => e.nodeName)
+            .toList() ??
+        [];
+
+    return HyodoWeeklyReport(
+      weeklyRecordCount: totalRecords,
+      averageTempChange: avgTempChange,
+      needsAttentionNodes: needsAttentionNames,
+      dailyCounts: dailyCounts,
+    );
+  }
+
+  /// 관심 필요 노드 주간 넛지 알림 (매주 일요일 오전 10시)
+  void _scheduleHyodoNudge(List<HyodoEntry> needsAttention) {
+    try {
+      final svc = ref.read(notificationServiceProvider);
+
+      if (needsAttention.isEmpty) {
+        // 관심 필요 노드 없으면 넛지 알림 취소
+        svc.cancel(NotificationId.hyodoNudge.baseId);
+        return;
+      }
+
+      // 가장 점수가 낮은(관심이 가장 필요한) 노드 이름 사용
+      final topName = needsAttention.first.nodeName;
+      final body = needsAttention.length == 1
+          ? '한 주가 지났어요, $topName님에게 안부를 전해보세요'
+          : '한 주가 지났어요, $topName님 외 ${needsAttention.length - 1}명에게 안부를 전해보세요';
+
+      svc.scheduleWeekly(
+        id: NotificationId.hyodoNudge.baseId,
+        title: '가족에게 관심이 필요해요',
+        body: body,
+        dayOfWeek: 7, // 일요일 (ISO 8601)
+        hour: 10,
+        minute: 0,
+        channelId: 're_link_nudge',
+        payload: 'hyodo_nudge',
+      );
+    } catch (e) {
+      debugPrint('[HyodoNotifier] 효도 넛지 알림 스케줄 실패: $e');
+    }
   }
 }

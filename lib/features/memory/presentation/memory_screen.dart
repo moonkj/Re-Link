@@ -1,12 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/privacy/privacy_service.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/memory_model.dart';
 import '../../../shared/models/user_plan.dart';
 import '../../../shared/repositories/settings_repository.dart';
+import '../../../shared/widgets/private_blur_overlay.dart';
 import '../providers/memory_notifier.dart';
 import '../widgets/add_memory_sheet.dart';
 import '../widgets/memory_detail_sheet.dart';
@@ -185,7 +187,18 @@ class _MemoryScreenState extends ConsumerState<MemoryScreen>
     );
   }
 
-  void _openDetail(MemoryModel memory) {
+  Future<void> _openDetail(MemoryModel memory) async {
+    if (memory.isPrivate) {
+      final privacy = ref.read(privacyServiceProvider);
+      final enabled = await privacy.isEnabled();
+      if (!mounted) return;
+      if (enabled) {
+        final authed = await privacy.authenticate();
+        if (!mounted) return;
+        if (!authed) return;
+      }
+    }
+    if (!mounted) return;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -278,20 +291,37 @@ class _PhotoGrid extends StatelessWidget {
       itemCount: memories.length,
       itemBuilder: (_, i) {
         final m = memories[i];
+        final photoWidget = Hero(
+          tag: 'photo_${m.id}',
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: m.thumbnailPath != null
+                ? Image.file(File(m.thumbnailPath!), fit: BoxFit.cover)
+                : Container(
+                    color: AppColors.glassSurface,
+                    child: Icon(Icons.photo_outlined, color: AppColors.textTertiary),
+                  ),
+          ),
+        );
+
+        if (m.isPrivate) {
+          return PrivateBlurOverlay(
+            onTap: () => onTap(m),
+            borderRadius: BorderRadius.circular(8),
+            showMessage: false,
+            iconSize: 18,
+            child: m.thumbnailPath != null
+                ? Image.file(File(m.thumbnailPath!), fit: BoxFit.cover)
+                : Container(
+                    color: AppColors.glassSurface,
+                    child: Icon(Icons.photo_outlined, color: AppColors.textTertiary),
+                  ),
+          );
+        }
+
         return GestureDetector(
           onTap: () => onTap(m),
-          child: Hero(
-            tag: 'photo_${m.id}',
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: m.thumbnailPath != null
-                  ? Image.file(File(m.thumbnailPath!), fit: BoxFit.cover)
-                  : Container(
-                      color: AppColors.glassSurface,
-                      child: Icon(Icons.photo_outlined, color: AppColors.textTertiary),
-                    ),
-            ),
-          ),
+          child: photoWidget,
         );
       },
     );
@@ -326,6 +356,22 @@ class _MixedList extends StatelessWidget {
           itemCount: photos.length,
           itemBuilder: (_, i) {
             final m = photos[i];
+
+            if (m.isPrivate) {
+              return PrivateBlurOverlay(
+                onTap: () => onTap(m),
+                borderRadius: BorderRadius.circular(8),
+                showMessage: false,
+                iconSize: 18,
+                child: m.thumbnailPath != null
+                    ? Image.file(File(m.thumbnailPath!), fit: BoxFit.cover)
+                    : Container(
+                        color: AppColors.glassSurface,
+                        child: Icon(Icons.photo_outlined, color: AppColors.textTertiary),
+                      ),
+              );
+            }
+
             return GestureDetector(
               onTap: () => onTap(m),
               child: Hero(
@@ -384,8 +430,10 @@ class _MemoryListTile extends StatelessWidget {
               color: color.withAlpha(30),
             ),
             child: Icon(
-              isVoice ? Icons.mic_rounded : Icons.notes_rounded,
-              color: color,
+              memory.isPrivate
+                  ? Icons.lock_rounded
+                  : (isVoice ? Icons.mic_rounded : Icons.notes_rounded),
+              color: memory.isPrivate ? AppColors.accent : color,
               size: 20,
             ),
           ),
@@ -394,20 +442,44 @@ class _MemoryListTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  memory.title ?? memory.type.label,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        memory.isPrivate
+                            ? '비공개 ${memory.type.label}'
+                            : (memory.title ?? memory.type.label),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: memory.isPrivate
+                              ? AppColors.textTertiary
+                              : AppColors.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (memory.isPrivate) ...[
+                      const SizedBox(width: 4),
+                      Icon(Icons.lock, size: 12, color: AppColors.textTertiary),
+                    ],
+                  ],
                 ),
-                if (isVoice && memory.formattedDuration != null)
-                  Text(memory.formattedDuration!, style: TextStyle(fontSize: 12, color: AppColors.textSecondary))
-                else if (!isVoice && memory.description != null)
+                if (!memory.isPrivate) ...[
+                  if (isVoice && memory.formattedDuration != null)
+                    Text(memory.formattedDuration!, style: TextStyle(fontSize: 12, color: AppColors.textSecondary))
+                  else if (!isVoice && memory.description != null)
+                    Text(
+                      memory.description!,
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ] else
                   Text(
-                    memory.description!,
-                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    '탭하여 인증 후 열기',
+                    style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
                   ),
               ],
             ),

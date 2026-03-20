@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'app.dart';
+import 'core/services/notification/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -80,5 +81,9 @@ Future<void> main() async {
     ]);
     // AdMob 초기화 (첫 프레임 후 — startup watchdog 방지)
     MobileAds.instance.initialize().catchError((_) => InitializationStatus({}));
+    // 로컬 알림 초기화 (채널 생성, timezone 설정)
+    NotificationService().init().catchError((_) {
+      debugPrint('[Re-Link] NotificationService init failed');
+    });
   });
 }

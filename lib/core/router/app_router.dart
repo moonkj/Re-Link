@@ -33,6 +33,7 @@ import '../../features/family_map/presentation/family_map_screen.dart';
 import '../../features/voice_legacy/presentation/voice_legacy_screen.dart';
 import '../../features/settings/presentation/feedback_screen.dart';
 import '../../features/then_now/presentation/then_now_screen.dart';
+import '../../features/backup/presentation/restore_detect_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
 import '../../shared/widgets/ad_banner_widget.dart';
 
@@ -70,6 +71,7 @@ abstract final class AppRoutes {
   static const String voiceLegacy = '/voice-legacy';
   static const String feedback = '/feedback';
   static const String thenNow = '/then-now';
+  static const String restoreDetect = '/restore-detect';
 
   static String memoryPath(String nodeId) => '/memory/$nodeId';
   static String temperatureDiaryPath(String nodeId) =>
@@ -248,6 +250,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      GoRoute(
+        path: AppRoutes.restoreDetect,
+        builder: (_, s) => const RestoreDetectScreen(),
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       body: Center(child: Text('페이지 없음: ${state.error}')),
@@ -310,11 +316,12 @@ class _SplashScreenState extends ConsumerState<_SplashScreen>
         .timeout(const Duration(seconds: 3))
         .then((done) {
           if (mounted) {
-            context.go(done ? AppRoutes.canvas : AppRoutes.onboarding);
+            // 온보딩 완료 → 캔버스, 미완료 → 복원 감지 화면
+            context.go(done ? AppRoutes.canvas : AppRoutes.restoreDetect);
           }
         })
         .catchError((_) {
-          if (mounted) context.go(AppRoutes.onboarding);
+          if (mounted) context.go(AppRoutes.restoreDetect);
         });
   }
 

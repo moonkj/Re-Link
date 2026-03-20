@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/services/privacy/privacy_service.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -659,33 +660,8 @@ class _AccessibilitySection extends ConsumerWidget {
                 ),
               ),
               Divider(color: AppColors.glassBorder, height: 1),
-              // Privacy Layer
-              FutureBuilder<bool>(
-                future: ref.read(settingsRepositoryProvider).isPrivacyEnabled(),
-                builder: (context, snap) {
-                  final enabled = snap.data ?? false;
-                  return Semantics(
-                    label: '개인 메모 잠금',
-                    hint: 'Face ID 또는 Touch ID로 개인 메모를 보호합니다',
-                    toggled: enabled,
-                    child: SwitchListTile(
-                      secondary: const Icon(Icons.lock_outline,
-                          color: AppColors.accent),
-                      title: Text('개인 메모 잠금',
-                          style: TextStyle(
-                              fontSize: 15, color: AppColors.textPrimary)),
-                      subtitle: Text('Face ID / Touch ID로 보호',
-                          style: TextStyle(
-                              fontSize: 12, color: AppColors.textSecondary)),
-                      value: enabled,
-                      onChanged: (v) => ref
-                          .read(settingsRepositoryProvider)
-                          .setPrivacyEnabled(v),
-                      activeThumbColor: AppColors.accent,
-                    ),
-                  );
-                },
-              ),
+              // Privacy Layer (생체인증 연동)
+              _PrivacyToggle(),
             ],
           ),
         ),
@@ -1153,6 +1129,100 @@ class _AppInfoSection extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ── Privacy Layer 토글 (생체인증 연동) ────────────────────────────────────────
+
+class _PrivacyToggle extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_PrivacyToggle> createState() => _PrivacyToggleState();
+}
+
+class _PrivacyToggleState extends ConsumerState<_PrivacyToggle> {
+  bool _enabled = false;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadState();
+  }
+
+  Future<void> _loadState() async {
+    final privacy = ref.read(privacyServiceProvider);
+    final enabled = await privacy.isEnabled();
+    if (!mounted) return;
+    setState(() {
+      _enabled = enabled;
+      _loading = false;
+    });
+  }
+
+  Future<void> _onChanged(bool newValue) async {
+    final privacy = ref.read(privacyServiceProvider);
+
+    // 생체인증 가용 여부 확인
+    final available = await privacy.isAvailable();
+    if (!mounted) return;
+
+    if (!available) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('이 기기에서 생체인증을 사용할 수 없습니다'),
+        ),
+      );
+      return;
+    }
+
+    // 활성화/비활성화 모두 생체인증 요구
+    final reason = newValue
+        ? '개인 메모 잠금을 활성화하려면 인증이 필요합니다'
+        : '개인 메모 잠금을 해제하려면 인증이 필요합니다';
+
+    // 세션 캐시 무시하고 반드시 인증 (설정 변경은 항상 인증)
+    privacy.invalidateSession();
+    final authenticated = await privacy.authenticate(reason: reason);
+    if (!mounted) return;
+
+    if (authenticated) {
+      await privacy.setEnabled(newValue);
+      if (!mounted) return;
+      setState(() => _enabled = newValue);
+    }
+    // 인증 실패 시 토글 원복 (setState 호출 없이 유지)
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const ListTile(
+        leading: Icon(Icons.lock_outline, color: AppColors.accent),
+        title: Text('개인 메모 잠금'),
+        trailing: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    return Semantics(
+      label: '개인 메모 잠금',
+      hint: 'Face ID 또는 Touch ID로 개인 메모를 보호합니다',
+      toggled: _enabled,
+      child: SwitchListTile(
+        secondary: const Icon(Icons.lock_outline, color: AppColors.accent),
+        title: Text('개인 메모 잠금',
+            style: TextStyle(fontSize: 15, color: AppColors.textPrimary)),
+        subtitle: Text('Face ID / Touch ID로 보호',
+            style:
+                TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        value: _enabled,
+        onChanged: _onChanged,
+        activeThumbColor: AppColors.accent,
+      ),
     );
   }
 }

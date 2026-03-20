@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../design/glass/app_glass.dart';
@@ -95,6 +96,10 @@ class HyodoScreen extends ConsumerWidget {
                 vertical: AppSpacing.lg,
               ),
               children: [
+                // ── 주간 리포트 ─────────────────────────────────────────────
+                _WeeklyReportSection(notifier: ref.read(hyodoNotifierProvider.notifier)),
+                const SizedBox(height: AppSpacing.xxl),
+
                 // ── 전체 평균 게이지 ──────────────────────────────────────────
                 _OverallGaugeSection(state: state),
                 const SizedBox(height: AppSpacing.xxl),
@@ -410,6 +415,263 @@ class _EntryCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// ── 주간 리포트 섹션 ──────────────────────────────────────────────────────────
+
+class _WeeklyReportSection extends StatefulWidget {
+  const _WeeklyReportSection({required this.notifier});
+  final HyodoNotifier notifier;
+
+  @override
+  State<_WeeklyReportSection> createState() => _WeeklyReportSectionState();
+}
+
+class _WeeklyReportSectionState extends State<_WeeklyReportSection> {
+  HyodoWeeklyReport? _report;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReport();
+  }
+
+  Future<void> _loadReport() async {
+    try {
+      final report = await widget.notifier.getWeeklyReport();
+      if (mounted) {
+        setState(() {
+          _report = report;
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const GlassCard(
+        padding: EdgeInsets.all(AppSpacing.xl),
+        child: Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
+    final report = _report;
+    if (report == null) return const SizedBox.shrink();
+
+    final tempChangeText = report.averageTempChange >= 0
+        ? '+${report.averageTempChange.toStringAsFixed(1)}'
+        : report.averageTempChange.toStringAsFixed(1);
+    final tempChangeColor = report.averageTempChange >= 0
+        ? AppColors.tempWarm
+        : AppColors.tempIcy;
+
+    return GlassCard(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 헤더
+          Row(
+            children: [
+              Icon(Icons.bar_chart_rounded,
+                  color: AppColors.primary, size: 18),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                '이번 주 리포트',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
+          // 요약 수치
+          Row(
+            children: [
+              Expanded(
+                child: _ReportStat(
+                  label: '기록 횟수',
+                  value: '${report.weeklyRecordCount}회',
+                  color: AppColors.primary,
+                ),
+              ),
+              Expanded(
+                child: _ReportStat(
+                  label: '평균 온도',
+                  value: tempChangeText,
+                  color: tempChangeColor,
+                ),
+              ),
+              Expanded(
+                child: _ReportStat(
+                  label: '관심 필요',
+                  value: '${report.needsAttentionNodes.length}명',
+                  color: report.needsAttentionNodes.isEmpty
+                      ? AppColors.tempWarm
+                      : AppColors.accent,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
+          // 7일 막대 그래프
+          SizedBox(
+            height: 80,
+            child: CustomPaint(
+              size: const Size(double.infinity, 80),
+              painter: _WeeklyBarChartPainter(
+                dailyCounts: report.dailyCounts,
+              ),
+            ),
+          ),
+
+          // 관심 필요 노드 목록
+          if (report.needsAttentionNodes.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              '관심 필요: ${report.needsAttentionNodes.join(", ")}',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textTertiary,
+                height: 1.3,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// 리포트 요약 수치 위젯
+class _ReportStat extends StatelessWidget {
+  const _ReportStat({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: AppColors.textTertiary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// 7일 막대 그래프 CustomPainter
+class _WeeklyBarChartPainter extends CustomPainter {
+  const _WeeklyBarChartPainter({required this.dailyCounts});
+  final List<int> dailyCounts;
+
+  static const _dayLabels = ['6일전', '5일전', '4일전', '3일전', '2일전', '어제', '오늘'];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (dailyCounts.length != 7) return;
+
+    final maxCount = dailyCounts.reduce(math.max).clamp(1, 999);
+    final barWidth = (size.width - 48) / 7; // 7개 막대 + 여백
+    const labelHeight = 16.0;
+    final chartHeight = size.height - labelHeight - 4;
+
+    for (int i = 0; i < 7; i++) {
+      final x = 4 + i * (barWidth + 4);
+      final barHeight = (dailyCounts[i] / maxCount) * chartHeight;
+      final barTop = chartHeight - barHeight;
+
+      // 막대
+      final barRect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(x, barTop, barWidth, barHeight.clamp(2.0, chartHeight)),
+        const Radius.circular(3),
+      );
+
+      final isToday = i == 6;
+      final paint = Paint()
+        ..color = isToday
+            ? AppColors.primary
+            : AppColors.primary.withAlpha(80);
+
+      canvas.drawRRect(barRect, paint);
+
+      // 수치 텍스트 (막대 위)
+      if (dailyCounts[i] > 0) {
+        final textPainter = TextPainter(
+          text: TextSpan(
+            text: '${dailyCounts[i]}',
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        textPainter.paint(
+          canvas,
+          Offset(x + (barWidth - textPainter.width) / 2, barTop - 12),
+        );
+      }
+
+      // 요일 라벨
+      final labelPainter = TextPainter(
+        text: TextSpan(
+          text: _dayLabels[i],
+          style: TextStyle(
+            fontSize: 8,
+            color: isToday ? AppColors.textPrimary : AppColors.textTertiary,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      labelPainter.paint(
+        canvas,
+        Offset(x + (barWidth - labelPainter.width) / 2, size.height - labelHeight),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _WeeklyBarChartPainter old) =>
+      old.dailyCounts != dailyCounts;
 }
 
 // ── 공통 노드 아바타 ──────────────────────────────────────────────────────────

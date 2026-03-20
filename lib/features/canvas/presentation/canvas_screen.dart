@@ -23,6 +23,8 @@ import '../../streak/providers/streak_notifier.dart';
 import '../../streak/widgets/streak_badge.dart';
 import '../../prompt/widgets/daily_prompt_card.dart';
 import '../../holiday/widgets/holiday_banner.dart';
+import '../../holiday/providers/holiday_notifier.dart';
+import '../../badges/providers/badge_notifier.dart';
 import '../../tree_growth/widgets/tree_growth_overlay.dart';
 import '../utils/quad_tree.dart';
 import '../utils/lod_utils.dart';
@@ -165,6 +167,14 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     final edges = canvasState.edges;
     final isConnectMode = canvasState.isConnectMode;
 
+    // 배지 데이터 (획득 배지 ID 세트)
+    final earnedBadges = ref.watch(badgeNotifierProvider).valueOrNull ?? [];
+    final earnedBadgeIds = earnedBadges.map((b) => b.id).toList();
+
+    // 명절 상태 — 오늘이 명절(또는 7일 이내)이면 조상 노드 glow 활성화
+    final holidayState = ref.watch(holidayNotifierProvider).valueOrNull;
+    final isHolidayActive = holidayState != null && holidayState.hasHoliday;
+
     // 겹치는 노드 자동 분산 (1회만 실행)
     if (!_didSpreadNodes && nodes.length > 1) {
       _didSpreadNodes = true;
@@ -256,6 +266,14 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                           .where(canvasState.nodeVisibleInTime)
                           .toList();
 
+                      // 명절 glow 대상 노드 ID 계산
+                      final holidayGlowIds = isHolidayActive
+                          ? computeHolidayGlowNodeIds(
+                              nodes: nodes,
+                              generations: _generations,
+                            )
+                          : <String>{};
+
                       return Stack(
                         clipBehavior: Clip.none,
                         children: [
@@ -271,6 +289,10 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                             lodLevel: lod,
                             generationDepth: depth,
                             transformCtrl: _transformCtrl,
+                            earnedBadgeIds: earnedBadgeIds.isNotEmpty
+                                ? earnedBadgeIds
+                                : null,
+                            showHolidayGlow: holidayGlowIds.contains(node.id),
                             onDragStarted: () =>
                                 setState(() {
                                   _draggingId = node.id;
@@ -728,6 +750,8 @@ class _DraggableNodeCard extends StatefulWidget {
     required this.onDragStarted,
     required this.onDragUpdate,
     required this.onDragEnded,
+    this.earnedBadgeIds,
+    this.showHolidayGlow = false,
   });
 
   final NodeModel node;
@@ -742,6 +766,12 @@ class _DraggableNodeCard extends StatefulWidget {
   final VoidCallback onDragStarted;
   final void Function(double dx, double dy) onDragUpdate;
   final void Function(double dx, double dy) onDragEnded;
+
+  /// 이 노드에 연관된 획득 배지 ID 목록
+  final List<String>? earnedBadgeIds;
+
+  /// 명절 기간 조상 노드 glow 여부
+  final bool showHolidayGlow;
 
   @override
   State<_DraggableNodeCard> createState() => _DraggableNodeCardState();
@@ -928,6 +958,8 @@ class _DraggableNodeCardState extends State<_DraggableNodeCard> {
                   ghostLabel: widget.node.isGhost
                       ? resolveGhostLabel(widget.node, state.edges)
                       : null,
+                  earnedBadgeIds: widget.earnedBadgeIds,
+                  showHolidayGlow: widget.showHolidayGlow,
                 ),
               ),
             ),

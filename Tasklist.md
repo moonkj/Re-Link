@@ -1,66 +1,74 @@
-# Tasklist — Phase 5a 완료
+# Tasklist — 미구현 기능 구현 (2026-03-21)
 
-> 마지막 업데이트: 2026-03-20
-> 모드: 에이전트 팀 과학적 토론 (4명 병렬)
-
----
-
-## ✅ 긴급: 연결선(Edge) 깨짐 버그 — 수정 완료
-
-### 과학적 토론 결과
-
-| 팀원 | 가설 | 결론 |
-|------|------|------|
-| Teammate1 | T-shape 로직이 일반 parent-child 엣지 깨뜨림 | ✅ **확정** |
-| Teammate2 | 부부 쌍 감지 오류 | ⚠️ **부분 확인** |
-| Teammate3 | 좌표/변환 불일치 | ✅ **확인** |
-| Teammate4 | Phase 5a 코드 간섭 | ❌ **반박** |
-
-- [x] EdgePainter 정규화 로직 (`_NormalizedChildEdge`) — 커밋 a6af0e0
-- [x] iPad 검증 완료
+> 모드: 에이전트 팀 병렬 실행 (팀리더 + 4 Teammates)
+> 런치 준비(Phase 4e)는 제외 — 코드 구현 가능 항목만
 
 ---
 
-## ✅ 블랙 스크린 버그 — 수정 완료
+## Batch 1 — ✅ 완료
 
-### 과학적 토론 결과
+### Teammate1 — Privacy Layer (생체인증) ✅
+- [x] `lib/core/services/privacy/privacy_service.dart` — local_auth 래퍼
+- [x] `lib/shared/widgets/private_blur_overlay.dart` — 공통 블러 위젯
+- [x] Settings Privacy 토글 → 실제 local_auth 연동
+- [x] isPrivate 기억 블러 처리 (MemoryScreen/StoryFeed/Archive)
+- [x] 기억 상세 접근 시 생체인증 게이팅 (MemoryDetailSheet)
+- [x] flutter analyze → 0 errors
 
-| 팀원 | 가설 | 결론 |
-|------|------|------|
-| Teammate1 | DB migration v2→v3 크래시 | ❌ **반박** — 마이그레이션 정상 |
-| Teammate2 | Provider 초기화 실패 (release) | ✅ **확정** — unhandled async error |
-| Teammate3 | Tree-shaking / .g.dart 누락 | ❌ **반박** — 코드 생성 완료 |
+### Teammate2 — 로컬 알림 시스템 ✅
+- [x] `lib/core/services/notification/notification_service.dart` — 통합 알림 서비스 (382줄)
+- [x] main.dart — 알림 초기화
+- [x] Daily Prompt 매일 아침 8시 알림 연동
+- [x] 기억 캡슐 열림 날짜 알림
+- [x] 생일 카운트다운 D-Day + D-1 알림
+- [x] 효도 7일 넛지 (주간 일요일 10시)
+- [x] 보이스 유언 공개 조건 알림
+- [x] 마지막 페이지 기일 매년 반복 알림
+- [x] 온보딩 Step 3 알림 권한 요청 + 셀레브레이션 UI
+- [x] flutter analyze → 0 errors
 
-- [x] main.dart 글로벌 에러 핸들러 추가 — 커밋 a6af0e0
-- [x] provider build() try-catch — 커밋 a6af0e0
-- [x] iPad 검증 완료
+### Teammate3 — 감성 기능 UI 완성 ✅
+- [x] 기억 캡슐 봉인 애니메이션 (`seal_animation.dart`, 333줄)
+- [x] 추모 슬라이드쇼 (`memorial_slideshow.dart`, 327줄)
+- [x] 음력 기일 계산 로직 (`lunar_calendar.dart`, 2024-2035 정적 테이블)
+- [x] 가족 단어장 음성 녹음 연동 (RecorderController + PlayerController)
+- [x] 복원 감지 화면 (`restore_detect_screen.dart`)
+- [x] flutter analyze → 0 errors
+
+### Teammate4 — 캔버스/공유/게이미피케이션 완성 ✅
+- [x] 나무 성장 SNS 공유 카드 (`tree_share_card.dart`, 302줄)
+- [x] 배지 캔버스 노드 아이콘 표시 (_BadgeIcon, Detail/Zoom LOD만)
+- [x] 명절 허브 조상 노드 하이라이트 (glow, computeHolidayGlowNodeIds)
+- [x] 효도 온도계 주간 리포트 (HyodoWeeklyReport + 7일 막대 그래프)
+- [x] 레시피 SNS 공유 (share_plus 텍스트)
+- [x] 초대 딥링크 핸들링 (relink://invite/{code} + iOS/Android 설정)
+- [x] flutter analyze → 0 errors
 
 ---
 
-## ✅ 테마 즉시 반영 버그 — 수정 완료
-
-- [x] MaterialApp ValueKey(brightness) — 커밋 a6af0e0
-
----
-
-## ✅ S-1 아트 카드 공유 — 완료
-
-- [x] `art_card_config.dart` — 4 스타일 + 팔레트
-- [x] `art_card_service.dart` — RepaintBoundary → PNG → share
-- [x] `art_tree_painter.dart` — CustomPainter (수채화/미니멀/한지/모던)
-- [x] `art_card_screen.dart` — 스타일 선택 + 미리보기 + 공유
-- [x] Settings/노드상세시트 진입점 추가
-- [x] flutter analyze 0 errors / test 431 passed
-- [x] iPad 릴리즈 빌드 설치
+## 검증 결과 (Batch 1 + 2 통합)
+- flutter analyze: **0 errors** (33 info/warning 기존)
+- flutter test: **809/809 전체 통과**
+- 신규 테스트: 352개 (13파일 + lunar_calendar)
 
 ---
 
-## Phase 5a 완료 요약
+## Batch 2 — 테스트 일괄 ✅ 완료 (352개 신규 테스트)
 
-| # | 기능 | 상태 |
-|---|------|------|
-| 1 | 온도 일기 (Temperature Diary) | ✅ |
-| 2 | 기억 스트릭 (Memory Streak) | ✅ |
-| 3 | 데일리 프롬프트 (Daily Prompt) | ✅ |
-| 4 | 메모리 꽃다발 (Memory Bouquet) | ✅ |
-| 5 | 아트 카드 공유 (Art Card Share) | ✅ |
+| 파일 | 테스트 수 |
+|------|----------|
+| capsule_repository_test | 15 |
+| capsule_open_logic_test | 12 |
+| memorial_repository_test | 14 |
+| glossary_repository_test | 26 |
+| tree_growth_test | 37 |
+| badge_condition_test | 32 |
+| jokbo_layout_test | 17 |
+| hyodo_calculation_test | 45 |
+| clan_search_test | 26 |
+| invite_code_test | 24 |
+| wrapped_annual_review_test | 15 |
+| snapshot_service_test | 15 |
+| recipe_repository_test | 15 |
+| voice_legacy_test | 22 |
+| lunar_calendar_test | 37 |

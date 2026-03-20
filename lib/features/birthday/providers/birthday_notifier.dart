@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../core/services/notification/notification_service.dart';
 import '../../../shared/repositories/db_provider.dart';
 
 part 'birthday_notifier.g.dart';
@@ -63,7 +65,46 @@ class BirthdayNotifier extends _$BirthdayNotifier {
     }
 
     entries.sort((a, b) => a.daysUntil.compareTo(b.daysUntil));
+
+    // 생일 알림 스케줄 (D-1 전날 오전 9시 + D-Day 당일 오전 9시)
+    _scheduleBirthdayNotifications(entries);
+
     return entries;
+  }
+
+  /// 생일 D-1 / D-Day 알림 일괄 스케줄
+  void _scheduleBirthdayNotifications(List<BirthdayEntry> entries) {
+    try {
+      final svc = ref.read(notificationServiceProvider);
+
+      for (final entry in entries) {
+        // D-Day: 생일 당일 오전 9시 (매년 반복)
+        svc.scheduleYearly(
+          id: NotificationId.birthdayDDayBase.forItem(entry.nodeId),
+          title: '생일 축하해요! 🎂',
+          body: '오늘은 ${entry.nodeName}님의 생일이에요!',
+          month: entry.birthDate.month,
+          day: entry.birthDate.day,
+          hour: 9,
+          minute: 0,
+          channelId: 're_link_event',
+          payload: 'birthday_dday:${entry.nodeId}',
+        );
+
+        // D-1: 생일 전날 오전 9시
+        final dayBefore = entry.nextBirthday.subtract(const Duration(days: 1));
+        svc.scheduleAt(
+          id: NotificationId.birthdayDMinus1Base.forItem(entry.nodeId),
+          title: '내일은 특별한 날!',
+          body: '${entry.nodeName}님의 생일이 내일이에요. 미리 준비해보세요!',
+          dateTime: DateTime(dayBefore.year, dayBefore.month, dayBefore.day, 9, 0),
+          channelId: 're_link_event',
+          payload: 'birthday_dminus1:${entry.nodeId}',
+        );
+      }
+    } catch (e) {
+      debugPrint('[BirthdayNotifier] 생일 알림 스케줄 실패: $e');
+    }
   }
 
   /// 강제 새로고침

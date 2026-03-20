@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/data/korean_holidays.dart';
 import '../../../core/database/tables/settings_table.dart';
+import '../../../shared/models/node_model.dart';
 import '../../../shared/repositories/settings_repository.dart';
 
 part 'holiday_notifier.g.dart';
@@ -110,4 +111,24 @@ class HolidayNotifier extends _$HolidayNotifier {
     final d = now.day.toString().padLeft(2, '0');
     return '$y-$m-$d';
   }
+}
+
+/// 명절 기간에 glow 표시할 조상 노드 ID 집합을 계산
+///
+/// 조상 판단 기준:
+/// - deathDate가 있는 노드 (돌아간 분)
+/// - 또는 세대 깊이(generationDepth) >= 2인 노드
+Set<String> computeHolidayGlowNodeIds({
+  required List<NodeModel> nodes,
+  required Map<String, int> generations,
+}) {
+  final result = <String>{};
+  for (final node in nodes) {
+    if (node.isGhost) continue;
+    final depth = generations[node.id] ?? 0;
+    if (node.deathDate != null || depth >= 2) {
+      result.add(node.id);
+    }
+  }
+  return result;
 }

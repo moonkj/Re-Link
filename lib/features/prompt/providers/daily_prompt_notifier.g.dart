@@ -7,7 +7,7 @@ part of 'daily_prompt_notifier.dart';
 // **************************************************************************
 
 String _$dailyPromptNotifierHash() =>
-    r'fda0ff61738e82cc41ef4a07ef51cccb79820161';
+    r'c2aaa31a461fc9413987326c97e867dadf77e29f';
 
 /// 데일리 프롬프트 Notifier
 ///
