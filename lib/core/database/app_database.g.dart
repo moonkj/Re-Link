@@ -6801,6 +6801,366 @@ class VoiceLegacyTableCompanion extends UpdateCompanion<VoiceLegacyTableData> {
   }
 }
 
+class $ThenNowTableTable extends ThenNowTable
+    with TableInfo<$ThenNowTableTable, ThenNowTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ThenNowTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _memoryId1Meta = const VerificationMeta(
+    'memoryId1',
+  );
+  @override
+  late final GeneratedColumn<String> memoryId1 = GeneratedColumn<String>(
+    'memory_id1',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _memoryId2Meta = const VerificationMeta(
+    'memoryId2',
+  );
+  @override
+  late final GeneratedColumn<String> memoryId2 = GeneratedColumn<String>(
+    'memory_id2',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    memoryId1,
+    memoryId2,
+    label,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'then_now';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ThenNowTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('memory_id1')) {
+      context.handle(
+        _memoryId1Meta,
+        memoryId1.isAcceptableOrUnknown(data['memory_id1']!, _memoryId1Meta),
+      );
+    } else if (isInserting) {
+      context.missing(_memoryId1Meta);
+    }
+    if (data.containsKey('memory_id2')) {
+      context.handle(
+        _memoryId2Meta,
+        memoryId2.isAcceptableOrUnknown(data['memory_id2']!, _memoryId2Meta),
+      );
+    } else if (isInserting) {
+      context.missing(_memoryId2Meta);
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ThenNowTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ThenNowTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      memoryId1: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}memory_id1'],
+      )!,
+      memoryId2: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}memory_id2'],
+      )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ThenNowTableTable createAlias(String alias) {
+    return $ThenNowTableTable(attachedDatabase, alias);
+  }
+}
+
+class ThenNowTableData extends DataClass
+    implements Insertable<ThenNowTableData> {
+  final String id;
+  final String memoryId1;
+  final String memoryId2;
+  final String? label;
+  final DateTime createdAt;
+  const ThenNowTableData({
+    required this.id,
+    required this.memoryId1,
+    required this.memoryId2,
+    this.label,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['memory_id1'] = Variable<String>(memoryId1);
+    map['memory_id2'] = Variable<String>(memoryId2);
+    if (!nullToAbsent || label != null) {
+      map['label'] = Variable<String>(label);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  ThenNowTableCompanion toCompanion(bool nullToAbsent) {
+    return ThenNowTableCompanion(
+      id: Value(id),
+      memoryId1: Value(memoryId1),
+      memoryId2: Value(memoryId2),
+      label: label == null && nullToAbsent
+          ? const Value.absent()
+          : Value(label),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory ThenNowTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ThenNowTableData(
+      id: serializer.fromJson<String>(json['id']),
+      memoryId1: serializer.fromJson<String>(json['memoryId1']),
+      memoryId2: serializer.fromJson<String>(json['memoryId2']),
+      label: serializer.fromJson<String?>(json['label']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'memoryId1': serializer.toJson<String>(memoryId1),
+      'memoryId2': serializer.toJson<String>(memoryId2),
+      'label': serializer.toJson<String?>(label),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  ThenNowTableData copyWith({
+    String? id,
+    String? memoryId1,
+    String? memoryId2,
+    Value<String?> label = const Value.absent(),
+    DateTime? createdAt,
+  }) => ThenNowTableData(
+    id: id ?? this.id,
+    memoryId1: memoryId1 ?? this.memoryId1,
+    memoryId2: memoryId2 ?? this.memoryId2,
+    label: label.present ? label.value : this.label,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  ThenNowTableData copyWithCompanion(ThenNowTableCompanion data) {
+    return ThenNowTableData(
+      id: data.id.present ? data.id.value : this.id,
+      memoryId1: data.memoryId1.present ? data.memoryId1.value : this.memoryId1,
+      memoryId2: data.memoryId2.present ? data.memoryId2.value : this.memoryId2,
+      label: data.label.present ? data.label.value : this.label,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ThenNowTableData(')
+          ..write('id: $id, ')
+          ..write('memoryId1: $memoryId1, ')
+          ..write('memoryId2: $memoryId2, ')
+          ..write('label: $label, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, memoryId1, memoryId2, label, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ThenNowTableData &&
+          other.id == this.id &&
+          other.memoryId1 == this.memoryId1 &&
+          other.memoryId2 == this.memoryId2 &&
+          other.label == this.label &&
+          other.createdAt == this.createdAt);
+}
+
+class ThenNowTableCompanion extends UpdateCompanion<ThenNowTableData> {
+  final Value<String> id;
+  final Value<String> memoryId1;
+  final Value<String> memoryId2;
+  final Value<String?> label;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const ThenNowTableCompanion({
+    this.id = const Value.absent(),
+    this.memoryId1 = const Value.absent(),
+    this.memoryId2 = const Value.absent(),
+    this.label = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ThenNowTableCompanion.insert({
+    required String id,
+    required String memoryId1,
+    required String memoryId2,
+    this.label = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       memoryId1 = Value(memoryId1),
+       memoryId2 = Value(memoryId2);
+  static Insertable<ThenNowTableData> custom({
+    Expression<String>? id,
+    Expression<String>? memoryId1,
+    Expression<String>? memoryId2,
+    Expression<String>? label,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (memoryId1 != null) 'memory_id1': memoryId1,
+      if (memoryId2 != null) 'memory_id2': memoryId2,
+      if (label != null) 'label': label,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ThenNowTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? memoryId1,
+    Value<String>? memoryId2,
+    Value<String?>? label,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return ThenNowTableCompanion(
+      id: id ?? this.id,
+      memoryId1: memoryId1 ?? this.memoryId1,
+      memoryId2: memoryId2 ?? this.memoryId2,
+      label: label ?? this.label,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (memoryId1.present) {
+      map['memory_id1'] = Variable<String>(memoryId1.value);
+    }
+    if (memoryId2.present) {
+      map['memory_id2'] = Variable<String>(memoryId2.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ThenNowTableCompanion(')
+          ..write('id: $id, ')
+          ..write('memoryId1: $memoryId1, ')
+          ..write('memoryId2: $memoryId2, ')
+          ..write('label: $label, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -6824,6 +7184,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $VoiceLegacyTableTable voiceLegacyTable = $VoiceLegacyTableTable(
     this,
   );
+  late final $ThenNowTableTable thenNowTable = $ThenNowTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -6843,6 +7204,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     recipesTable,
     nodeLocationsTable,
     voiceLegacyTable,
+    thenNowTable,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -10872,6 +11234,206 @@ typedef $$VoiceLegacyTableTableProcessedTableManager =
       VoiceLegacyTableData,
       PrefetchHooks Function()
     >;
+typedef $$ThenNowTableTableCreateCompanionBuilder =
+    ThenNowTableCompanion Function({
+      required String id,
+      required String memoryId1,
+      required String memoryId2,
+      Value<String?> label,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$ThenNowTableTableUpdateCompanionBuilder =
+    ThenNowTableCompanion Function({
+      Value<String> id,
+      Value<String> memoryId1,
+      Value<String> memoryId2,
+      Value<String?> label,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$ThenNowTableTableFilterComposer
+    extends Composer<_$AppDatabase, $ThenNowTableTable> {
+  $$ThenNowTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get memoryId1 => $composableBuilder(
+    column: $table.memoryId1,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get memoryId2 => $composableBuilder(
+    column: $table.memoryId2,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ThenNowTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $ThenNowTableTable> {
+  $$ThenNowTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get memoryId1 => $composableBuilder(
+    column: $table.memoryId1,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get memoryId2 => $composableBuilder(
+    column: $table.memoryId2,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ThenNowTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ThenNowTableTable> {
+  $$ThenNowTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get memoryId1 =>
+      $composableBuilder(column: $table.memoryId1, builder: (column) => column);
+
+  GeneratedColumn<String> get memoryId2 =>
+      $composableBuilder(column: $table.memoryId2, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$ThenNowTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ThenNowTableTable,
+          ThenNowTableData,
+          $$ThenNowTableTableFilterComposer,
+          $$ThenNowTableTableOrderingComposer,
+          $$ThenNowTableTableAnnotationComposer,
+          $$ThenNowTableTableCreateCompanionBuilder,
+          $$ThenNowTableTableUpdateCompanionBuilder,
+          (
+            ThenNowTableData,
+            BaseReferences<_$AppDatabase, $ThenNowTableTable, ThenNowTableData>,
+          ),
+          ThenNowTableData,
+          PrefetchHooks Function()
+        > {
+  $$ThenNowTableTableTableManager(_$AppDatabase db, $ThenNowTableTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ThenNowTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ThenNowTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ThenNowTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> memoryId1 = const Value.absent(),
+                Value<String> memoryId2 = const Value.absent(),
+                Value<String?> label = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ThenNowTableCompanion(
+                id: id,
+                memoryId1: memoryId1,
+                memoryId2: memoryId2,
+                label: label,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String memoryId1,
+                required String memoryId2,
+                Value<String?> label = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ThenNowTableCompanion.insert(
+                id: id,
+                memoryId1: memoryId1,
+                memoryId2: memoryId2,
+                label: label,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ThenNowTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ThenNowTableTable,
+      ThenNowTableData,
+      $$ThenNowTableTableFilterComposer,
+      $$ThenNowTableTableOrderingComposer,
+      $$ThenNowTableTableAnnotationComposer,
+      $$ThenNowTableTableCreateCompanionBuilder,
+      $$ThenNowTableTableUpdateCompanionBuilder,
+      (
+        ThenNowTableData,
+        BaseReferences<_$AppDatabase, $ThenNowTableTable, ThenNowTableData>,
+      ),
+      ThenNowTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -10904,4 +11466,6 @@ class $AppDatabaseManager {
       $$NodeLocationsTableTableTableManager(_db, _db.nodeLocationsTable);
   $$VoiceLegacyTableTableTableManager get voiceLegacyTable =>
       $$VoiceLegacyTableTableTableManager(_db, _db.voiceLegacyTable);
+  $$ThenNowTableTableTableManager get thenNowTable =>
+      $$ThenNowTableTableTableManager(_db, _db.thenNowTable);
 }

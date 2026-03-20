@@ -8,6 +8,7 @@ import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
 import '../models/clan_data.dart';
 import '../providers/clan_explorer_notifier.dart';
+import '../widgets/clan_art_card.dart';
 import '../widgets/clan_share_card.dart';
 
 /// K-4 한국 성씨 클랜 탐색기
@@ -80,6 +81,67 @@ class _ClanExplorerScreenState extends ConsumerState<ClanExplorerScreen> {
             ClanShareCard(clan: clan, surname: surname),
             const SizedBox(height: AppSpacing.lg),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showArtCardSheet(ClanInfo clan, String surname) {
+    HapticService.medium();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) => GlassBottomSheet(
+          padding: EdgeInsets.zero,
+          child: SingleChildScrollView(
+            controller: scrollController,
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.pagePadding,
+              AppSpacing.lg,
+              AppSpacing.pagePadding,
+              AppSpacing.xxxl,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 드래그 핸들
+                Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(2),
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+                // 타이틀
+                Text(
+                  '아트 카드 만들기',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  '스타일을 선택하고 공유하세요',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                ClanArtCard(clan: clan, surname: surname),
+                const SizedBox(height: AppSpacing.lg),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -241,6 +303,7 @@ class _ClanExplorerScreenState extends ConsumerState<ClanExplorerScreen> {
           isExpanded: isExpanded,
           onToggle: () => _toggleExpand(clanIndex),
           onShare: (clan) => _showShareSheet(clan, surname.surname),
+          onArtCard: (clan) => _showArtCardSheet(clan, surname.surname),
         );
       },
     );
@@ -309,12 +372,14 @@ class _ClanSurnameCard extends StatelessWidget {
     required this.isExpanded,
     required this.onToggle,
     required this.onShare,
+    required this.onArtCard,
   });
 
   final ClanSurname surname;
   final bool isExpanded;
   final VoidCallback onToggle;
   final ValueChanged<ClanInfo> onShare;
+  final ValueChanged<ClanInfo> onArtCard;
 
   @override
   Widget build(BuildContext context) {
@@ -429,6 +494,7 @@ class _ClanSurnameCard extends StatelessWidget {
               clan: clan,
               surname: surname.surname,
               onShare: () => onShare(clan),
+              onArtCard: () => onArtCard(clan),
             )),
       ],
     );
@@ -442,11 +508,13 @@ class _ClanDetail extends StatelessWidget {
     required this.clan,
     required this.surname,
     required this.onShare,
+    required this.onArtCard,
   });
 
   final ClanInfo clan;
   final String surname;
   final VoidCallback onShare;
+  final VoidCallback onArtCard;
 
   @override
   Widget build(BuildContext context) {
@@ -574,6 +642,51 @@ class _ClanDetail extends StatelessWidget {
                       ),
                     ))
                 .toList(),
+          ),
+
+          const SizedBox(height: AppSpacing.md),
+
+          // 아트 카드 만들기 버튼
+          GestureDetector(
+            onTap: onArtCard,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                vertical: AppSpacing.sm,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primaryMint.withAlpha(30),
+                    AppColors.primaryBlue.withAlpha(30),
+                  ],
+                ),
+                border: Border.all(
+                  color: AppColors.primary.withAlpha(50),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.palette_outlined,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    '아트 카드 만들기',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

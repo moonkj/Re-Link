@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router/app_router.dart';
 import 'core/utils/haptic_service.dart';
 import 'design/tokens/app_colors.dart';
 import 'design/tokens/app_theme.dart';
+import 'features/changelog/presentation/changelog_modal.dart';
+import 'features/changelog/providers/changelog_notifier.dart';
 import 'features/settings/providers/elderly_mode_notifier.dart';
 import 'features/settings/providers/haptic_notifier.dart';
 import 'features/settings/providers/theme_mode_notifier.dart';
@@ -55,14 +58,74 @@ class ReLink extends ConsumerWidget {
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
       routerConfig: router,
-      builder: isElderly
-          ? (context, child) => MediaQuery(
-                data: MediaQuery.of(context).copyWith(
-                  textScaler: const TextScaler.linear(1.3),
-                ),
-                child: child ?? const SizedBox.shrink(),
-              )
-          : null,
+      builder: (context, child) {
+        Widget result = child ?? const SizedBox.shrink();
+
+        // 어르신 모드: 1.3× textScaler
+        if (isElderly) {
+          result = MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: const TextScaler.linear(1.3),
+            ),
+            child: result,
+          );
+        }
+
+        // 변경 로그 체크 오버레이
+        return _ChangelogChecker(child: result);
+      },
     );
+  }
+}
+
+/// 앱 첫 프레임 후 변경 로그 표시 여부를 확인하는 위젯
+class _ChangelogChecker extends ConsumerStatefulWidget {
+  const _ChangelogChecker({required this.child});
+  final Widget child;
+
+  @override
+  ConsumerState<_ChangelogChecker> createState() => _ChangelogCheckerState();
+}
+
+class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker> {
+  /// static으로 앱 라이프사이클 동안 1회만 실행 보장
+  /// (MaterialApp key 변경 시 위젯 재생성 방어)
+  static bool _checked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _checkChangelog();
+    });
+  }
+
+  Future<void> _checkChangelog() async {
+    if (_checked) return;
+    _checked = true;
+
+    try {
+      // 변경 로그 데이터 로드 대기
+      final notifier = ref.read(changelogNotifierProvider.notifier);
+
+      // AsyncNotifier가 build() 완료될 때까지 대기
+      await ref.read(changelogNotifierProvider.future);
+
+      final shouldShow = await notifier.shouldShowChangelog();
+      if (!shouldShow) return;
+
+      final entry = notifier.latestEntry;
+      if (entry == null) return;
+
+      if (!mounted) return;
+      await ChangelogModal.show(context, entry);
+    } catch (_) {
+      // 변경 로그 로드 실패 시 무시 — 핵심 기능 아님
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

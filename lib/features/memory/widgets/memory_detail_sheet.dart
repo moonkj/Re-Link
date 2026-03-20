@@ -9,6 +9,7 @@ import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/memory_model.dart';
 import '../providers/memory_notifier.dart';
+import '../../then_now/widgets/memory_picker_sheet.dart';
 
 /// 기억 상세 시트 — 타입별 분기
 class MemoryDetailSheet extends ConsumerStatefulWidget {
@@ -104,6 +105,47 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
 
           const SizedBox(height: AppSpacing.lg),
 
+          // Then & Now 버튼 (사진 타입만)
+          if (widget.memory.type == MemoryType.photo && widget.memory.filePath != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.md),
+              child: GestureDetector(
+                onTap: () => _openThenNowPicker(context),
+                child: GlassCard(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.compare_rounded, size: 20, color: AppColors.primary),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Then & Now',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              '다른 사진과 비교하기',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textTertiary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.chevron_right, size: 20, color: AppColors.textTertiary),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
           // 날짜
           if (widget.memory.dateTaken != null)
             Padding(
@@ -132,6 +174,30 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
       await _playerCtrl!.startPlayer();
     }
     setState(() {});
+  }
+
+  Future<void> _openThenNowPicker(BuildContext context) async {
+    final selectedMemory = await showModalBottomSheet<MemoryModel>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => MemoryPickerSheet(
+        nodeId: widget.memory.nodeId,
+        excludeMemoryId: widget.memory.id,
+      ),
+    );
+    if (selectedMemory == null) return;
+    if (!context.mounted) return;
+
+    final router = GoRouter.of(context);
+    Navigator.of(context).pop(); // 현재 detail sheet 닫기
+    router.push(
+      AppRoutes.thenNow,
+      extra: {
+        'memoryId1': widget.memory.id,
+        'memoryId2': selectedMemory.id,
+      },
+    );
   }
 
   Future<void> _confirmDelete(BuildContext context) async {

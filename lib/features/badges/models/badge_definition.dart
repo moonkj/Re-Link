@@ -165,6 +165,15 @@ enum BadgeDefinition {
     description: '음성 기억 10개 이상',
     icon: Icons.mic,
     rarity: BadgeRarity.rare,
+  ),
+
+  // ── 특별 배지 ───────────────────────────────────────────────────────────
+  coCreator(
+    id: 'coCreator',
+    name: '공동 제작자',
+    description: '앱 개발에 기여한 특별한 분',
+    icon: Icons.workspace_premium,
+    rarity: BadgeRarity.legendary,
   );
 
   const BadgeDefinition({

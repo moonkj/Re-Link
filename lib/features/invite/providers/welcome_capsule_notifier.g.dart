@@ -1,31 +1,30 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'badge_notifier.dart';
+part of 'welcome_capsule_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$badgeNotifierHash() => r'fe45f4113b82bdc761592d67af34441bf193cb13';
+String _$welcomeCapsuleNotifierHash() =>
+    r'ce2a7a66158f95517df26548f7af7a576678699d';
 
-/// 배지 시스템 상태 관리
-///
-/// Copied from [BadgeNotifier].
-@ProviderFor(BadgeNotifier)
-final badgeNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<
-      BadgeNotifier,
-      List<BadgeDefinition>
+/// See also [WelcomeCapsuleNotifier].
+@ProviderFor(WelcomeCapsuleNotifier)
+final welcomeCapsuleNotifierProvider =
+    AutoDisposeNotifierProvider<
+      WelcomeCapsuleNotifier,
+      WelcomeCapsuleState
     >.internal(
-      BadgeNotifier.new,
-      name: r'badgeNotifierProvider',
+      WelcomeCapsuleNotifier.new,
+      name: r'welcomeCapsuleNotifierProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
           ? null
-          : _$badgeNotifierHash,
+          : _$welcomeCapsuleNotifierHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
-typedef _$BadgeNotifier = AutoDisposeAsyncNotifier<List<BadgeDefinition>>;
+typedef _$WelcomeCapsuleNotifier = AutoDisposeNotifier<WelcomeCapsuleState>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

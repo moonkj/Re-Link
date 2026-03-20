@@ -1,31 +1,33 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'badge_notifier.dart';
+part of 'changelog_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$badgeNotifierHash() => r'fe45f4113b82bdc761592d67af34441bf193cb13';
+String _$changelogNotifierHash() => r'bc77bb864cba20780774ae0dcd698208345a8953';
 
-/// 배지 시스템 상태 관리
+/// 변경 로그 상태 관리
 ///
-/// Copied from [BadgeNotifier].
-@ProviderFor(BadgeNotifier)
-final badgeNotifierProvider =
+/// changelog.json 로드 + 최신 버전과 lastSeenVersion 비교
+///
+/// Copied from [ChangelogNotifier].
+@ProviderFor(ChangelogNotifier)
+final changelogNotifierProvider =
     AutoDisposeAsyncNotifierProvider<
-      BadgeNotifier,
-      List<BadgeDefinition>
+      ChangelogNotifier,
+      List<ChangelogEntry>
     >.internal(
-      BadgeNotifier.new,
-      name: r'badgeNotifierProvider',
+      ChangelogNotifier.new,
+      name: r'changelogNotifierProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
           ? null
-          : _$badgeNotifierHash,
+          : _$changelogNotifierHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
-typedef _$BadgeNotifier = AutoDisposeAsyncNotifier<List<BadgeDefinition>>;
+typedef _$ChangelogNotifier = AutoDisposeAsyncNotifier<List<ChangelogEntry>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

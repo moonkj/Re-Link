@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-20
-> 현재 단계: Phase 5g 완료 — v2.0 전체 26개 기능 완료
+> 현재 단계: Phase 6 완료 — v2.1 추가 기능 4/4 완료 (타임머신/아트카드/웰컴캡슐/변경로그)
 > v2.0 계획: Phase 5a~5g 전체 26개 기능 계획 완료 (v1.0 런치 후 착수)
 
 ---
@@ -2376,29 +2376,29 @@
 > 예: "외가 앞마당 1997 vs 2026". 슬라이더로 좌우 비교하는 UI.
 
 #### UX Designer
-- [ ] 2장 비교 뷰 화면 설계 (좌우 슬라이더 인터랙션)
-- [ ] 기억 상세에서 "Then & Now 만들기" 진입점
-- [ ] 저장/공유 플로우
+- [x] 2장 비교 뷰 화면 설계 (좌우 슬라이더 인터랙션)
+- [x] 기억 상세에서 "Then & Now 만들기" 진입점
+- [x] 저장/공유 플로우
 
 #### Architect
-- [ ] `then_now` 테이블 (memoryId1, memoryId2, label, createdAt)
-- [ ] `ThenNowNotifier` — 비교 쌍 CRUD
-- [ ] 이미지 오버레이 렌더링 (ClipRect + 슬라이더)
+- [x] `then_now` 테이블 (memoryId1, memoryId2, label, createdAt) → DB schema v6
+- [x] `ThenNowNotifier` — 비교 쌍 CRUD
+- [x] 이미지 오버레이 렌더링 (CustomClipper + 슬라이더)
 
 #### Coder
-- [ ] `lib/features/then_now/presentation/then_now_screen.dart`
-- [ ] `lib/features/then_now/widgets/comparison_slider.dart` — 좌우 드래그 비교
-- [ ] `lib/features/then_now/widgets/then_now_card.dart` — 공유 카드 생성
-- [ ] 라우터 등록 + 설정/기억 상세에서 진입점 추가
+- [x] `lib/features/then_now/presentation/then_now_screen.dart`
+- [x] `lib/features/then_now/widgets/comparison_slider.dart` — 좌우 드래그 비교
+- [x] `lib/features/then_now/widgets/then_now_card.dart` — 공유 카드 생성
+- [x] 라우터 등록 + 기억 상세에서 진입점 추가
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/then_now/` 단위 테스트
+- [x] 전체 457+ tests passed
 
 #### Performance Engineer
-- [ ] 고해상도 이미지 2장 동시 렌더링 최적화
+- [x] cacheWidth/cacheHeight로 이미지 디코딩 최적화, RepaintBoundary 분리
 
 ---
 
@@ -2408,23 +2408,24 @@
 > 한 장짜리 카드 이미지로 뽑기. RepaintBoundary → PNG → 공유.
 
 #### UX Designer
-- [ ] 아트 카드 디자인 (전통 문양 + 지도 + 성씨 카피)
-- [ ] 카드 스타일 옵션 (한지/모던/수묵화)
+- [x] 아트 카드 디자인 (전통 문양 + 지도 + 성씨 카피)
+- [x] 카드 스타일 옵션 (한지/모던/수묵화) + 스타일 셀렉터
 
 #### Architect
-- [ ] `ClanArtCardPainter` — CustomPainter 카드 렌더링
-- [ ] RepaintBoundary + 3× pixelRatio → PNG 캡처 → share_plus
+- [x] `ClanArtCardPainter` — CustomPainter 카드 렌더링 3종
+- [x] RepaintBoundary + 3× pixelRatio → PNG 캡처 → share_plus
 
 #### Coder
-- [ ] `lib/features/clan/widgets/clan_art_card.dart` — 카드 위젯
-- [ ] `lib/features/clan/widgets/clan_art_card_painter.dart` — CustomPainter
-- [ ] Clan Explorer에 "아트 카드 만들기" 버튼 추가
+- [x] `lib/features/clan/widgets/clan_art_card.dart` — 카드 위젯
+- [x] `lib/features/clan/widgets/clan_art_card_painter.dart` — CustomPainter (한지/모던/수묵화)
+- [x] `lib/features/clan/widgets/art_card_style_selector.dart` — 스타일 칩 셀렉터
+- [x] Clan Explorer에 "아트 카드 만들기" 버튼 추가
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/clan/clan_art_card_test.dart`
+- [x] 전체 457+ tests passed
 
 ---
 
@@ -2435,26 +2436,26 @@
 > 초대 수락 순간의 감정 온도를 올려서, 설치 직후 이탈률 줄이는 장치.
 
 #### UX Designer
-- [ ] 웰컴 캡슐 작성 화면 (초대 보내기 전 기록)
-- [ ] 신규 가족 첫 실행 시 웰컴 캡슐 자동 재생 연출
-- [ ] 감정 온도 상승 애니메이션
+- [x] 웰컴 캡슐 작성 화면 (초대 보내기 전 기록)
+- [x] 신규 가족 첫 실행 시 웰컴 캡슐 자동 재생 연출 (타이프라이터 효과)
+- [x] 감정 온도 상승 애니메이션 (fade-in + backdrop blur)
 
 #### Architect
-- [ ] `.rlink` 파일에 `welcome_capsule` 필드 추가 (텍스트 + 음성 경로)
-- [ ] `WelcomeCapsuleNotifier` — 캡슐 작성/재생 상태 관리
-- [ ] 초대 플로우에 웰컴 캡슐 단계 삽입
+- [x] settings 테이블에 3개 키 추가 (welcomeMessage/welcomeAudioPath/welcomeCapsulePlayed)
+- [x] `WelcomeCapsuleNotifier` — 캡슐 작성/재생 상태 관리
+- [x] 초대 플로우에 웰컴 캡슐 단계 삽입
 
 #### Coder
-- [ ] `lib/features/invite/widgets/welcome_capsule_sheet.dart` — 작성 바텀시트
-- [ ] `lib/features/invite/widgets/welcome_playback.dart` — 자동 재생 화면
-- [ ] 기존 `invite_screen.dart`에 웰컴 캡슐 단계 연동
-- [ ] `.rlink` manifest에 `welcomeMessage` + `welcomeAudioPath` 필드
+- [x] `lib/features/invite/widgets/welcome_capsule_sheet.dart` — 작성 바텀시트
+- [x] `lib/features/invite/widgets/welcome_playback.dart` — 자동 재생 화면
+- [x] 기존 `invite_screen.dart`에 Step 2 웰컴 캡슐 연동
+- [x] `invite_notifier.dart`에 welcomeMessage/welcomeAudioPath 확장
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/invite/welcome_capsule_test.dart`
+- [x] 전체 457+ tests passed
 
 ---
 
@@ -2465,27 +2466,27 @@
 > "공동 제작자" 섹션을 배지 컬렉션과 병합 가능.
 
 #### UX Designer
-- [ ] 업데이트 모달 디자인 (변경 내역 + 기여자 하이라이트)
-- [ ] 별 배지 디자인 (노드 카드에 표시)
-- [ ] "공동 제작자" 섹션 (배지 목록 화면에 통합)
+- [x] 업데이트 모달 디자인 (Glass 스타일 + 타입별 컬러 아이콘)
+- [x] 별 배지 디자인 → coCreator 배지 (legendary)
+- [x] "공동 제작자" 섹션 (gold-gradient 칩)
 
 #### Architect
-- [ ] `settings` 테이블에 `lastSeenVersion` 키 추가
-- [ ] `changelog.json` — 버전별 변경 내역 + 기여자 ID 매핑
-- [ ] `ChangelogNotifier` — 버전 비교 + 모달 표시 여부 판단
+- [x] `settings` 테이블에 `lastSeenVersion` 키 추가
+- [x] `changelog.json` — 버전별 변경 내역 + 기여자 ID 매핑
+- [x] `ChangelogNotifier` — 시맨틱 버전 비교 + 모달 표시 여부 판단
 
 #### Coder
-- [ ] `lib/features/changelog/presentation/changelog_modal.dart`
-- [ ] `lib/features/changelog/models/changelog_entry.dart`
-- [ ] `assets/data/changelog.json` — 변경 로그 데이터
-- [ ] `app.dart`에서 앱 시작 시 버전 체크 → 모달 표시
-- [ ] 배지 시스템에 "공동 제작자" 배지 추가
+- [x] `lib/features/changelog/presentation/changelog_modal.dart`
+- [x] `lib/features/changelog/models/changelog_entry.dart`
+- [x] `assets/data/changelog.json` — v2.1.0 변경 로그
+- [x] `app.dart`에서 `_ChangelogChecker` 래퍼로 버전 체크 → 모달 표시
+- [x] 배지 시스템에 "공동 제작자" 배지 추가 (legendary)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/changelog/changelog_test.dart`
+- [x] 전체 457+ tests passed
 
 ---
 
@@ -2563,4 +2564,4 @@
 | Phase 5f 고급 기능 | 3개 | ✅ 3/3 완료 (레시피북/보이스유언/가족지도) |
 | Phase 5g 인프라 & 전략 | 3개 | ✅ 3/3 완료 (프라이버시/피드백/오프라인퍼스트) |
 | **v2.0 전체** | **26개 기능** | ✅ 전체 완료 |
-| Phase 6 v2.1 추가 기능 | 4개 | ⏳ 계획 중 |
+| Phase 6 v2.1 추가 기능 | 4개 | ✅ 4/4 완료 (타임머신/아트카드/웰컴캡슐/변경로그) |

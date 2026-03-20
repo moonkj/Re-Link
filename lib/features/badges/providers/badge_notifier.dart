@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/tables/settings_table.dart';
@@ -85,6 +88,10 @@ class BadgeNotifier extends _$BadgeNotifier {
     award(BadgeDefinition.photoCollector, photoCount >= 30);
     award(BadgeDefinition.voiceKeeper, voiceCount >= 10);
 
+    // 공동 제작자 배지 — changelog.json의 contributors에 등록된 사용자
+    final isCoCreator = await _checkCoCreator(settings);
+    award(BadgeDefinition.coCreator, isCoCreator);
+
     if (newlyEarned.isNotEmpty) {
       await settings.set(SettingsKey.earnedBadges, earned.join(','));
       ref.invalidateSelf();
@@ -138,6 +145,45 @@ class BadgeNotifier extends _$BadgeNotifier {
       }
     } catch (_) {
       // DB 에러 시 false
+    }
+    return false;
+  }
+
+  /// 공동 제작자 여부 확인
+  ///
+  /// changelog.json의 모든 엔트리 contributors에서
+  /// 현재 사용자의 노드 ID가 포함되어 있는지 확인
+  Future<bool> _checkCoCreator(SettingsRepository settings) async {
+    try {
+      final db = ref.read(appDatabaseProvider);
+      final jsonStr =
+          await rootBundle.loadString('assets/data/changelog.json');
+      final data = json.decode(jsonStr) as Map<String, dynamic>;
+      final entries = data['entries'] as List<dynamic>? ?? [];
+
+      // 모든 contributor의 nodeId 수집
+      final contributorNodeIds = <String>{};
+      for (final entry in entries) {
+        final contributors =
+            (entry as Map<String, dynamic>)['contributors'] as List<dynamic>? ??
+                [];
+        for (final c in contributors) {
+          final nodeId = (c as Map<String, dynamic>)['nodeId'] as String?;
+          if (nodeId != null && nodeId.isNotEmpty) {
+            contributorNodeIds.add(nodeId);
+          }
+        }
+      }
+
+      if (contributorNodeIds.isEmpty) return false;
+
+      // 현재 DB의 모든 노드 ID와 대조
+      final allNodes = await db.select(db.nodesTable).get();
+      for (final node in allNodes) {
+        if (contributorNodeIds.contains(node.id)) return true;
+      }
+    } catch (_) {
+      // JSON 로드 실패 시 무시
     }
     return false;
   }

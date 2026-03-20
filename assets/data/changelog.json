@@ -1,0 +1,16 @@
+{
+  "entries": [
+    {
+      "version": "2.1.0",
+      "date": "2026-03-20",
+      "title": "v2.1 — 감성 업데이트",
+      "changes": [
+        { "type": "feature", "text": "타임머신 뷰 (Then & Now)" },
+        { "type": "feature", "text": "본관·성씨 아트 카드" },
+        { "type": "feature", "text": "가족 초대 웰컴 시나리오" },
+        { "type": "improvement", "text": "변경 로그 & 감사 배지" }
+      ],
+      "contributors": []
+    }
+  ]
+}

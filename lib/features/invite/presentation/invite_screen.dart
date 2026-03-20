@@ -5,9 +5,11 @@ import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../providers/invite_notifier.dart';
+import '../providers/welcome_capsule_notifier.dart';
 import '../widgets/invite_code_card.dart';
+import '../widgets/welcome_capsule_sheet.dart';
 
-/// 가족 초대 화면 — 초대 코드 생성 + .rlink 공유
+/// 가족 초대 화면 — 초대 코드 생성 + 환영 캡슐 + .rlink 공유
 class InviteScreen extends ConsumerWidget {
   const InviteScreen({super.key});
 
@@ -109,9 +111,74 @@ class InviteScreen extends ConsumerWidget {
 
           const SizedBox(height: AppSpacing.xxl),
 
-          // ── Step 2: .rlink 파일 공유 ──────────────────────────────────────────
+          // ── Step 2: 환영 메시지 (선택) ──────────────────────────────────────
           _StepHeader(
             number: '2',
+            title: '환영 메시지 (선택)',
+            isCompleted: inviteState.welcomeDone,
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          if (inviteState.welcomeDone && inviteState.hasWelcome)
+            // 완료 상태 — 요약 표시
+            _WelcomeSummaryCard(
+              message: inviteState.welcomeMessage,
+              hasAudio: inviteState.welcomeAudioPath != null,
+              onEdit: hasCode
+                  ? () => _openWelcomeCapsuleSheet(context, ref)
+                  : null,
+            )
+          else
+            // 미완료 — 환영 메시지 작성 버튼
+            SizedBox(
+              width: double.infinity,
+              child: GlassButton(
+                onPressed: hasCode
+                    ? () => _openWelcomeCapsuleSheet(context, ref)
+                    : null,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.edit_note_rounded,
+                      size: 20,
+                      color: hasCode ? AppColors.primary : AppColors.textDisabled,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      inviteState.welcomeDone
+                          ? '환영 메시지 건너뜀'
+                          : '환영 메시지 작성하기',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: hasCode
+                            ? AppColors.primary
+                            : AppColors.textDisabled,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          if (!hasCode) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              '먼저 초대 코드를 생성해주세요',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textTertiary,
+              ),
+            ),
+          ],
+
+          const SizedBox(height: AppSpacing.xxl),
+
+          // ── Step 3: .rlink 파일 공유 ──────────────────────────────────────────
+          _StepHeader(
+            number: '3',
             title: '.rlink 파일 공유',
             isCompleted: inviteState.backupPath != null,
           ),
@@ -131,18 +198,6 @@ class InviteScreen extends ConsumerWidget {
                   : null,
             ),
           ),
-
-          if (!hasCode) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              '먼저 초대 코드를 생성해주세요',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textTertiary,
-              ),
-            ),
-          ],
 
           const SizedBox(height: AppSpacing.xxxl),
 
@@ -174,11 +229,16 @@ class InviteScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.md),
                 _InstructionRow(
                   number: '2',
-                  text: '.rlink 파일을 공유하세요',
+                  text: '환영 메시지를 작성하면 가족이 첫 실행 시 볼 수 있습니다',
                 ),
                 const SizedBox(height: AppSpacing.md),
                 _InstructionRow(
                   number: '3',
+                  text: '.rlink 파일을 공유하세요',
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _InstructionRow(
+                  number: '4',
                   text: '가족이 앱 설치 후 파일을 열면 합류됩니다',
                 ),
               ],
@@ -211,6 +271,116 @@ class InviteScreen extends ConsumerWidget {
             ),
 
           const SizedBox(height: AppSpacing.xxxl),
+        ],
+      ),
+    );
+  }
+
+  /// WelcomeCapsuleSheet를 열고 결과를 InviteState에 반영
+  Future<void> _openWelcomeCapsuleSheet(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    HapticService.light();
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: const WelcomeCapsuleSheet(),
+      ),
+    );
+
+    if (result == true) {
+      // 완료 — capsule state를 invite state에 반영
+      final capsuleState = ref.read(welcomeCapsuleNotifierProvider);
+      ref.read(inviteNotifierProvider.notifier).applyWelcomeCapsule(capsuleState);
+    } else {
+      // 건너뛰기 또는 닫기
+      ref.read(inviteNotifierProvider.notifier).skipWelcomeCapsule();
+    }
+  }
+}
+
+/// 환영 메시지 요약 카드 (완료 후 표시)
+class _WelcomeSummaryCard extends StatelessWidget {
+  const _WelcomeSummaryCard({
+    this.message,
+    required this.hasAudio,
+    this.onEdit,
+  });
+
+  final String? message;
+  final bool hasAudio;
+  final VoidCallback? onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.check_circle, color: AppColors.success, size: 20),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                '환영 메시지 준비 완료',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.success,
+                ),
+              ),
+              const Spacer(),
+              if (onEdit != null)
+                GestureDetector(
+                  onTap: onEdit,
+                  child: Text(
+                    '수정',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          if (message != null && message!.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              message!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+                height: 1.4,
+              ),
+            ),
+          ],
+          if (hasAudio) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Icon(Icons.graphic_eq_rounded, size: 16, color: AppColors.primary),
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  '음성 메시지 포함',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

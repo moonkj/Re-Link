@@ -16,6 +16,7 @@ import 'tables/glossary_table.dart';
 import 'tables/recipes_table.dart';
 import 'tables/node_locations_table.dart';
 import 'tables/voice_legacy_table.dart';
+import 'tables/then_now_table.dart';
 
 part 'app_database.g.dart';
 
@@ -34,6 +35,7 @@ part 'app_database.g.dart';
   RecipesTable,
   NodeLocationsTable,
   VoiceLegacyTable,
+  ThenNowTable,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -46,7 +48,7 @@ class AppDatabase extends _$AppDatabase {
       : super(NativeDatabase(File(path)));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -76,6 +78,10 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(recipesTable);
             await m.createTable(nodeLocationsTable);
             await m.createTable(voiceLegacyTable);
+          }
+          // v5 → v6: then_now (Then & Now 비교 페어)
+          if (from < 6) {
+            await m.createTable(thenNowTable);
           }
         },
       );
@@ -440,6 +446,29 @@ class AppDatabase extends _$AppDatabase {
   /// 추모 메시지 수
   Future<int> memorialMessageCount() =>
       memorialMessagesTable.count().getSingle();
+
+  // ── Then & Now ────────────────────────────────────────────────────────────
+
+  Future<void> upsertThenNow(ThenNowTableCompanion entry) =>
+      into(thenNowTable).insertOnConflictUpdate(entry);
+
+  Future<List<ThenNowTableData>> getAllThenNow() =>
+      (select(thenNowTable)
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  Stream<List<ThenNowTableData>> watchAllThenNow() =>
+      (select(thenNowTable)
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .watch();
+
+  Future<ThenNowTableData?> getThenNow(String id) =>
+      (select(thenNowTable)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<int> deleteThenNow(String id) =>
+      (delete(thenNowTable)..where((t) => t.id.equals(id))).go();
+
+  Future<int> thenNowCount() => thenNowTable.count().getSingle();
 
   // ── Settings ───────────────────────────────────────────────────────────────
 

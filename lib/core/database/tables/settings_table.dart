@@ -55,4 +55,12 @@ abstract final class SettingsKey {
 
   // ── 명절 배너 ──────────────────────────────────────────────────────────
   static const String holidayBannerDismissed = 'holiday_banner_dismissed'; // holiday_id:YYYY-MM-DD
+
+  // ── 변경 로그 ──────────────────────────────────────────────────────────
+  static const String lastSeenVersion = 'last_seen_version'; // 마지막으로 본 변경 로그 버전
+
+  // ── 웰컴 캡슐 ──────────────────────────────────────────────────────────
+  static const String welcomeCapsulePlayed = 'welcome_capsule_played'; // true / false
+  static const String welcomeMessage = 'welcome_message';             // 환영 텍스트 (max 200)
+  static const String welcomeAudioPath = 'welcome_audio_path';        // 환영 음성 파일 경로
 }
