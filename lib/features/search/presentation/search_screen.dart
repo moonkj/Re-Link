@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
 import '../../../design/tokens/app_colors.dart';
+import '../../../design/tokens/app_radius.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/memory_model.dart';
 import '../../../shared/models/node_model.dart';
@@ -66,7 +67,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 : null,
           ),
         ),
-        iconTheme: IconThemeData(color: AppColors.textPrimary),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: asyncResult.when(
         loading: () => const Center(
@@ -136,7 +140,7 @@ class _SectionHeader extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
           decoration: BoxDecoration(
             color: AppColors.primary.withAlpha(51),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppRadius.radiusSm,
           ),
           child: Text(
             '$count',
@@ -240,7 +244,7 @@ class _MemoryResultTile extends StatelessWidget {
         height: 44,
         decoration: BoxDecoration(
           color: AppColors.glassSurface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.radiusMd,
           border: Border.all(color: AppColors.glassBorder),
         ),
         child: Icon(icon, color: AppColors.secondary, size: 22),

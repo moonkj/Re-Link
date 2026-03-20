@@ -2663,12 +2663,47 @@
 
 #### 변경 사항
 - [x] 가운데 "+" 버튼 제거 (캔버스 FAB와 중복)
-- [x] "이야기" 탭 → "기억" 탭에 병합 (보관함 + 이야기 통합, 5탭: 이야기/전체/사진/음성/메모)
+- [x] "이야기" 탭 → "기억" 탭에 병합 (보관함 + 이야기 통합, 4탭: 이야기/사진/음성/메모)
 - [x] "가족" 탭 신설 — `family_hub_screen.dart` (일상: 생일/효도/단어장/레시피, 공유: 초대/지도/꽃다발)
 - [x] "탐색" 탭 신설 — `explore_hub_screen.dart` (뿌리: 족보/팔고조도/성씨/제사, 특별: 캡슐/유언, 성과: 배지/리뷰/아트카드)
 - [x] 설정 화면 정리 — 14개 가족기록 항목 제거 (허브 이동), 내보내기/초대 섹션 제거, 순수 설정만 유지
 - [x] `app_router.dart` — ShellRoute 5탭 구조, `/family-hub` + `/explore-hub` 라우트 추가
 - [x] `archive_screen.dart` — 제목 "기억"으로 변경, 이야기 탭 통합 (StoryFeedNotifier 연동)
+- [x] `flutter analyze` → 0 errors (52 info/warning 기존)
+
+### UX/UI 전체 감사 & 일관성 개선 ✅ (2026-03-21)
+
+> 전체 16+ 화면 감사 → 12건 불일치 발견 → 4개 팀에이전트 병렬 수정
+
+#### Agent 1 — 시각적 불일치 수정
+- [x] AppBar 제목 폰트 크기 18sp 전체 통일 (archive 22→18)
+- [x] 뒤로가기 버튼 `arrow_back_ios_new` + `size: 20` 전체 표준화 (12개 화면)
+- [x] explore_hub 팔고조도 아이콘 `primaryBlue` → `secondary` 통일
+- [x] family_map FAB `primaryMint` → `primary` 통일
+
+#### Agent 2 — 공유 위젯 추출
+- [x] `shared/widgets/section_label.dart` — 공통 섹션 레이블 (3개 화면 중복 제거)
+- [x] `shared/widgets/feature_tile.dart` — 공통 기능 타일 (2개 허브 화면 중복 제거)
+- [x] `shared/widgets/tile_divider.dart` — 공통 구분선 (2개 허브 화면 중복 제거)
+- [x] family_hub, explore_hub, settings 3개 화면 리팩토링
+
+#### Agent 3 — 가족 카드 목록 뷰 (신규)
+- [x] `canvas/presentation/family_list_view.dart` — 2열 카드 그리드 (태블릿 3열)
+- [x] canvas_screen.dart — 뷰 전환 토글 (트리 뷰 ↔ 목록 뷰) AppBar 아이콘 추가
+- [x] "나" 배지, Ghost 표시, 세대순 정렬, 관계 레이블, 사진/이니셜 아바타
+
+#### Agent 4 — borderRadius 토큰화
+- [x] 9개 파일 하드코딩 borderRadius → AppRadius 토큰 적용 (input/sm/md)
+- [x] TextField, 썸네일, 칩, 뱃지 등 일관성 확보
+
+#### 한국어 로케일 설정
+- [x] `flutter_localizations` 의존성 추가
+- [x] `app.dart` — `locale: ko_KR`, `localizationsDelegates` 3종 설정
+- [x] DatePicker 등 Material 위젯 한국어 표시
+
+#### 기억 탭 개선
+- [x] "전체" 탭 제거 (이야기와 중복) → 4탭: 이야기/사진/음성/메모
+
 - [x] `flutter analyze` → 0 errors (52 info/warning 기존)
 
 ### 실기기 배포 ✅ (2026-03-21)

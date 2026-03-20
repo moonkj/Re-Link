@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 import '../../../design/tokens/app_colors.dart';
+import '../../../design/tokens/app_radius.dart';
 import '../../../design/tokens/app_spacing.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
@@ -52,7 +53,7 @@ class _PrivacyContent extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: AppSpacing.lg),
           decoration: BoxDecoration(
             color: const Color(0xFF6EC6CA).withAlpha(20),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.radiusMd,
             border: Border.all(
                 color: const Color(0xFF6EC6CA).withAlpha(50)),
           ),

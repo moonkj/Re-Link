@@ -119,7 +119,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                     children: [
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                        icon: Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
                       ),
                       Expanded(
                         child: Text(

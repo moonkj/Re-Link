@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
+import '../../../design/tokens/app_radius.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/temperature_log_model.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
@@ -126,7 +127,7 @@ class _TemperatureDiaryScreenState
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
@@ -253,7 +254,7 @@ class _PeriodSelector extends StatelessWidget {
                   color: isSelected
                       ? AppColors.primary.withAlpha(30)
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: AppRadius.radiusMd,
                   border: Border.all(
                     color: isSelected
                         ? AppColors.primary.withAlpha(80)
@@ -363,7 +364,7 @@ class _LogListItem extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: tempColor.withAlpha(20),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: AppRadius.radiusSm,
                           ),
                           child: Text(
                             log.emotionLabel!,

@@ -7,6 +7,7 @@ import '../../../core/router/app_router.dart';
 import '../../../core/services/privacy/privacy_service.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
+import '../../../design/tokens/app_radius.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/user_plan.dart';
 import '../../../shared/repositories/profile_repository.dart';
@@ -16,6 +17,7 @@ import '../providers/elderly_mode_notifier.dart';
 import '../providers/haptic_notifier.dart';
 import '../providers/reduce_motion_notifier.dart';
 import '../providers/spouse_snap_notifier.dart';
+import '../../../shared/widgets/section_label.dart';
 import '../providers/theme_mode_notifier.dart';
 
 /// 설정 화면
@@ -77,7 +79,7 @@ class _ProfileSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _SectionLabel(label: '내 프로필'),
+            const SectionLabel(label: '내 프로필'),
             const SizedBox(height: AppSpacing.sm),
             GlassCard(
               padding: const EdgeInsets.all(AppSpacing.lg),
@@ -290,7 +292,7 @@ class _PlanSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionLabel(label: '요금제'),
+        const SectionLabel(label: '요금제'),
         const SizedBox(height: AppSpacing.sm),
         FutureBuilder<UserPlan>(
           future: ref.read(settingsRepositoryProvider).getUserPlan(),
@@ -365,7 +367,7 @@ class _BackupSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionLabel(label: '백업'),
+        const SectionLabel(label: '백업'),
         const SizedBox(height: AppSpacing.sm),
         GlassCard(
           padding: EdgeInsets.zero,
@@ -442,7 +444,7 @@ class _ThemeSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionLabel(label: '테마'),
+        const SectionLabel(label: '테마'),
         const SizedBox(height: AppSpacing.sm),
         GlassCard(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -504,7 +506,7 @@ class _ThemeOption extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.radiusMd,
             color: isSelected
                 ? AppColors.primary.withAlpha(30)
                 : Colors.transparent,
@@ -557,7 +559,7 @@ class _AccessibilitySection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionLabel(label: '접근성 & 개인 보호'),
+        const SectionLabel(label: '접근성 & 개인 보호'),
         const SizedBox(height: AppSpacing.sm),
         GlassCard(
           padding: EdgeInsets.zero,
@@ -671,7 +673,7 @@ class _PrivacyPromiseSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionLabel(label: '프라이버시'),
+        const SectionLabel(label: '프라이버시'),
         const SizedBox(height: AppSpacing.sm),
         GlassCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -739,7 +741,7 @@ class _FeedbackSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionLabel(label: '개발자 소통'),
+        const SectionLabel(label: '개발자 소통'),
         const SizedBox(height: AppSpacing.sm),
         GlassCard(
           padding: EdgeInsets.zero,
@@ -772,7 +774,7 @@ class _AppInfoSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionLabel(label: '앱 정보'),
+        const SectionLabel(label: '앱 정보'),
         const SizedBox(height: AppSpacing.sm),
         GlassCard(
           padding: EdgeInsets.zero,
@@ -948,21 +950,3 @@ class _PrivacyToggleState extends ConsumerState<_PrivacyToggle> {
   }
 }
 
-// ── 공통 섹션 레이블 ──────────────────────────────────────────────────────────
-
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({required this.label});
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textSecondary,
-      ),
-    );
-  }
-}

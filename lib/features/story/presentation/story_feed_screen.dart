@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/services/privacy/privacy_service.dart';
 import '../../../design/tokens/app_colors.dart';
+import '../../../design/tokens/app_radius.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../shared/models/memory_model.dart';
@@ -262,7 +263,7 @@ class _PrivateStoryCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: AppRadius.radiusSm,
                     color: AppColors.accent.withAlpha(30),
                   ),
                   child: const Icon(Icons.lock, size: 16, color: AppColors.accent),
@@ -320,7 +321,7 @@ class _MemoryTypeChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppRadius.radiusSm,
         color: color.withAlpha(30),
       ),
       child: Icon(icon, size: 16, color: color),

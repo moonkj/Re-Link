@@ -46,13 +46,13 @@ class _FamilyMapScreenState extends ConsumerState<FamilyMapScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddSheet,
-        backgroundColor: AppColors.primaryMint,
+        backgroundColor: AppColors.primary,
         child: const Icon(Icons.add_location_alt_outlined, color: Colors.white),
       ),
       body: pinsAsync.when(

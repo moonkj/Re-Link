@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/privacy/privacy_service.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
+import '../../../design/tokens/app_radius.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/memory_model.dart';
 import '../../../shared/models/user_plan.dart';
@@ -294,7 +295,7 @@ class _PhotoGrid extends StatelessWidget {
         final photoWidget = Hero(
           tag: 'photo_${m.id}',
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppRadius.radiusSm,
             child: m.thumbnailPath != null
                 ? Image.file(File(m.thumbnailPath!), fit: BoxFit.cover)
                 : Container(
@@ -307,7 +308,7 @@ class _PhotoGrid extends StatelessWidget {
         if (m.isPrivate) {
           return PrivateBlurOverlay(
             onTap: () => onTap(m),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppRadius.radiusSm,
             showMessage: false,
             iconSize: 18,
             child: m.thumbnailPath != null
@@ -360,7 +361,7 @@ class _MixedList extends StatelessWidget {
             if (m.isPrivate) {
               return PrivateBlurOverlay(
                 onTap: () => onTap(m),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: AppRadius.radiusSm,
                 showMessage: false,
                 iconSize: 18,
                 child: m.thumbnailPath != null
@@ -377,7 +378,7 @@ class _MixedList extends StatelessWidget {
               child: Hero(
                 tag: 'photo_${m.id}',
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppRadius.radiusSm,
                   child: m.thumbnailPath != null
                       ? Image.file(File(m.thumbnailPath!), fit: BoxFit.cover)
                       : Container(
@@ -542,7 +543,7 @@ class _VoiceUsageBanner extends ConsumerWidget {
                     ),
                     const SizedBox(height: 6),
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: AppRadius.radiusXs,
                       child: LinearProgressIndicator(
                         value: ratio,
                         minHeight: 6,

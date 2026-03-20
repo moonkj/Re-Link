@@ -18,6 +18,7 @@ import '../widgets/time_slider.dart';
 import '../widgets/time_event_toast.dart';
 import '../widgets/minimap_widget.dart';
 import '../../../core/utils/haptic_service.dart';
+import 'family_list_view.dart';
 import '../../settings/providers/spouse_snap_notifier.dart';
 import '../../streak/providers/streak_notifier.dart';
 import '../../streak/widgets/streak_badge.dart';
@@ -59,6 +60,9 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
 
   /// 이전 Time Slider 연도 (변경 감지용)
   int? _prevTimeSliderYear;
+
+  /// 목록 보기 모드 (false = 캔버스, true = 카드 목록)
+  bool _isListView = false;
 
   @override
   void initState() {
@@ -213,7 +217,11 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
           // ── 배경 ────────────────────────────────────────────────────────
           _CanvasBackground(),
 
-          // ── 무한 캔버스 ──────────────────────────────────────────────────
+          // ── 목록 보기 또는 무한 캔버스 ──────────────────────────────────
+          if (_isListView)
+            const Positioned.fill(child: FamilyListView()),
+
+          if (!_isListView)
           InteractiveViewer(
             transformationController: _transformCtrl,
             constrained: false,
@@ -329,7 +337,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
           ),
 
           // ── 연결 모드 포인터 추적 (InteractiveViewer 위에 배치) ───────────
-          if (isConnectMode)
+          if (isConnectMode && !_isListView)
             Positioned.fill(
               child: Listener(
                 behavior: HitTestBehavior.translucent,
@@ -386,6 +394,22 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                         ),
                       ),
                     const SizedBox(width: AppSpacing.sm),
+                    // 캔버스/목록 보기 전환
+                    Tooltip(
+                      message: _isListView ? '트리 보기' : '목록 보기',
+                      child: GlassCard(
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        onTap: () => setState(() => _isListView = !_isListView),
+                        child: Icon(
+                          _isListView
+                              ? Icons.account_tree_outlined
+                              : Icons.grid_view_rounded,
+                          color: AppColors.textSecondary,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
                     // 스트릭 배지
                     const StreakBadge(),
                     const SizedBox(width: AppSpacing.sm),
@@ -401,6 +425,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                         ),
                       ),
                     ),
+                    if (!_isListView) ...[
                     const SizedBox(width: AppSpacing.sm),
                     Tooltip(
                       message: '타임라인 필터',
@@ -432,6 +457,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                         ),
                       ),
                     ),
+                    ],
                   ],
                 ),
               ),
@@ -451,7 +477,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
           ),
 
           // ── 연결 모드 배너 ───────────────────────────────────────────────
-          if (isConnectMode)
+          if (isConnectMode && !_isListView)
             Positioned(
               top: 100, left: AppSpacing.lg, right: AppSpacing.lg,
               child: GlassCard(
@@ -478,26 +504,27 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
             ),
 
           // ── Time Slider ─────────────────────────────────────────────────
-          const TimeSliderWidget(),
+          if (!_isListView) const TimeSliderWidget(),
 
           // ── Time Slider 이벤트 토스트 ──────────────────────────────────
-          TimeEventToast(message: _timeEventMessage),
+          if (!_isListView) TimeEventToast(message: _timeEventMessage),
 
           // ── Minimap (좌하단, 광고 위) ─────────────────────────────────────
-          Positioned(
-            bottom: AppSpacing.bottomNavHeight + 80,
-            left: AppSpacing.lg,
-            child: nodes.isEmpty
-                ? const SizedBox.shrink()
-                : MinimapWidget(
-                    nodes: nodes,
-                    transformationController: _transformCtrl,
-                    screenSize: MediaQuery.sizeOf(context),
-                  ),
-          ),
+          if (!_isListView)
+            Positioned(
+              bottom: AppSpacing.bottomNavHeight + 80,
+              left: AppSpacing.lg,
+              child: nodes.isEmpty
+                  ? const SizedBox.shrink()
+                  : MinimapWidget(
+                      nodes: nodes,
+                      transformationController: _transformCtrl,
+                      screenSize: MediaQuery.sizeOf(context),
+                    ),
+            ),
 
           // ── Focus Mode 정보 패널 ─────────────────────────────────────────
-          if (canvasState.focusedNodeId != null)
+          if (canvasState.focusedNodeId != null && !_isListView)
             _FocusInfoPanel(
               node: canvasState.nodes
                   .where((n) => n.id == canvasState.focusedNodeId)

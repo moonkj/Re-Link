@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/services/privacy/privacy_service.dart';
 import '../../../design/tokens/app_colors.dart';
+import '../../../design/tokens/app_radius.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../shared/models/memory_model.dart';
@@ -31,12 +32,13 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return;
       setState(() => _currentTab = _tabController.index);
       if (_tabController.index > 0) {
-        final filter = ArchiveFilter.values[_tabController.index - 1];
+        // index 1=사진, 2=음성, 3=메모 → ArchiveFilter.photo/voice/note
+        final filter = ArchiveFilter.values[_tabController.index];
         ref.read(archiveNotifierProvider.notifier).setFilter(filter);
       }
     });
@@ -65,7 +67,7 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w700,
-                fontSize: 22,
+                fontSize: 18,
               ),
             ),
             actions: [
@@ -111,7 +113,7 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
                         filled: true,
                         fillColor: AppColors.glassSurface,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: AppRadius.input,
                           borderSide: BorderSide.none,
                         ),
                         contentPadding: EdgeInsets.zero,
@@ -129,7 +131,6 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
                     indicatorColor: AppColors.primary,
                     tabs: const [
                       Tab(text: '이야기'),
-                      Tab(text: '전체'),
                       Tab(text: '사진'),
                       Tab(text: '음성'),
                       Tab(text: '메모'),
@@ -283,7 +284,7 @@ class _MemoryTile extends StatelessWidget {
               height: 56,
               child: PrivateBlurOverlay(
                 onTap: onTap,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: AppRadius.radiusSm,
                 showMessage: false,
                 iconSize: 16,
                 blurSigma: 12,
@@ -304,7 +305,7 @@ class _MemoryTile extends StatelessWidget {
             )
           else
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: AppRadius.radiusSm,
               child: memory.type == MemoryType.photo && memory.thumbnailPath != null
                   ? Image.file(
                       File(memory.thumbnailPath!),
@@ -490,7 +491,7 @@ class _StoryFeedTab extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: AppRadius.radiusSm,
                           color: AppColors.accent.withAlpha(30),
                         ),
                         child: const Icon(Icons.lock,
@@ -557,7 +558,7 @@ class _StoryTypeChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppRadius.radiusSm,
         color: color.withAlpha(30),
       ),
       child: Icon(icon, size: 16, color: color),

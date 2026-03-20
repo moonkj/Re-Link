@@ -93,10 +93,20 @@ class RitualGuideScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
-        title: const Text('제사 순서 안내'),
+        title: Text(
+          '제사 순서 안내',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         backgroundColor: Colors.transparent,
-        foregroundColor: AppColors.textPrimary,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),

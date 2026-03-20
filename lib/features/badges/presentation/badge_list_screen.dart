@@ -51,7 +51,10 @@ class _BadgeListScreenState extends ConsumerState<BadgeListScreen> {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: AppColors.textPrimary),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: asyncBadges.when(
         loading: () => const Center(child: CircularProgressIndicator()),

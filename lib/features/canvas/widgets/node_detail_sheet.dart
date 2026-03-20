@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/router/app_router.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
+import '../../../design/tokens/app_radius.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/memory_model.dart';
 import '../../../shared/models/node_model.dart';
@@ -373,7 +374,7 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
                           backgroundColor: AppColors.bgSurface,
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: AppRadius.radiusMd,
                           ),
                           duration: const Duration(seconds: 2),
                         ),
@@ -407,7 +408,7 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: AppColors.primary.withAlpha(30),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: AppRadius.radiusSm,
                           ),
                           child: Text(
                             '현재 나',
@@ -719,7 +720,7 @@ class _Header extends StatelessWidget {
                   horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
                 color: tempColor.withAlpha(30),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppRadius.radiusMd,
                 border: Border.all(color: tempColor.withAlpha(80)),
               ),
               child: Row(
@@ -1143,7 +1144,7 @@ class _VoiceTab extends ConsumerWidget {
                             vertical: AppSpacing.xs),
                         decoration: BoxDecoration(
                           color: AppColors.accent.withAlpha(20),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: AppRadius.radiusSm,
                         ),
                         child: Text(
                           voice.formattedDuration!,

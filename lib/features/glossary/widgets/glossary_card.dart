@@ -4,6 +4,7 @@ import '../../../core/database/app_database.dart';
 import '../../../core/utils/haptic_service.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
+import '../../../design/tokens/app_radius.dart';
 import '../../../design/tokens/app_spacing.dart';
 
 /// 단어장 카드 위젯 — 탭하면 확장 토글, 음성 재생 지원
@@ -107,7 +108,7 @@ class _GlossaryCardState extends State<GlossaryCard>
                   ),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withAlpha(25),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: AppRadius.radiusSm,
                     border: Border.all(
                       color: AppColors.primary.withAlpha(60),
                       width: 0.5,
