@@ -355,7 +355,11 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                               });
                               final snapOn = ref.read(spouseSnapNotifierProvider).valueOrNull ?? true;
                               final pos = snapOn ? _spouseSnap(node.id, dx, dy, canvasState) : Offset(dx, dy);
-                              await ref.read(canvasNotifierProvider.notifier).saveNodePosition(node.id, pos.dx, pos.dy);
+                              // 겹침 감지 → 자동 밀어내기
+                              final resolved = _resolveDropOverlap(
+                                node.id, pos.dx, pos.dy, nodes,
+                              );
+                              await ref.read(canvasNotifierProvider.notifier).saveNodePosition(node.id, resolved.dx, resolved.dy);
                             },
                             onTap: () => _onNodeTap(node, canvasState),
                             onDoubleTap: () => _onNodeDoubleTap(node),
@@ -737,6 +741,54 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     }
 
     return Offset(x, y);
+  }
+
+  /// 드래그 드롭 후 겹침 감지 → 가장 가까운 빈 자리로 밀어내기
+  Offset _resolveDropOverlap(
+    String droppedId, double x, double y, List<NodeModel> nodes,
+  ) {
+    const minDx = 140.0;
+    const minDy = 160.0;
+
+    double newX = x;
+    double newY = y;
+
+    // 최대 20회 시도
+    for (int attempt = 0; attempt < 20; attempt++) {
+      final overlap = nodes.any((n) =>
+          n.id != droppedId &&
+          (n.positionX - newX).abs() < minDx &&
+          (n.positionY - newY).abs() < minDy);
+      if (!overlap) return Offset(newX, newY);
+
+      // 겹치는 노드 중 가장 가까운 것을 찾아 반대 방향으로 밀기
+      double bestDist = double.infinity;
+      double pushDx = minDx;
+      double pushDy = 0;
+      for (final n in nodes) {
+        if (n.id == droppedId) continue;
+        final dx = newX - n.positionX;
+        final dy = newY - n.positionY;
+        if (dx.abs() < minDx && dy.abs() < minDy) {
+          final dist = dx * dx + dy * dy;
+          if (dist < bestDist) {
+            bestDist = dist;
+            // 가장 짧은 축 방향으로 밀어내기
+            if (dx.abs() <= dy.abs()) {
+              pushDx = (dx >= 0 ? minDx - dx.abs() : -(minDx - dx.abs())) + (dx >= 0 ? 5 : -5);
+              pushDy = 0;
+            } else {
+              pushDx = 0;
+              pushDy = (dy >= 0 ? minDy - dy.abs() : -(minDy - dy.abs())) + (dy >= 0 ? 5 : -5);
+            }
+          }
+        }
+      }
+      newX = (newX + pushDx).clamp(100.0, 3800.0);
+      newY = (newY + pushDy).clamp(100.0, 3800.0);
+    }
+
+    return Offset(newX, newY);
   }
 
   Future<void> _showAddNodeSheet() async {
