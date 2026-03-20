@@ -31,6 +31,7 @@ import '../../features/wrapped/presentation/wrapped_screen.dart';
 import '../../features/recipe/presentation/recipe_list_screen.dart';
 import '../../features/family_map/presentation/family_map_screen.dart';
 import '../../features/voice_legacy/presentation/voice_legacy_screen.dart';
+import '../../features/settings/presentation/feedback_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
 import '../../shared/widgets/ad_banner_widget.dart';
 
@@ -66,6 +67,7 @@ abstract final class AppRoutes {
   static const String recipes = '/recipes';
   static const String familyMap = '/family-map';
   static const String voiceLegacy = '/voice-legacy';
+  static const String feedback = '/feedback';
 
   static String memoryPath(String nodeId) => '/memory/$nodeId';
   static String temperatureDiaryPath(String nodeId) =>
@@ -228,6 +230,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.voiceLegacy,
         builder: (_, s) => const VoiceLegacyScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.feedback,
+        builder: (_, s) => const FeedbackScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

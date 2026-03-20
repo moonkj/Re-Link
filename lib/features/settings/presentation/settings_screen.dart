@@ -59,6 +59,10 @@ class SettingsScreen extends ConsumerWidget {
           SizedBox(height: AppSpacing.xl),
           _FamilyRecordSection(),
           SizedBox(height: AppSpacing.xl),
+          _PrivacyPromiseSection(),
+          SizedBox(height: AppSpacing.xl),
+          _FeedbackSection(),
+          SizedBox(height: AppSpacing.xl),
           _AppInfoSection(),
           SizedBox(height: AppSpacing.xxxl),
         ],
@@ -953,6 +957,107 @@ class _FamilyRecordSection extends StatelessWidget {
                 onTap: () => context.push(AppRoutes.wrapped),
               ),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── 프라이버시 약속 섹션 ──────────────────────────────────────────────────────
+
+class _PrivacyPromiseSection extends StatelessWidget {
+  const _PrivacyPromiseSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionLabel(label: '프라이버시'),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.shield_outlined,
+                      color: AppColors.secondary, size: 22),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    'Re-Link의 약속',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                '당신의 가족 데이터를 팔지 않습니다.\n'
+                '광고 타겟팅에 사용하지 않습니다.\n'
+                'AI 학습에 사용하지 않습니다.\n'
+                '모든 데이터는 오직 당신의 기기에만 저장됩니다.',
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.7,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Icon(Icons.verified_outlined,
+                      color: AppColors.primary, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    '100% 로컬 퍼스트 · 서버 없음',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── 피드백 채널 섹션 ──────────────────────────────────────────────────────────
+
+class _FeedbackSection extends StatelessWidget {
+  const _FeedbackSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionLabel(label: '개발자 소통'),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: EdgeInsets.zero,
+          child: ListTile(
+            leading: const Icon(Icons.chat_bubble_outline,
+                color: AppColors.primary),
+            title: Text('개발자에게 직접 제안',
+                style: TextStyle(
+                    fontSize: 15, color: AppColors.textPrimary)),
+            subtitle: Text('새 기능, 버그 제보, 아이디어 공유',
+                style: TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary)),
+            trailing:
+                Icon(Icons.chevron_right, color: AppColors.textTertiary),
+            onTap: () => context.push(AppRoutes.feedback),
           ),
         ),
       ],

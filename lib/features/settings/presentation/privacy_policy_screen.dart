@@ -46,6 +46,36 @@ class _PrivacyContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── 프라이버시 약속 배너 ──
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+          decoration: BoxDecoration(
+            color: const Color(0xFF6EC6CA).withAlpha(20),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+                color: const Color(0xFF6EC6CA).withAlpha(50)),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.shield_outlined,
+                  color: const Color(0xFF6EC6CA), size: 28),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  'Re-Link는 당신의 가족 데이터를 팔지 않습니다.\n'
+                  '광고 타겟팅·AI 학습에 사용하지 않습니다.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         _Heading('Re-Link 개인정보 처리방침'),
         _Body('최종 수정일: 2026년 1월 1일'),
         SizedBox(height: AppSpacing.lg),
