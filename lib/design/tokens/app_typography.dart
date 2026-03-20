@@ -11,7 +11,7 @@ import 'app_colors.dart';
 ///   Code    — JetBrains Mono
 abstract final class AppTypography {
   static const String _pretendard = 'Pretendard';
-  static const String _jetBrainsMono = 'JetBrainsMono';
+  static const String _monospace = '.SF Mono';
 
   /// Noto Serif KR — Google Fonts 런타임 로드 (CJK 폰트 24MB 번들 방지)
   static String get _notoSerifKR => GoogleFonts.notoSerifKr().fontFamily ?? 'Pretendard';
@@ -92,7 +92,7 @@ abstract final class AppTypography {
   // ── Code (JetBrains Mono) ────────────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
   static final TextStyle code = TextStyle(
-    fontFamily: _jetBrainsMono,
+    fontFamily: _monospace,
     fontSize: 14,
     fontWeight: FontWeight.w400,
     letterSpacing: 0,

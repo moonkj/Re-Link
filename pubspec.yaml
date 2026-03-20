@@ -95,25 +95,8 @@ flutter:
 
   assets:
     - assets/images/
-    - assets/icons/
-    - assets/animations/
     - assets/fonts/
     - assets/data/
 
-  fonts:
-    - family: Pretendard
-      fonts:
-        - asset: assets/fonts/Pretendard-Regular.otf
-          weight: 400
-        - asset: assets/fonts/Pretendard-Medium.otf
-          weight: 500
-        - asset: assets/fonts/Pretendard-SemiBold.otf
-          weight: 600
-        - asset: assets/fonts/Pretendard-Bold.otf
-          weight: 700
-    - family: JetBrainsMono
-      fonts:
-        - asset: assets/fonts/JetBrainsMono-Regular.ttf
-          weight: 400
-        - asset: assets/fonts/JetBrainsMono-Bold.ttf
-          weight: 700
+  # 폰트: Pretendard는 0-byte placeholder → Google Fonts 런타임 로드 사용
+  # JetBrainsMono 제거 → 시스템 모노스페이스 사용 (532KB 절약)

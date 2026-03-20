@@ -2364,6 +2364,142 @@
 
 ---
 
+## Phase 6 — v2.1 추가 기능
+
+> v2.0 완료 후 추가 예정 기능 (감성 + 커뮤니티 + 리텐션)
+
+---
+
+### F-1. 타임머신 뷰 (Then & Now)
+
+> 같은 장소/사람에 대해 "과거 사진 + 현재 사진"을 겹쳐 보는 2장 비교 뷰.
+> 예: "외가 앞마당 1997 vs 2026". 슬라이더로 좌우 비교하는 UI.
+
+#### UX Designer
+- [ ] 2장 비교 뷰 화면 설계 (좌우 슬라이더 인터랙션)
+- [ ] 기억 상세에서 "Then & Now 만들기" 진입점
+- [ ] 저장/공유 플로우
+
+#### Architect
+- [ ] `then_now` 테이블 (memoryId1, memoryId2, label, createdAt)
+- [ ] `ThenNowNotifier` — 비교 쌍 CRUD
+- [ ] 이미지 오버레이 렌더링 (ClipRect + 슬라이더)
+
+#### Coder
+- [ ] `lib/features/then_now/presentation/then_now_screen.dart`
+- [ ] `lib/features/then_now/widgets/comparison_slider.dart` — 좌우 드래그 비교
+- [ ] `lib/features/then_now/widgets/then_now_card.dart` — 공유 카드 생성
+- [ ] 라우터 등록 + 설정/기억 상세에서 진입점 추가
+
+#### Debugger
+- [ ] `flutter analyze` → 0 issues
+
+#### Test Engineer
+- [ ] `test/then_now/` 단위 테스트
+
+#### Performance Engineer
+- [ ] 고해상도 이미지 2장 동시 렌더링 최적화
+
+---
+
+### F-2. 본관·성씨 아트 카드
+
+> Clan Explorer에서 본관 조회 시 "○○ 김씨, 뿌리는 ○○" 짧은 카피 + 지도 + 전통 문양이 들어간
+> 한 장짜리 카드 이미지로 뽑기. RepaintBoundary → PNG → 공유.
+
+#### UX Designer
+- [ ] 아트 카드 디자인 (전통 문양 + 지도 + 성씨 카피)
+- [ ] 카드 스타일 옵션 (한지/모던/수묵화)
+
+#### Architect
+- [ ] `ClanArtCardPainter` — CustomPainter 카드 렌더링
+- [ ] RepaintBoundary + 3× pixelRatio → PNG 캡처 → share_plus
+
+#### Coder
+- [ ] `lib/features/clan/widgets/clan_art_card.dart` — 카드 위젯
+- [ ] `lib/features/clan/widgets/clan_art_card_painter.dart` — CustomPainter
+- [ ] Clan Explorer에 "아트 카드 만들기" 버튼 추가
+
+#### Debugger
+- [ ] `flutter analyze` → 0 issues
+
+#### Test Engineer
+- [ ] `test/clan/clan_art_card_test.dart`
+
+---
+
+### F-3. 가족 초대 웰컴 시나리오
+
+> 초대 링크를 타고 들어온 신규 가족에게, 기존 가족이 써놓은 "환영 메시지 캡슐" 자동 재생.
+> 예: "이 트리는 우리가 할머니 이야기 모으려고 만든 거야" 음성/텍스트.
+> 초대 수락 순간의 감정 온도를 올려서, 설치 직후 이탈률 줄이는 장치.
+
+#### UX Designer
+- [ ] 웰컴 캡슐 작성 화면 (초대 보내기 전 기록)
+- [ ] 신규 가족 첫 실행 시 웰컴 캡슐 자동 재생 연출
+- [ ] 감정 온도 상승 애니메이션
+
+#### Architect
+- [ ] `.rlink` 파일에 `welcome_capsule` 필드 추가 (텍스트 + 음성 경로)
+- [ ] `WelcomeCapsuleNotifier` — 캡슐 작성/재생 상태 관리
+- [ ] 초대 플로우에 웰컴 캡슐 단계 삽입
+
+#### Coder
+- [ ] `lib/features/invite/widgets/welcome_capsule_sheet.dart` — 작성 바텀시트
+- [ ] `lib/features/invite/widgets/welcome_playback.dart` — 자동 재생 화면
+- [ ] 기존 `invite_screen.dart`에 웰컴 캡슐 단계 연동
+- [ ] `.rlink` manifest에 `welcomeMessage` + `welcomeAudioPath` 필드
+
+#### Debugger
+- [ ] `flutter analyze` → 0 issues
+
+#### Test Engineer
+- [ ] `test/invite/welcome_capsule_test.dart`
+
+---
+
+### F-4. 변경 로그 & 감사 배지 (Changelog × Emotion)
+
+> 업데이트 후 첫 실행 시 "이번 버전에서 이런 게 바뀌었습니다 (유저 ○○님의 제안 반영)"
+> 한 장짜리 모달로 표시. 제안이 반영된 유저 노드에 작은 별 배지 추가.
+> "공동 제작자" 섹션을 배지 컬렉션과 병합 가능.
+
+#### UX Designer
+- [ ] 업데이트 모달 디자인 (변경 내역 + 기여자 하이라이트)
+- [ ] 별 배지 디자인 (노드 카드에 표시)
+- [ ] "공동 제작자" 섹션 (배지 목록 화면에 통합)
+
+#### Architect
+- [ ] `settings` 테이블에 `lastSeenVersion` 키 추가
+- [ ] `changelog.json` — 버전별 변경 내역 + 기여자 ID 매핑
+- [ ] `ChangelogNotifier` — 버전 비교 + 모달 표시 여부 판단
+
+#### Coder
+- [ ] `lib/features/changelog/presentation/changelog_modal.dart`
+- [ ] `lib/features/changelog/models/changelog_entry.dart`
+- [ ] `assets/data/changelog.json` — 변경 로그 데이터
+- [ ] `app.dart`에서 앱 시작 시 버전 체크 → 모달 표시
+- [ ] 배지 시스템에 "공동 제작자" 배지 추가
+
+#### Debugger
+- [ ] `flutter analyze` → 0 issues
+
+#### Test Engineer
+- [ ] `test/changelog/changelog_test.dart`
+
+---
+
+## v2.1 개발 우선순위 요약
+
+| 순위 | Phase | 기능 | 예상 기간 | 우선도 |
+|------|-------|------|-----------|--------|
+| 24 | 6 | F-1. 타임머신 뷰 (Then & Now) | 2주 | 🟠 높음 |
+| 25 | 6 | F-2. 본관·성씨 아트 카드 | 1.5주 | 🟡 중간 |
+| 26 | 6 | F-3. 가족 초대 웰컴 시나리오 | 2주 | 🔴 최우선 |
+| 27 | 6 | F-4. 변경 로그 & 감사 배지 | 1.5주 | 🟡 중간 |
+
+---
+
 ## v2.0 개발 우선순위 요약
 
 | 순위 | Phase | 기능 | 예상 기간 | 우선도 |
@@ -2427,3 +2563,4 @@
 | Phase 5f 고급 기능 | 3개 | ✅ 3/3 완료 (레시피북/보이스유언/가족지도) |
 | Phase 5g 인프라 & 전략 | 3개 | ✅ 3/3 완료 (프라이버시/피드백/오프라인퍼스트) |
 | **v2.0 전체** | **26개 기능** | ✅ 전체 완료 |
+| Phase 6 v2.1 추가 기능 | 4개 | ⏳ 계획 중 |

@@ -62,7 +62,7 @@ class InviteCodeCard extends StatelessWidget {
             child: Text(
               formatted,
               style: const TextStyle(
-                fontFamily: 'JetBrainsMono',
+                fontFamily: '.SF Mono',
                 fontSize: 36,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 4,
