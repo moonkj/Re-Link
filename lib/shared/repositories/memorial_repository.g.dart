@@ -1,28 +1,29 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'streak_notifier.dart';
+part of 'memorial_repository.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$streakNotifierHash() => r'650907ce80bf44ceac33be2e686029561d2e8b79';
+String _$memorialRepositoryHash() =>
+    r'7657c671a3d300c6c517f81385b93924984a5593';
 
-/// 기억 스트릭 노티파이어
-///
-/// Copied from [StreakNotifier].
-@ProviderFor(StreakNotifier)
-final streakNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<StreakNotifier, StreakState>.internal(
-      StreakNotifier.new,
-      name: r'streakNotifierProvider',
+/// See also [memorialRepository].
+@ProviderFor(memorialRepository)
+final memorialRepositoryProvider =
+    AutoDisposeProvider<MemorialRepository>.internal(
+      memorialRepository,
+      name: r'memorialRepositoryProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
           ? null
-          : _$streakNotifierHash,
+          : _$memorialRepositoryHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
-typedef _$StreakNotifier = AutoDisposeAsyncNotifier<StreakState>;
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef MemorialRepositoryRef = AutoDisposeProviderRef<MemorialRepository>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

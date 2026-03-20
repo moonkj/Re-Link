@@ -17,6 +17,9 @@ import '../../features/settings/presentation/privacy_policy_screen.dart';
 import '../../features/settings/presentation/terms_screen.dart';
 import '../../features/family/presentation/merge_preview_screen.dart';
 import '../../features/temperature/presentation/temperature_diary_screen.dart';
+import '../../features/memorial/presentation/memorial_screen.dart';
+import '../../features/capsule/presentation/capsule_list_screen.dart';
+import '../../features/glossary/presentation/glossary_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
 import '../../shared/widgets/ad_banner_widget.dart';
 
@@ -38,10 +41,14 @@ abstract final class AppRoutes {
   static const String firstFamily = '/first-family';
   static const String mergePreview = '/merge-preview';
   static const String temperatureDiary = '/temperature-diary/:nodeId';
+  static const String memorial = '/memorial/:nodeId';
+  static const String capsules = '/capsules';
+  static const String glossary = '/glossary';
 
   static String memoryPath(String nodeId) => '/memory/$nodeId';
   static String temperatureDiaryPath(String nodeId) =>
       '/temperature-diary/$nodeId';
+  static String memorialPath(String nodeId) => '/memorial/$nodeId';
 }
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -130,6 +137,28 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             nodeName: nodeName,
           );
         },
+      ),
+      GoRoute(
+        path: AppRoutes.memorial,
+        builder: (_, s) {
+          final nodeId = s.pathParameters['nodeId']!;
+          final extra = s.extra as Map<String, dynamic>? ?? {};
+          return MemorialScreen(
+            nodeId: nodeId,
+            nodeName: (extra['nodeName'] as String?) ?? '',
+            photoPath: extra['photoPath'] as String?,
+            birthDate: extra['birthDate'] as DateTime?,
+            deathDate: extra['deathDate'] as DateTime?,
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.capsules,
+        builder: (_, s) => const CapsuleListScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.glossary,
+        builder: (_, s) => const GlossaryScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

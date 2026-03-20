@@ -10,6 +10,9 @@ import 'tables/memories_table.dart';
 import 'tables/settings_table.dart';
 import 'tables/temperature_logs_table.dart';
 import 'tables/bouquets_table.dart';
+import 'tables/capsules_table.dart';
+import 'tables/memorial_messages_table.dart';
+import 'tables/glossary_table.dart';
 
 part 'app_database.g.dart';
 
@@ -21,6 +24,10 @@ part 'app_database.g.dart';
   SettingsTable,
   TemperatureLogsTable,
   BouquetsTable,
+  CapsulesTable,
+  CapsuleItemsTable,
+  MemorialMessagesTable,
+  GlossaryTable,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -33,7 +40,7 @@ class AppDatabase extends _$AppDatabase {
       : super(NativeDatabase(File(path)));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -50,6 +57,13 @@ class AppDatabase extends _$AppDatabase {
           if (from < 3) {
             await m.createTable(temperatureLogsTable);
             await m.createTable(bouquetsTable);
+          }
+          // v3 → v4: capsules + capsule_items + memorial_messages + glossary
+          if (from < 4) {
+            await m.createTable(capsulesTable);
+            await m.createTable(capsuleItemsTable);
+            await m.createTable(memorialMessagesTable);
+            await m.createTable(glossaryTable);
           }
         },
       );
@@ -246,6 +260,87 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> deleteBouquet(String id) =>
       (delete(bouquetsTable)..where((t) => t.id.equals(id))).go();
+
+  // ── Capsules (Memory Capsule) ─────────────────────────────────────────────
+
+  Future<void> upsertCapsule(CapsulesTableCompanion capsule) =>
+      into(capsulesTable).insertOnConflictUpdate(capsule);
+
+  Stream<List<CapsulesTableData>> watchAllCapsules() =>
+      (select(capsulesTable)
+            ..orderBy([(t) => OrderingTerm.asc(t.openDate)]))
+          .watch();
+
+  Future<CapsulesTableData?> getCapsule(String id) =>
+      (select(capsulesTable)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<void> openCapsule(String id) async {
+    await (update(capsulesTable)..where((t) => t.id.equals(id))).write(
+      CapsulesTableCompanion(
+        isOpened: const Value(true),
+        openedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<int> deleteCapsule(String id) async {
+    await (delete(capsuleItemsTable)
+          ..where((t) => t.capsuleId.equals(id)))
+        .go();
+    return (delete(capsulesTable)..where((t) => t.id.equals(id))).go();
+  }
+
+  Future<void> addCapsuleItem(CapsuleItemsTableCompanion item) =>
+      into(capsuleItemsTable).insertOnConflictUpdate(item);
+
+  Future<List<CapsuleItemsTableData>> getCapsuleItems(String capsuleId) =>
+      (select(capsuleItemsTable)
+            ..where((t) => t.capsuleId.equals(capsuleId)))
+          .get();
+
+  Future<int> capsuleCount() => capsulesTable.count().getSingle();
+
+  // ── Memorial Messages (The Last Page) ───────────────────────────────────
+
+  Future<void> upsertMemorialMessage(MemorialMessagesTableCompanion msg) =>
+      into(memorialMessagesTable).insertOnConflictUpdate(msg);
+
+  Stream<List<MemorialMessagesTableData>> watchMemorialMessagesForNode(
+      String nodeId) =>
+      (select(memorialMessagesTable)
+            ..where((t) => t.nodeId.equals(nodeId))
+            ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+          .watch();
+
+  Future<List<MemorialMessagesTableData>> getMemorialMessagesForNode(
+      String nodeId) =>
+      (select(memorialMessagesTable)
+            ..where((t) => t.nodeId.equals(nodeId))
+            ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+          .get();
+
+  Future<int> deleteMemorialMessage(String id) =>
+      (delete(memorialMessagesTable)..where((t) => t.id.equals(id))).go();
+
+  // ── Glossary (Family Glossary) ──────────────────────────────────────────
+
+  Future<void> upsertGlossaryEntry(GlossaryTableCompanion entry) =>
+      into(glossaryTable).insertOnConflictUpdate(entry);
+
+  Stream<List<GlossaryTableData>> watchAllGlossary() =>
+      (select(glossaryTable)
+            ..orderBy([(t) => OrderingTerm.asc(t.word)]))
+          .watch();
+
+  Future<List<GlossaryTableData>> searchGlossary(String query) =>
+      (select(glossaryTable)
+            ..where((t) =>
+                t.word.like('%$query%') | t.meaning.like('%$query%'))
+            ..orderBy([(t) => OrderingTerm.asc(t.word)]))
+          .get();
+
+  Future<int> deleteGlossaryEntry(String id) =>
+      (delete(glossaryTable)..where((t) => t.id.equals(id))).go();
 
   // ── Settings ───────────────────────────────────────────────────────────────
 

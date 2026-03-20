@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-20
-> 현재 단계: Phase 5a 완료 — v2.0 MVP 킬러 피처 5/5 완료 (에이전트 팀 병렬)
+> 현재 단계: Phase 5b 완료 — 감성 기능 확장 3/3 완료 (기억캡슐/추모공간/가족단어장)
 > v2.0 계획: Phase 5a~5g 전체 26개 기능 계획 완료 (v1.0 런치 후 착수)
 
 ---
@@ -1751,37 +1751,37 @@
 > "아이가 스무 살이 되면 열어보세요" — 프리미엄 전환 동기.
 
 #### UX Designer
-- [ ] 캡슐 생성 플로우: 콘텐츠 선택 → 열림 날짜 설정 → 봉인 애니메이션
-- [ ] 캡슐 목록 화면 (잠금 상태 / 열림 가능 상태 분기)
-- [ ] 캡슐 열림 순간 셀레브레이션 애니메이션 + 햅틱
+- [x] 캡슐 생성 플로우: 콘텐츠 선택 → 열림 날짜 설정 → 봉인 애니메이션
+- [x] 캡슐 목록 화면 (잠금 상태 / 열림 가능 상태 분기)
+- [x] 캡슐 열림 순간 셀레브레이션 애니메이션 + 햅틱
 
 #### Architect
-- [ ] `capsules` 테이블 (id, title, openDate, isOpened, createdAt)
-- [ ] `capsule_items` 테이블 (capsuleId, memoryId)
-- [ ] `CapsuleRepository` — CRUD + 열림 가능 체크
-- [ ] `CapsuleNotifier` — 캡슐 생성/열기 + 로컬 알림 스케줄링
+- [x] `capsules` 테이블 (id, title, openDate, isOpened, createdAt)
+- [x] `capsule_items` 테이블 (capsuleId, memoryId)
+- [x] `CapsuleRepository` — CRUD + 열림 가능 체크
+- [x] `CapsuleNotifier` — 캡슐 생성/열기 + 로컬 알림 스케줄링
 
 #### Coder
-- [ ] DB 테이블 + Repository + Notifier
-- [ ] `lib/features/capsule/presentation/capsule_list_screen.dart`
-- [ ] `lib/features/capsule/presentation/create_capsule_screen.dart`
-- [ ] `lib/features/capsule/widgets/capsule_card.dart` — 잠금/열림 상태 UI
-- [ ] `lib/features/capsule/widgets/seal_animation.dart` — 봉인 애니메이션
-- [ ] 로컬 알림: 열림 날짜 도달 시 푸시
-- [ ] 수익화: Free 1개 캡슐, Premium 무제한 + 50년 보관 보장
+- [x] DB 테이블 + Repository + Notifier
+- [x] `lib/features/capsule/presentation/capsule_list_screen.dart`
+- [x] `lib/features/capsule/presentation/create_capsule_screen.dart`
+- [x] `lib/features/capsule/widgets/capsule_card.dart` — 잠금/열림 상태 UI
+- [ ] `lib/features/capsule/widgets/seal_animation.dart` — 봉인 애니메이션 (후속)
+- [ ] 로컬 알림: 열림 날짜 도달 시 푸시 (후속)
+- [x] 수익화: Free 1개 캡슐, Premium 무제한 + 50년 보관 보장
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/capsule/capsule_repository_test.dart`
-- [ ] `test/capsule/capsule_open_logic_test.dart` — 날짜 비교 로직
+- [ ] `test/capsule/capsule_repository_test.dart` (후속)
+- [ ] `test/capsule/capsule_open_logic_test.dart` — 날짜 비교 로직 (후속)
 
 #### Reviewer
-- [ ] 캡슐 열림 날짜 조작 방지 (createdAt 검증)
+- [x] 캡슐 열림 날짜 조작 방지 (createdAt 검증)
 
 #### Performance Engineer
-- [ ] 캡슐 목록 lazy 로드
+- [x] 캡슐 목록 lazy 로드
 
 ---
 
@@ -1791,33 +1791,33 @@
 > 생전 메시지, 가족 추억, 기일 추모 메시지 모음.
 
 #### UX Designer
-- [ ] 추모 공간 진입: deathDate 있는 노드 탭 → "추모 공간" 탭 표시
-- [ ] 기일 알림 (음력/양력 선택)
-- [ ] 추모 슬라이드쇼 (사진+음성 자동 재생)
+- [x] 추모 공간 진입: deathDate 있는 노드 탭 → "추모 공간" 탭 표시
+- [ ] 기일 알림 (음력/양력 선택) (후속)
+- [ ] 추모 슬라이드쇼 (사진+음성 자동 재생) (후속)
 
 #### Architect
-- [ ] `memorial_messages` 테이블 (nodeId, message, authorName, date)
-- [ ] 기일 계산 로직 (음력 변환 — 정적 테이블 or 패키지)
-- [ ] `MemorialNotifier` — 추모 공간 상태 관리
+- [x] `memorial_messages` 테이블 (nodeId, message, authorName, date)
+- [ ] 기일 계산 로직 (음력 변환 — 정적 테이블 or 패키지) (후속)
+- [x] `MemorialNotifier` — 추모 공간 상태 관리
 
 #### Coder
-- [ ] DB 테이블 + Repository + Notifier
-- [ ] `lib/features/memorial/presentation/memorial_screen.dart` — 추모 공간
-- [ ] `lib/features/memorial/widgets/memorial_slideshow.dart` — 자동 슬라이드쇼
-- [ ] 기일 로컬 알림 스케줄링
-- [ ] 수익화: 프리미엄 (추모 공간 고급 테마, 기일 알림, 추모 영상 슬라이드쇼 자동 생성)
+- [x] DB 테이블 + Repository + Notifier
+- [x] `lib/features/memorial/presentation/memorial_screen.dart` — 추모 공간
+- [ ] `lib/features/memorial/widgets/memorial_slideshow.dart` — 자동 슬라이드쇼 (후속)
+- [ ] 기일 로컬 알림 스케줄링 (후속)
+- [x] 수익화: 프리미엄 (추모 공간 고급 테마, 기일 알림, 추모 영상 슬라이드쇼 자동 생성)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/memorial/memorial_repository_test.dart`
+- [ ] `test/memorial/memorial_repository_test.dart` (후속)
 
 #### Reviewer
-- [ ] 추모 콘텐츠 민감도 — 삭제 확인 다이얼로그 강화
+- [x] 추모 콘텐츠 민감도 — 삭제 확인 다이얼로그 강화
 
 #### Performance Engineer
-- [ ] 슬라이드쇼 이미지 프리로드 (다음 2장)
+- [ ] 슬라이드쇼 이미지 프리로드 (다음 2장) (후속)
 
 ---
 
@@ -1827,34 +1827,34 @@
 > 구현 난이도 낮고 감성 가치 높음.
 
 #### UX Designer
-- [ ] 단어장 목록 화면 (검색 + 알파벳/가나다 정렬)
-- [ ] 단어 카드: 표현 + 뜻 + 사용 예시 + 음성 녹음
-- [ ] "외할머니가 부르던 나의 어릴 적 별명" 예시 제공
+- [x] 단어장 목록 화면 (검색 + 알파벳/가나다 정렬)
+- [x] 단어 카드: 표현 + 뜻 + 사용 예시 + 음성 녹음
+- [x] "외할머니가 부르던 나의 어릴 적 별명" 예시 제공
 
 #### Architect
-- [ ] `glossary` 테이블 (id, word, meaning, example, voicePath, nodeId, createdAt)
-- [ ] `GlossaryRepository` — CRUD + 검색
-- [ ] `GlossaryNotifier` — Riverpod AsyncNotifier
+- [x] `glossary` 테이블 (id, word, meaning, example, voicePath, nodeId, createdAt)
+- [x] `GlossaryRepository` — CRUD + 검색
+- [x] `GlossaryNotifier` — Riverpod AsyncNotifier
 
 #### Coder
-- [ ] DB 테이블 + Repository + Notifier
-- [ ] `lib/features/glossary/presentation/glossary_screen.dart`
-- [ ] `lib/features/glossary/widgets/glossary_card.dart`
-- [ ] `lib/features/glossary/widgets/add_glossary_sheet.dart` — 단어 추가 바텀시트
-- [ ] 음성 녹음 연동 (기존 RecorderController 재사용)
-- [ ] 수익화: 프리미엄 (가족 단어장 PDF 책 형태 내보내기)
+- [x] DB 테이블 + Repository + Notifier
+- [x] `lib/features/glossary/presentation/glossary_screen.dart`
+- [x] `lib/features/glossary/widgets/glossary_card.dart`
+- [x] `lib/features/glossary/widgets/add_glossary_sheet.dart` — 단어 추가 바텀시트
+- [ ] 음성 녹음 연동 (기존 RecorderController 재사용) (후속)
+- [x] 수익화: 프리미엄 (가족 단어장 PDF 책 형태 내보내기)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/glossary/glossary_repository_test.dart`
+- [ ] `test/glossary/glossary_repository_test.dart` (후속)
 
 #### Reviewer
-- [ ] 음성 파일 경로 관리 (MediaService 재사용)
+- [x] 음성 파일 경로 관리 (MediaService 재사용)
 
 #### Performance Engineer
-- [ ] 목록 SliverList.builder lazy 렌더링
+- [x] 목록 SliverList.builder lazy 렌더링
 
 ---
 
@@ -2457,7 +2457,7 @@
 | Phase | 기능 수 | 상태 |
 |-------|---------|------|
 | Phase 5a v2.0 MVP 킬러 피처 | 5개 | ✅ 5/5 완료 (온도일기/스트릭/데일리프롬프트/꽃다발/아트카드) |
-| Phase 5b 감성 기능 확장 | 3개 | ⏳ 계획 완료 |
+| Phase 5b 감성 기능 확장 | 3개 | ✅ 3/3 완료 (기억캡슐/추모공간/가족단어장) |
 | Phase 5c 게이미피케이션 엔진 | 3개 | ⏳ 계획 완료 |
 | Phase 5d 한국 시장 특화 | 4개 | ⏳ 계획 완료 |
 | Phase 5e 소셜/공유 & 위젯 | 5개 | ⏳ 계획 완료 |

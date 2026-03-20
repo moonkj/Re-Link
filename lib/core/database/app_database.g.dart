@@ -3559,6 +3559,1598 @@ class BouquetsTableCompanion extends UpdateCompanion<BouquetsTableData> {
   }
 }
 
+class $CapsulesTableTable extends CapsulesTable
+    with TableInfo<$CapsulesTableTable, CapsulesTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CapsulesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _messageMeta = const VerificationMeta(
+    'message',
+  );
+  @override
+  late final GeneratedColumn<String> message = GeneratedColumn<String>(
+    'message',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _openDateMeta = const VerificationMeta(
+    'openDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> openDate = GeneratedColumn<DateTime>(
+    'open_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isOpenedMeta = const VerificationMeta(
+    'isOpened',
+  );
+  @override
+  late final GeneratedColumn<bool> isOpened = GeneratedColumn<bool>(
+    'is_opened',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_opened" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _openedAtMeta = const VerificationMeta(
+    'openedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> openedAt = GeneratedColumn<DateTime>(
+    'opened_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    title,
+    message,
+    openDate,
+    isOpened,
+    openedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'capsules';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CapsulesTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('message')) {
+      context.handle(
+        _messageMeta,
+        message.isAcceptableOrUnknown(data['message']!, _messageMeta),
+      );
+    }
+    if (data.containsKey('open_date')) {
+      context.handle(
+        _openDateMeta,
+        openDate.isAcceptableOrUnknown(data['open_date']!, _openDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_openDateMeta);
+    }
+    if (data.containsKey('is_opened')) {
+      context.handle(
+        _isOpenedMeta,
+        isOpened.isAcceptableOrUnknown(data['is_opened']!, _isOpenedMeta),
+      );
+    }
+    if (data.containsKey('opened_at')) {
+      context.handle(
+        _openedAtMeta,
+        openedAt.isAcceptableOrUnknown(data['opened_at']!, _openedAtMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CapsulesTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CapsulesTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      message: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}message'],
+      ),
+      openDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}open_date'],
+      )!,
+      isOpened: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_opened'],
+      )!,
+      openedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}opened_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CapsulesTableTable createAlias(String alias) {
+    return $CapsulesTableTable(attachedDatabase, alias);
+  }
+}
+
+class CapsulesTableData extends DataClass
+    implements Insertable<CapsulesTableData> {
+  final String id;
+  final String title;
+  final String? message;
+  final DateTime openDate;
+  final bool isOpened;
+  final DateTime? openedAt;
+  final DateTime createdAt;
+  const CapsulesTableData({
+    required this.id,
+    required this.title,
+    this.message,
+    required this.openDate,
+    required this.isOpened,
+    this.openedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || message != null) {
+      map['message'] = Variable<String>(message);
+    }
+    map['open_date'] = Variable<DateTime>(openDate);
+    map['is_opened'] = Variable<bool>(isOpened);
+    if (!nullToAbsent || openedAt != null) {
+      map['opened_at'] = Variable<DateTime>(openedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  CapsulesTableCompanion toCompanion(bool nullToAbsent) {
+    return CapsulesTableCompanion(
+      id: Value(id),
+      title: Value(title),
+      message: message == null && nullToAbsent
+          ? const Value.absent()
+          : Value(message),
+      openDate: Value(openDate),
+      isOpened: Value(isOpened),
+      openedAt: openedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(openedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory CapsulesTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CapsulesTableData(
+      id: serializer.fromJson<String>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      message: serializer.fromJson<String?>(json['message']),
+      openDate: serializer.fromJson<DateTime>(json['openDate']),
+      isOpened: serializer.fromJson<bool>(json['isOpened']),
+      openedAt: serializer.fromJson<DateTime?>(json['openedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'title': serializer.toJson<String>(title),
+      'message': serializer.toJson<String?>(message),
+      'openDate': serializer.toJson<DateTime>(openDate),
+      'isOpened': serializer.toJson<bool>(isOpened),
+      'openedAt': serializer.toJson<DateTime?>(openedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  CapsulesTableData copyWith({
+    String? id,
+    String? title,
+    Value<String?> message = const Value.absent(),
+    DateTime? openDate,
+    bool? isOpened,
+    Value<DateTime?> openedAt = const Value.absent(),
+    DateTime? createdAt,
+  }) => CapsulesTableData(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    message: message.present ? message.value : this.message,
+    openDate: openDate ?? this.openDate,
+    isOpened: isOpened ?? this.isOpened,
+    openedAt: openedAt.present ? openedAt.value : this.openedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  CapsulesTableData copyWithCompanion(CapsulesTableCompanion data) {
+    return CapsulesTableData(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      message: data.message.present ? data.message.value : this.message,
+      openDate: data.openDate.present ? data.openDate.value : this.openDate,
+      isOpened: data.isOpened.present ? data.isOpened.value : this.isOpened,
+      openedAt: data.openedAt.present ? data.openedAt.value : this.openedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CapsulesTableData(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('message: $message, ')
+          ..write('openDate: $openDate, ')
+          ..write('isOpened: $isOpened, ')
+          ..write('openedAt: $openedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, title, message, openDate, isOpened, openedAt, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CapsulesTableData &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.message == this.message &&
+          other.openDate == this.openDate &&
+          other.isOpened == this.isOpened &&
+          other.openedAt == this.openedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class CapsulesTableCompanion extends UpdateCompanion<CapsulesTableData> {
+  final Value<String> id;
+  final Value<String> title;
+  final Value<String?> message;
+  final Value<DateTime> openDate;
+  final Value<bool> isOpened;
+  final Value<DateTime?> openedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const CapsulesTableCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.message = const Value.absent(),
+    this.openDate = const Value.absent(),
+    this.isOpened = const Value.absent(),
+    this.openedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CapsulesTableCompanion.insert({
+    required String id,
+    required String title,
+    this.message = const Value.absent(),
+    required DateTime openDate,
+    this.isOpened = const Value.absent(),
+    this.openedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       title = Value(title),
+       openDate = Value(openDate);
+  static Insertable<CapsulesTableData> custom({
+    Expression<String>? id,
+    Expression<String>? title,
+    Expression<String>? message,
+    Expression<DateTime>? openDate,
+    Expression<bool>? isOpened,
+    Expression<DateTime>? openedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (message != null) 'message': message,
+      if (openDate != null) 'open_date': openDate,
+      if (isOpened != null) 'is_opened': isOpened,
+      if (openedAt != null) 'opened_at': openedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CapsulesTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? title,
+    Value<String?>? message,
+    Value<DateTime>? openDate,
+    Value<bool>? isOpened,
+    Value<DateTime?>? openedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return CapsulesTableCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      message: message ?? this.message,
+      openDate: openDate ?? this.openDate,
+      isOpened: isOpened ?? this.isOpened,
+      openedAt: openedAt ?? this.openedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (message.present) {
+      map['message'] = Variable<String>(message.value);
+    }
+    if (openDate.present) {
+      map['open_date'] = Variable<DateTime>(openDate.value);
+    }
+    if (isOpened.present) {
+      map['is_opened'] = Variable<bool>(isOpened.value);
+    }
+    if (openedAt.present) {
+      map['opened_at'] = Variable<DateTime>(openedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CapsulesTableCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('message: $message, ')
+          ..write('openDate: $openDate, ')
+          ..write('isOpened: $isOpened, ')
+          ..write('openedAt: $openedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CapsuleItemsTableTable extends CapsuleItemsTable
+    with TableInfo<$CapsuleItemsTableTable, CapsuleItemsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CapsuleItemsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _capsuleIdMeta = const VerificationMeta(
+    'capsuleId',
+  );
+  @override
+  late final GeneratedColumn<String> capsuleId = GeneratedColumn<String>(
+    'capsule_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _memoryIdMeta = const VerificationMeta(
+    'memoryId',
+  );
+  @override
+  late final GeneratedColumn<String> memoryId = GeneratedColumn<String>(
+    'memory_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, capsuleId, memoryId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'capsule_items';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CapsuleItemsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('capsule_id')) {
+      context.handle(
+        _capsuleIdMeta,
+        capsuleId.isAcceptableOrUnknown(data['capsule_id']!, _capsuleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_capsuleIdMeta);
+    }
+    if (data.containsKey('memory_id')) {
+      context.handle(
+        _memoryIdMeta,
+        memoryId.isAcceptableOrUnknown(data['memory_id']!, _memoryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_memoryIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CapsuleItemsTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CapsuleItemsTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      capsuleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}capsule_id'],
+      )!,
+      memoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}memory_id'],
+      )!,
+    );
+  }
+
+  @override
+  $CapsuleItemsTableTable createAlias(String alias) {
+    return $CapsuleItemsTableTable(attachedDatabase, alias);
+  }
+}
+
+class CapsuleItemsTableData extends DataClass
+    implements Insertable<CapsuleItemsTableData> {
+  final String id;
+  final String capsuleId;
+  final String memoryId;
+  const CapsuleItemsTableData({
+    required this.id,
+    required this.capsuleId,
+    required this.memoryId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['capsule_id'] = Variable<String>(capsuleId);
+    map['memory_id'] = Variable<String>(memoryId);
+    return map;
+  }
+
+  CapsuleItemsTableCompanion toCompanion(bool nullToAbsent) {
+    return CapsuleItemsTableCompanion(
+      id: Value(id),
+      capsuleId: Value(capsuleId),
+      memoryId: Value(memoryId),
+    );
+  }
+
+  factory CapsuleItemsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CapsuleItemsTableData(
+      id: serializer.fromJson<String>(json['id']),
+      capsuleId: serializer.fromJson<String>(json['capsuleId']),
+      memoryId: serializer.fromJson<String>(json['memoryId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'capsuleId': serializer.toJson<String>(capsuleId),
+      'memoryId': serializer.toJson<String>(memoryId),
+    };
+  }
+
+  CapsuleItemsTableData copyWith({
+    String? id,
+    String? capsuleId,
+    String? memoryId,
+  }) => CapsuleItemsTableData(
+    id: id ?? this.id,
+    capsuleId: capsuleId ?? this.capsuleId,
+    memoryId: memoryId ?? this.memoryId,
+  );
+  CapsuleItemsTableData copyWithCompanion(CapsuleItemsTableCompanion data) {
+    return CapsuleItemsTableData(
+      id: data.id.present ? data.id.value : this.id,
+      capsuleId: data.capsuleId.present ? data.capsuleId.value : this.capsuleId,
+      memoryId: data.memoryId.present ? data.memoryId.value : this.memoryId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CapsuleItemsTableData(')
+          ..write('id: $id, ')
+          ..write('capsuleId: $capsuleId, ')
+          ..write('memoryId: $memoryId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, capsuleId, memoryId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CapsuleItemsTableData &&
+          other.id == this.id &&
+          other.capsuleId == this.capsuleId &&
+          other.memoryId == this.memoryId);
+}
+
+class CapsuleItemsTableCompanion
+    extends UpdateCompanion<CapsuleItemsTableData> {
+  final Value<String> id;
+  final Value<String> capsuleId;
+  final Value<String> memoryId;
+  final Value<int> rowid;
+  const CapsuleItemsTableCompanion({
+    this.id = const Value.absent(),
+    this.capsuleId = const Value.absent(),
+    this.memoryId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CapsuleItemsTableCompanion.insert({
+    required String id,
+    required String capsuleId,
+    required String memoryId,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       capsuleId = Value(capsuleId),
+       memoryId = Value(memoryId);
+  static Insertable<CapsuleItemsTableData> custom({
+    Expression<String>? id,
+    Expression<String>? capsuleId,
+    Expression<String>? memoryId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (capsuleId != null) 'capsule_id': capsuleId,
+      if (memoryId != null) 'memory_id': memoryId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CapsuleItemsTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? capsuleId,
+    Value<String>? memoryId,
+    Value<int>? rowid,
+  }) {
+    return CapsuleItemsTableCompanion(
+      id: id ?? this.id,
+      capsuleId: capsuleId ?? this.capsuleId,
+      memoryId: memoryId ?? this.memoryId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (capsuleId.present) {
+      map['capsule_id'] = Variable<String>(capsuleId.value);
+    }
+    if (memoryId.present) {
+      map['memory_id'] = Variable<String>(memoryId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CapsuleItemsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('capsuleId: $capsuleId, ')
+          ..write('memoryId: $memoryId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MemorialMessagesTableTable extends MemorialMessagesTable
+    with TableInfo<$MemorialMessagesTableTable, MemorialMessagesTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MemorialMessagesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nodeIdMeta = const VerificationMeta('nodeId');
+  @override
+  late final GeneratedColumn<String> nodeId = GeneratedColumn<String>(
+    'node_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _messageMeta = const VerificationMeta(
+    'message',
+  );
+  @override
+  late final GeneratedColumn<String> message = GeneratedColumn<String>(
+    'message',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _authorNameMeta = const VerificationMeta(
+    'authorName',
+  );
+  @override
+  late final GeneratedColumn<String> authorName = GeneratedColumn<String>(
+    'author_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    nodeId,
+    message,
+    authorName,
+    date,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'memorial_messages';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MemorialMessagesTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('node_id')) {
+      context.handle(
+        _nodeIdMeta,
+        nodeId.isAcceptableOrUnknown(data['node_id']!, _nodeIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nodeIdMeta);
+    }
+    if (data.containsKey('message')) {
+      context.handle(
+        _messageMeta,
+        message.isAcceptableOrUnknown(data['message']!, _messageMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_messageMeta);
+    }
+    if (data.containsKey('author_name')) {
+      context.handle(
+        _authorNameMeta,
+        authorName.isAcceptableOrUnknown(data['author_name']!, _authorNameMeta),
+      );
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MemorialMessagesTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MemorialMessagesTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      nodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}node_id'],
+      )!,
+      message: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}message'],
+      )!,
+      authorName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author_name'],
+      ),
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $MemorialMessagesTableTable createAlias(String alias) {
+    return $MemorialMessagesTableTable(attachedDatabase, alias);
+  }
+}
+
+class MemorialMessagesTableData extends DataClass
+    implements Insertable<MemorialMessagesTableData> {
+  final String id;
+  final String nodeId;
+  final String message;
+  final String? authorName;
+  final DateTime date;
+  final DateTime createdAt;
+  const MemorialMessagesTableData({
+    required this.id,
+    required this.nodeId,
+    required this.message,
+    this.authorName,
+    required this.date,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['node_id'] = Variable<String>(nodeId);
+    map['message'] = Variable<String>(message);
+    if (!nullToAbsent || authorName != null) {
+      map['author_name'] = Variable<String>(authorName);
+    }
+    map['date'] = Variable<DateTime>(date);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  MemorialMessagesTableCompanion toCompanion(bool nullToAbsent) {
+    return MemorialMessagesTableCompanion(
+      id: Value(id),
+      nodeId: Value(nodeId),
+      message: Value(message),
+      authorName: authorName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(authorName),
+      date: Value(date),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory MemorialMessagesTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MemorialMessagesTableData(
+      id: serializer.fromJson<String>(json['id']),
+      nodeId: serializer.fromJson<String>(json['nodeId']),
+      message: serializer.fromJson<String>(json['message']),
+      authorName: serializer.fromJson<String?>(json['authorName']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'nodeId': serializer.toJson<String>(nodeId),
+      'message': serializer.toJson<String>(message),
+      'authorName': serializer.toJson<String?>(authorName),
+      'date': serializer.toJson<DateTime>(date),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  MemorialMessagesTableData copyWith({
+    String? id,
+    String? nodeId,
+    String? message,
+    Value<String?> authorName = const Value.absent(),
+    DateTime? date,
+    DateTime? createdAt,
+  }) => MemorialMessagesTableData(
+    id: id ?? this.id,
+    nodeId: nodeId ?? this.nodeId,
+    message: message ?? this.message,
+    authorName: authorName.present ? authorName.value : this.authorName,
+    date: date ?? this.date,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  MemorialMessagesTableData copyWithCompanion(
+    MemorialMessagesTableCompanion data,
+  ) {
+    return MemorialMessagesTableData(
+      id: data.id.present ? data.id.value : this.id,
+      nodeId: data.nodeId.present ? data.nodeId.value : this.nodeId,
+      message: data.message.present ? data.message.value : this.message,
+      authorName: data.authorName.present
+          ? data.authorName.value
+          : this.authorName,
+      date: data.date.present ? data.date.value : this.date,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MemorialMessagesTableData(')
+          ..write('id: $id, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('message: $message, ')
+          ..write('authorName: $authorName, ')
+          ..write('date: $date, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, nodeId, message, authorName, date, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MemorialMessagesTableData &&
+          other.id == this.id &&
+          other.nodeId == this.nodeId &&
+          other.message == this.message &&
+          other.authorName == this.authorName &&
+          other.date == this.date &&
+          other.createdAt == this.createdAt);
+}
+
+class MemorialMessagesTableCompanion
+    extends UpdateCompanion<MemorialMessagesTableData> {
+  final Value<String> id;
+  final Value<String> nodeId;
+  final Value<String> message;
+  final Value<String?> authorName;
+  final Value<DateTime> date;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const MemorialMessagesTableCompanion({
+    this.id = const Value.absent(),
+    this.nodeId = const Value.absent(),
+    this.message = const Value.absent(),
+    this.authorName = const Value.absent(),
+    this.date = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MemorialMessagesTableCompanion.insert({
+    required String id,
+    required String nodeId,
+    required String message,
+    this.authorName = const Value.absent(),
+    required DateTime date,
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       nodeId = Value(nodeId),
+       message = Value(message),
+       date = Value(date);
+  static Insertable<MemorialMessagesTableData> custom({
+    Expression<String>? id,
+    Expression<String>? nodeId,
+    Expression<String>? message,
+    Expression<String>? authorName,
+    Expression<DateTime>? date,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (nodeId != null) 'node_id': nodeId,
+      if (message != null) 'message': message,
+      if (authorName != null) 'author_name': authorName,
+      if (date != null) 'date': date,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MemorialMessagesTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? nodeId,
+    Value<String>? message,
+    Value<String?>? authorName,
+    Value<DateTime>? date,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return MemorialMessagesTableCompanion(
+      id: id ?? this.id,
+      nodeId: nodeId ?? this.nodeId,
+      message: message ?? this.message,
+      authorName: authorName ?? this.authorName,
+      date: date ?? this.date,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (nodeId.present) {
+      map['node_id'] = Variable<String>(nodeId.value);
+    }
+    if (message.present) {
+      map['message'] = Variable<String>(message.value);
+    }
+    if (authorName.present) {
+      map['author_name'] = Variable<String>(authorName.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MemorialMessagesTableCompanion(')
+          ..write('id: $id, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('message: $message, ')
+          ..write('authorName: $authorName, ')
+          ..write('date: $date, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $GlossaryTableTable extends GlossaryTable
+    with TableInfo<$GlossaryTableTable, GlossaryTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GlossaryTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _wordMeta = const VerificationMeta('word');
+  @override
+  late final GeneratedColumn<String> word = GeneratedColumn<String>(
+    'word',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _meaningMeta = const VerificationMeta(
+    'meaning',
+  );
+  @override
+  late final GeneratedColumn<String> meaning = GeneratedColumn<String>(
+    'meaning',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _exampleMeta = const VerificationMeta(
+    'example',
+  );
+  @override
+  late final GeneratedColumn<String> example = GeneratedColumn<String>(
+    'example',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _voicePathMeta = const VerificationMeta(
+    'voicePath',
+  );
+  @override
+  late final GeneratedColumn<String> voicePath = GeneratedColumn<String>(
+    'voice_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nodeIdMeta = const VerificationMeta('nodeId');
+  @override
+  late final GeneratedColumn<String> nodeId = GeneratedColumn<String>(
+    'node_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    word,
+    meaning,
+    example,
+    voicePath,
+    nodeId,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'glossary';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GlossaryTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('word')) {
+      context.handle(
+        _wordMeta,
+        word.isAcceptableOrUnknown(data['word']!, _wordMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_wordMeta);
+    }
+    if (data.containsKey('meaning')) {
+      context.handle(
+        _meaningMeta,
+        meaning.isAcceptableOrUnknown(data['meaning']!, _meaningMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_meaningMeta);
+    }
+    if (data.containsKey('example')) {
+      context.handle(
+        _exampleMeta,
+        example.isAcceptableOrUnknown(data['example']!, _exampleMeta),
+      );
+    }
+    if (data.containsKey('voice_path')) {
+      context.handle(
+        _voicePathMeta,
+        voicePath.isAcceptableOrUnknown(data['voice_path']!, _voicePathMeta),
+      );
+    }
+    if (data.containsKey('node_id')) {
+      context.handle(
+        _nodeIdMeta,
+        nodeId.isAcceptableOrUnknown(data['node_id']!, _nodeIdMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  GlossaryTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GlossaryTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      word: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}word'],
+      )!,
+      meaning: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}meaning'],
+      )!,
+      example: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}example'],
+      ),
+      voicePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}voice_path'],
+      ),
+      nodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}node_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $GlossaryTableTable createAlias(String alias) {
+    return $GlossaryTableTable(attachedDatabase, alias);
+  }
+}
+
+class GlossaryTableData extends DataClass
+    implements Insertable<GlossaryTableData> {
+  final String id;
+  final String word;
+  final String meaning;
+  final String? example;
+  final String? voicePath;
+  final String? nodeId;
+  final DateTime createdAt;
+  const GlossaryTableData({
+    required this.id,
+    required this.word,
+    required this.meaning,
+    this.example,
+    this.voicePath,
+    this.nodeId,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['word'] = Variable<String>(word);
+    map['meaning'] = Variable<String>(meaning);
+    if (!nullToAbsent || example != null) {
+      map['example'] = Variable<String>(example);
+    }
+    if (!nullToAbsent || voicePath != null) {
+      map['voice_path'] = Variable<String>(voicePath);
+    }
+    if (!nullToAbsent || nodeId != null) {
+      map['node_id'] = Variable<String>(nodeId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  GlossaryTableCompanion toCompanion(bool nullToAbsent) {
+    return GlossaryTableCompanion(
+      id: Value(id),
+      word: Value(word),
+      meaning: Value(meaning),
+      example: example == null && nullToAbsent
+          ? const Value.absent()
+          : Value(example),
+      voicePath: voicePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(voicePath),
+      nodeId: nodeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nodeId),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory GlossaryTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GlossaryTableData(
+      id: serializer.fromJson<String>(json['id']),
+      word: serializer.fromJson<String>(json['word']),
+      meaning: serializer.fromJson<String>(json['meaning']),
+      example: serializer.fromJson<String?>(json['example']),
+      voicePath: serializer.fromJson<String?>(json['voicePath']),
+      nodeId: serializer.fromJson<String?>(json['nodeId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'word': serializer.toJson<String>(word),
+      'meaning': serializer.toJson<String>(meaning),
+      'example': serializer.toJson<String?>(example),
+      'voicePath': serializer.toJson<String?>(voicePath),
+      'nodeId': serializer.toJson<String?>(nodeId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  GlossaryTableData copyWith({
+    String? id,
+    String? word,
+    String? meaning,
+    Value<String?> example = const Value.absent(),
+    Value<String?> voicePath = const Value.absent(),
+    Value<String?> nodeId = const Value.absent(),
+    DateTime? createdAt,
+  }) => GlossaryTableData(
+    id: id ?? this.id,
+    word: word ?? this.word,
+    meaning: meaning ?? this.meaning,
+    example: example.present ? example.value : this.example,
+    voicePath: voicePath.present ? voicePath.value : this.voicePath,
+    nodeId: nodeId.present ? nodeId.value : this.nodeId,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  GlossaryTableData copyWithCompanion(GlossaryTableCompanion data) {
+    return GlossaryTableData(
+      id: data.id.present ? data.id.value : this.id,
+      word: data.word.present ? data.word.value : this.word,
+      meaning: data.meaning.present ? data.meaning.value : this.meaning,
+      example: data.example.present ? data.example.value : this.example,
+      voicePath: data.voicePath.present ? data.voicePath.value : this.voicePath,
+      nodeId: data.nodeId.present ? data.nodeId.value : this.nodeId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GlossaryTableData(')
+          ..write('id: $id, ')
+          ..write('word: $word, ')
+          ..write('meaning: $meaning, ')
+          ..write('example: $example, ')
+          ..write('voicePath: $voicePath, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, word, meaning, example, voicePath, nodeId, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GlossaryTableData &&
+          other.id == this.id &&
+          other.word == this.word &&
+          other.meaning == this.meaning &&
+          other.example == this.example &&
+          other.voicePath == this.voicePath &&
+          other.nodeId == this.nodeId &&
+          other.createdAt == this.createdAt);
+}
+
+class GlossaryTableCompanion extends UpdateCompanion<GlossaryTableData> {
+  final Value<String> id;
+  final Value<String> word;
+  final Value<String> meaning;
+  final Value<String?> example;
+  final Value<String?> voicePath;
+  final Value<String?> nodeId;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const GlossaryTableCompanion({
+    this.id = const Value.absent(),
+    this.word = const Value.absent(),
+    this.meaning = const Value.absent(),
+    this.example = const Value.absent(),
+    this.voicePath = const Value.absent(),
+    this.nodeId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GlossaryTableCompanion.insert({
+    required String id,
+    required String word,
+    required String meaning,
+    this.example = const Value.absent(),
+    this.voicePath = const Value.absent(),
+    this.nodeId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       word = Value(word),
+       meaning = Value(meaning);
+  static Insertable<GlossaryTableData> custom({
+    Expression<String>? id,
+    Expression<String>? word,
+    Expression<String>? meaning,
+    Expression<String>? example,
+    Expression<String>? voicePath,
+    Expression<String>? nodeId,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (word != null) 'word': word,
+      if (meaning != null) 'meaning': meaning,
+      if (example != null) 'example': example,
+      if (voicePath != null) 'voice_path': voicePath,
+      if (nodeId != null) 'node_id': nodeId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GlossaryTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? word,
+    Value<String>? meaning,
+    Value<String?>? example,
+    Value<String?>? voicePath,
+    Value<String?>? nodeId,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return GlossaryTableCompanion(
+      id: id ?? this.id,
+      word: word ?? this.word,
+      meaning: meaning ?? this.meaning,
+      example: example ?? this.example,
+      voicePath: voicePath ?? this.voicePath,
+      nodeId: nodeId ?? this.nodeId,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (word.present) {
+      map['word'] = Variable<String>(word.value);
+    }
+    if (meaning.present) {
+      map['meaning'] = Variable<String>(meaning.value);
+    }
+    if (example.present) {
+      map['example'] = Variable<String>(example.value);
+    }
+    if (voicePath.present) {
+      map['voice_path'] = Variable<String>(voicePath.value);
+    }
+    if (nodeId.present) {
+      map['node_id'] = Variable<String>(nodeId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GlossaryTableCompanion(')
+          ..write('id: $id, ')
+          ..write('word: $word, ')
+          ..write('meaning: $meaning, ')
+          ..write('example: $example, ')
+          ..write('voicePath: $voicePath, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3570,6 +5162,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TemperatureLogsTableTable temperatureLogsTable =
       $TemperatureLogsTableTable(this);
   late final $BouquetsTableTable bouquetsTable = $BouquetsTableTable(this);
+  late final $CapsulesTableTable capsulesTable = $CapsulesTableTable(this);
+  late final $CapsuleItemsTableTable capsuleItemsTable =
+      $CapsuleItemsTableTable(this);
+  late final $MemorialMessagesTableTable memorialMessagesTable =
+      $MemorialMessagesTableTable(this);
+  late final $GlossaryTableTable glossaryTable = $GlossaryTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3582,6 +5180,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     settingsTable,
     temperatureLogsTable,
     bouquetsTable,
+    capsulesTable,
+    capsuleItemsTable,
+    memorialMessagesTable,
+    glossaryTable,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -5870,6 +7472,905 @@ typedef $$BouquetsTableTableProcessedTableManager =
       BouquetsTableData,
       PrefetchHooks Function()
     >;
+typedef $$CapsulesTableTableCreateCompanionBuilder =
+    CapsulesTableCompanion Function({
+      required String id,
+      required String title,
+      Value<String?> message,
+      required DateTime openDate,
+      Value<bool> isOpened,
+      Value<DateTime?> openedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$CapsulesTableTableUpdateCompanionBuilder =
+    CapsulesTableCompanion Function({
+      Value<String> id,
+      Value<String> title,
+      Value<String?> message,
+      Value<DateTime> openDate,
+      Value<bool> isOpened,
+      Value<DateTime?> openedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$CapsulesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $CapsulesTableTable> {
+  $$CapsulesTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get message => $composableBuilder(
+    column: $table.message,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get openDate => $composableBuilder(
+    column: $table.openDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isOpened => $composableBuilder(
+    column: $table.isOpened,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get openedAt => $composableBuilder(
+    column: $table.openedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CapsulesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $CapsulesTableTable> {
+  $$CapsulesTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get message => $composableBuilder(
+    column: $table.message,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get openDate => $composableBuilder(
+    column: $table.openDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isOpened => $composableBuilder(
+    column: $table.isOpened,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get openedAt => $composableBuilder(
+    column: $table.openedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CapsulesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CapsulesTableTable> {
+  $$CapsulesTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get message =>
+      $composableBuilder(column: $table.message, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get openDate =>
+      $composableBuilder(column: $table.openDate, builder: (column) => column);
+
+  GeneratedColumn<bool> get isOpened =>
+      $composableBuilder(column: $table.isOpened, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get openedAt =>
+      $composableBuilder(column: $table.openedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$CapsulesTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CapsulesTableTable,
+          CapsulesTableData,
+          $$CapsulesTableTableFilterComposer,
+          $$CapsulesTableTableOrderingComposer,
+          $$CapsulesTableTableAnnotationComposer,
+          $$CapsulesTableTableCreateCompanionBuilder,
+          $$CapsulesTableTableUpdateCompanionBuilder,
+          (
+            CapsulesTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $CapsulesTableTable,
+              CapsulesTableData
+            >,
+          ),
+          CapsulesTableData,
+          PrefetchHooks Function()
+        > {
+  $$CapsulesTableTableTableManager(_$AppDatabase db, $CapsulesTableTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CapsulesTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CapsulesTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CapsulesTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String?> message = const Value.absent(),
+                Value<DateTime> openDate = const Value.absent(),
+                Value<bool> isOpened = const Value.absent(),
+                Value<DateTime?> openedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CapsulesTableCompanion(
+                id: id,
+                title: title,
+                message: message,
+                openDate: openDate,
+                isOpened: isOpened,
+                openedAt: openedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String title,
+                Value<String?> message = const Value.absent(),
+                required DateTime openDate,
+                Value<bool> isOpened = const Value.absent(),
+                Value<DateTime?> openedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CapsulesTableCompanion.insert(
+                id: id,
+                title: title,
+                message: message,
+                openDate: openDate,
+                isOpened: isOpened,
+                openedAt: openedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CapsulesTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CapsulesTableTable,
+      CapsulesTableData,
+      $$CapsulesTableTableFilterComposer,
+      $$CapsulesTableTableOrderingComposer,
+      $$CapsulesTableTableAnnotationComposer,
+      $$CapsulesTableTableCreateCompanionBuilder,
+      $$CapsulesTableTableUpdateCompanionBuilder,
+      (
+        CapsulesTableData,
+        BaseReferences<_$AppDatabase, $CapsulesTableTable, CapsulesTableData>,
+      ),
+      CapsulesTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$CapsuleItemsTableTableCreateCompanionBuilder =
+    CapsuleItemsTableCompanion Function({
+      required String id,
+      required String capsuleId,
+      required String memoryId,
+      Value<int> rowid,
+    });
+typedef $$CapsuleItemsTableTableUpdateCompanionBuilder =
+    CapsuleItemsTableCompanion Function({
+      Value<String> id,
+      Value<String> capsuleId,
+      Value<String> memoryId,
+      Value<int> rowid,
+    });
+
+class $$CapsuleItemsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $CapsuleItemsTableTable> {
+  $$CapsuleItemsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get capsuleId => $composableBuilder(
+    column: $table.capsuleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get memoryId => $composableBuilder(
+    column: $table.memoryId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CapsuleItemsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $CapsuleItemsTableTable> {
+  $$CapsuleItemsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get capsuleId => $composableBuilder(
+    column: $table.capsuleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get memoryId => $composableBuilder(
+    column: $table.memoryId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CapsuleItemsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CapsuleItemsTableTable> {
+  $$CapsuleItemsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get capsuleId =>
+      $composableBuilder(column: $table.capsuleId, builder: (column) => column);
+
+  GeneratedColumn<String> get memoryId =>
+      $composableBuilder(column: $table.memoryId, builder: (column) => column);
+}
+
+class $$CapsuleItemsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CapsuleItemsTableTable,
+          CapsuleItemsTableData,
+          $$CapsuleItemsTableTableFilterComposer,
+          $$CapsuleItemsTableTableOrderingComposer,
+          $$CapsuleItemsTableTableAnnotationComposer,
+          $$CapsuleItemsTableTableCreateCompanionBuilder,
+          $$CapsuleItemsTableTableUpdateCompanionBuilder,
+          (
+            CapsuleItemsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $CapsuleItemsTableTable,
+              CapsuleItemsTableData
+            >,
+          ),
+          CapsuleItemsTableData,
+          PrefetchHooks Function()
+        > {
+  $$CapsuleItemsTableTableTableManager(
+    _$AppDatabase db,
+    $CapsuleItemsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CapsuleItemsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CapsuleItemsTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CapsuleItemsTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> capsuleId = const Value.absent(),
+                Value<String> memoryId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CapsuleItemsTableCompanion(
+                id: id,
+                capsuleId: capsuleId,
+                memoryId: memoryId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String capsuleId,
+                required String memoryId,
+                Value<int> rowid = const Value.absent(),
+              }) => CapsuleItemsTableCompanion.insert(
+                id: id,
+                capsuleId: capsuleId,
+                memoryId: memoryId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CapsuleItemsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CapsuleItemsTableTable,
+      CapsuleItemsTableData,
+      $$CapsuleItemsTableTableFilterComposer,
+      $$CapsuleItemsTableTableOrderingComposer,
+      $$CapsuleItemsTableTableAnnotationComposer,
+      $$CapsuleItemsTableTableCreateCompanionBuilder,
+      $$CapsuleItemsTableTableUpdateCompanionBuilder,
+      (
+        CapsuleItemsTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $CapsuleItemsTableTable,
+          CapsuleItemsTableData
+        >,
+      ),
+      CapsuleItemsTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$MemorialMessagesTableTableCreateCompanionBuilder =
+    MemorialMessagesTableCompanion Function({
+      required String id,
+      required String nodeId,
+      required String message,
+      Value<String?> authorName,
+      required DateTime date,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$MemorialMessagesTableTableUpdateCompanionBuilder =
+    MemorialMessagesTableCompanion Function({
+      Value<String> id,
+      Value<String> nodeId,
+      Value<String> message,
+      Value<String?> authorName,
+      Value<DateTime> date,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$MemorialMessagesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $MemorialMessagesTableTable> {
+  $$MemorialMessagesTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nodeId => $composableBuilder(
+    column: $table.nodeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get message => $composableBuilder(
+    column: $table.message,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get authorName => $composableBuilder(
+    column: $table.authorName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MemorialMessagesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $MemorialMessagesTableTable> {
+  $$MemorialMessagesTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nodeId => $composableBuilder(
+    column: $table.nodeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get message => $composableBuilder(
+    column: $table.message,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get authorName => $composableBuilder(
+    column: $table.authorName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MemorialMessagesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MemorialMessagesTableTable> {
+  $$MemorialMessagesTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get nodeId =>
+      $composableBuilder(column: $table.nodeId, builder: (column) => column);
+
+  GeneratedColumn<String> get message =>
+      $composableBuilder(column: $table.message, builder: (column) => column);
+
+  GeneratedColumn<String> get authorName => $composableBuilder(
+    column: $table.authorName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$MemorialMessagesTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MemorialMessagesTableTable,
+          MemorialMessagesTableData,
+          $$MemorialMessagesTableTableFilterComposer,
+          $$MemorialMessagesTableTableOrderingComposer,
+          $$MemorialMessagesTableTableAnnotationComposer,
+          $$MemorialMessagesTableTableCreateCompanionBuilder,
+          $$MemorialMessagesTableTableUpdateCompanionBuilder,
+          (
+            MemorialMessagesTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $MemorialMessagesTableTable,
+              MemorialMessagesTableData
+            >,
+          ),
+          MemorialMessagesTableData,
+          PrefetchHooks Function()
+        > {
+  $$MemorialMessagesTableTableTableManager(
+    _$AppDatabase db,
+    $MemorialMessagesTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MemorialMessagesTableTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$MemorialMessagesTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$MemorialMessagesTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> nodeId = const Value.absent(),
+                Value<String> message = const Value.absent(),
+                Value<String?> authorName = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MemorialMessagesTableCompanion(
+                id: id,
+                nodeId: nodeId,
+                message: message,
+                authorName: authorName,
+                date: date,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String nodeId,
+                required String message,
+                Value<String?> authorName = const Value.absent(),
+                required DateTime date,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MemorialMessagesTableCompanion.insert(
+                id: id,
+                nodeId: nodeId,
+                message: message,
+                authorName: authorName,
+                date: date,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MemorialMessagesTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MemorialMessagesTableTable,
+      MemorialMessagesTableData,
+      $$MemorialMessagesTableTableFilterComposer,
+      $$MemorialMessagesTableTableOrderingComposer,
+      $$MemorialMessagesTableTableAnnotationComposer,
+      $$MemorialMessagesTableTableCreateCompanionBuilder,
+      $$MemorialMessagesTableTableUpdateCompanionBuilder,
+      (
+        MemorialMessagesTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $MemorialMessagesTableTable,
+          MemorialMessagesTableData
+        >,
+      ),
+      MemorialMessagesTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$GlossaryTableTableCreateCompanionBuilder =
+    GlossaryTableCompanion Function({
+      required String id,
+      required String word,
+      required String meaning,
+      Value<String?> example,
+      Value<String?> voicePath,
+      Value<String?> nodeId,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$GlossaryTableTableUpdateCompanionBuilder =
+    GlossaryTableCompanion Function({
+      Value<String> id,
+      Value<String> word,
+      Value<String> meaning,
+      Value<String?> example,
+      Value<String?> voicePath,
+      Value<String?> nodeId,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$GlossaryTableTableFilterComposer
+    extends Composer<_$AppDatabase, $GlossaryTableTable> {
+  $$GlossaryTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get word => $composableBuilder(
+    column: $table.word,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get meaning => $composableBuilder(
+    column: $table.meaning,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get example => $composableBuilder(
+    column: $table.example,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get voicePath => $composableBuilder(
+    column: $table.voicePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nodeId => $composableBuilder(
+    column: $table.nodeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$GlossaryTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $GlossaryTableTable> {
+  $$GlossaryTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get word => $composableBuilder(
+    column: $table.word,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get meaning => $composableBuilder(
+    column: $table.meaning,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get example => $composableBuilder(
+    column: $table.example,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get voicePath => $composableBuilder(
+    column: $table.voicePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nodeId => $composableBuilder(
+    column: $table.nodeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GlossaryTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GlossaryTableTable> {
+  $$GlossaryTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get word =>
+      $composableBuilder(column: $table.word, builder: (column) => column);
+
+  GeneratedColumn<String> get meaning =>
+      $composableBuilder(column: $table.meaning, builder: (column) => column);
+
+  GeneratedColumn<String> get example =>
+      $composableBuilder(column: $table.example, builder: (column) => column);
+
+  GeneratedColumn<String> get voicePath =>
+      $composableBuilder(column: $table.voicePath, builder: (column) => column);
+
+  GeneratedColumn<String> get nodeId =>
+      $composableBuilder(column: $table.nodeId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$GlossaryTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $GlossaryTableTable,
+          GlossaryTableData,
+          $$GlossaryTableTableFilterComposer,
+          $$GlossaryTableTableOrderingComposer,
+          $$GlossaryTableTableAnnotationComposer,
+          $$GlossaryTableTableCreateCompanionBuilder,
+          $$GlossaryTableTableUpdateCompanionBuilder,
+          (
+            GlossaryTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $GlossaryTableTable,
+              GlossaryTableData
+            >,
+          ),
+          GlossaryTableData,
+          PrefetchHooks Function()
+        > {
+  $$GlossaryTableTableTableManager(_$AppDatabase db, $GlossaryTableTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GlossaryTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GlossaryTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GlossaryTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> word = const Value.absent(),
+                Value<String> meaning = const Value.absent(),
+                Value<String?> example = const Value.absent(),
+                Value<String?> voicePath = const Value.absent(),
+                Value<String?> nodeId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GlossaryTableCompanion(
+                id: id,
+                word: word,
+                meaning: meaning,
+                example: example,
+                voicePath: voicePath,
+                nodeId: nodeId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String word,
+                required String meaning,
+                Value<String?> example = const Value.absent(),
+                Value<String?> voicePath = const Value.absent(),
+                Value<String?> nodeId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GlossaryTableCompanion.insert(
+                id: id,
+                word: word,
+                meaning: meaning,
+                example: example,
+                voicePath: voicePath,
+                nodeId: nodeId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GlossaryTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $GlossaryTableTable,
+      GlossaryTableData,
+      $$GlossaryTableTableFilterComposer,
+      $$GlossaryTableTableOrderingComposer,
+      $$GlossaryTableTableAnnotationComposer,
+      $$GlossaryTableTableCreateCompanionBuilder,
+      $$GlossaryTableTableUpdateCompanionBuilder,
+      (
+        GlossaryTableData,
+        BaseReferences<_$AppDatabase, $GlossaryTableTable, GlossaryTableData>,
+      ),
+      GlossaryTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5888,4 +8389,12 @@ class $AppDatabaseManager {
       $$TemperatureLogsTableTableTableManager(_db, _db.temperatureLogsTable);
   $$BouquetsTableTableTableManager get bouquetsTable =>
       $$BouquetsTableTableTableManager(_db, _db.bouquetsTable);
+  $$CapsulesTableTableTableManager get capsulesTable =>
+      $$CapsulesTableTableTableManager(_db, _db.capsulesTable);
+  $$CapsuleItemsTableTableTableManager get capsuleItemsTable =>
+      $$CapsuleItemsTableTableTableManager(_db, _db.capsuleItemsTable);
+  $$MemorialMessagesTableTableTableManager get memorialMessagesTable =>
+      $$MemorialMessagesTableTableTableManager(_db, _db.memorialMessagesTable);
+  $$GlossaryTableTableTableManager get glossaryTable =>
+      $$GlossaryTableTableTableManager(_db, _db.glossaryTable);
 }

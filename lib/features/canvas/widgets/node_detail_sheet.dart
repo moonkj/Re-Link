@@ -138,6 +138,72 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
               ),
             ),
 
+            // ── 추모 공간 바로가기 (고인 전용) ──────────────────────────
+            if (node.deathDate != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.xs,
+                ),
+                child: GlassCard(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    context.push(
+                      AppRoutes.memorialPath(node.id),
+                      extra: <String, dynamic>{
+                        'nodeName': node.name,
+                        'photoPath': node.photoPath,
+                        'birthDate': node.birthDate,
+                        'deathDate': node.deathDate,
+                      },
+                    );
+                  },
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.local_fire_department_outlined,
+                        color: AppColors.textTertiary,
+                        size: 18,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '추모 공간',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '기억되는 한, 우리 곁에 있어요.',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textTertiary,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right,
+                        color: AppColors.textTertiary,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
             // ── Ghost 노드 배너 ─────────────────────────────────────────
             if (node.isGhost) ...[
               // Ghost 라벨 표시

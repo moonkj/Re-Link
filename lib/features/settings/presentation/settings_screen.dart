@@ -13,6 +13,7 @@ import '../../../shared/repositories/settings_repository.dart';
 import '../../backup/providers/backup_notifier.dart';
 import '../../art_card/presentation/art_card_screen.dart';
 import '../../export/presentation/heritage_export_screen.dart';
+import '../../capsule/presentation/capsule_list_screen.dart';
 import '../providers/elderly_mode_notifier.dart';
 import '../providers/haptic_notifier.dart';
 import '../providers/reduce_motion_notifier.dart';
@@ -53,6 +54,8 @@ class SettingsScreen extends ConsumerWidget {
           _AccessibilitySection(),
           SizedBox(height: AppSpacing.xl),
           _ExportSection(),
+          SizedBox(height: AppSpacing.xl),
+          _FamilyRecordSection(),
           SizedBox(height: AppSpacing.xl),
           _AppInfoSection(),
           SizedBox(height: AppSpacing.xxxl),
@@ -732,6 +735,60 @@ class _ExportSection extends StatelessWidget {
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                       builder: (_) => const HeritageExportScreen()),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── 가족 기록 섹션 ──────────────────────────────────────────────────────────────
+
+class _FamilyRecordSection extends StatelessWidget {
+  const _FamilyRecordSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionLabel(label: '가족 기록'),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.menu_book_outlined,
+                    color: AppColors.primary),
+                title: Text('가족 단어장',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: Text('우리 가족만의 표현 모음',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                trailing:
+                    Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                onTap: () => context.push(AppRoutes.glossary),
+              ),
+              Divider(color: AppColors.glassBorder, height: 1),
+              ListTile(
+                leading: const Icon(Icons.lock_clock_outlined,
+                    color: AppColors.accent),
+                title: Text('기억 캡슐',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: Text('미래의 나에게 보내는 기억',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                trailing:
+                    Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                      builder: (_) => const CapsuleListScreen()),
                 ),
               ),
             ],
