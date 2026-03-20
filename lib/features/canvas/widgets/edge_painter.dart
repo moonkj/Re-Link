@@ -58,17 +58,24 @@ class EdgePainter extends CustomPainter {
 
     final drawnChildEdgeIds = <String>{};
 
+    // 부부별 자녀 ID 세트 (같은 부모 밑 형제/자매 sibling 중복선 방지용)
+    final coupleChildSets = <Set<String>>[];
+
     // 각 부부 쌍에 대해 통합 자녀 선 처리
     for (final se in spouseEdges) {
       final p1 = _centerOf(se.fromNodeId);
       final p2 = _centerOf(se.toNodeId);
       if (p1 == null || p2 == null) continue;
 
-      // 부부 선 그리기
-      _drawEdge(canvas, p1, p2, RelationType.spouse);
+      // 부부 선 그리기 — 카드 외곽 간 직선
+      final p1Border = _borderPoint(p1, p2);
+      final p2Border = _borderPoint(p2, p1);
+      _drawStraightEdge(canvas, p1Border, p2Border, RelationType.spouse);
 
-      // 부부 중앙점
-      final coupleMid = Offset((p1.dx + p2.dx) / 2, (p1.dy + p2.dy) / 2);
+      // 부부 중앙점 — 배우자 경계선의 중간점에서 아래로 내림
+      final spouseMidX = (p1Border.dx + p2Border.dx) / 2;
+      final spouseMidY = (p1Border.dy + p2Border.dy) / 2;
+      final coupleMid = Offset(spouseMidX, spouseMidY);
 
       // 이 부부의 자녀 찾기 (양방향 + parent 타입 포함)
       final coupleIds = {se.fromNodeId, se.toNodeId};
@@ -96,6 +103,9 @@ class EdgePainter extends CustomPainter {
 
       if (childPositions.isEmpty) continue;
 
+      // 이 부부의 자녀 ID 세트 저장 (sibling 중복선 판별용)
+      coupleChildSets.add(seenChildIds);
+
       // T-shape 통합 관계선 그리기
       _drawCoupleChildrenLine(canvas, coupleMid, childPositions);
     }
@@ -104,16 +114,29 @@ class EdgePainter extends CustomPainter {
     for (final edge in edges) {
       if (edge.relation == RelationType.spouse) continue; // 이미 그림
       if (drawnChildEdgeIds.contains(edge.id)) continue; // 통합 선으로 그림
-      final from = _centerOf(edge.fromNodeId);
-      final to = _centerOf(edge.toNodeId);
-      if (from == null || to == null) continue;
+
+      // 같은 부부의 자녀끼리 sibling 엣지는 skip
+      // (T-shape 통합선이 이미 형제 관계를 시각적으로 표현하므로 중복 방지)
+      if (edge.relation == RelationType.sibling) {
+        final isSameCoupleSiblings = coupleChildSets.any((childSet) =>
+            childSet.contains(edge.fromNodeId) &&
+            childSet.contains(edge.toNodeId));
+        if (isSameCoupleSiblings) continue;
+      }
+
+      final fromCenter = _centerOf(edge.fromNodeId);
+      final toCenter = _centerOf(edge.toNodeId);
+      if (fromCenter == null || toCenter == null) continue;
+      final from = _borderPoint(fromCenter, toCenter);
+      final to = _borderPoint(toCenter, fromCenter);
       _drawEdge(canvas, from, to, edge.relation);
     }
 
-    // 연결 중인 임시 선
+    // 연결 중인 임시 선 (카드 외곽에서 출발)
     if (connectingNodeId != null && pointerPosition != null) {
-      final from = _centerOf(connectingNodeId!);
-      if (from != null) {
+      final fromCenter = _centerOf(connectingNodeId!);
+      if (fromCenter != null) {
+        final from = _borderPoint(fromCenter, pointerPosition!);
         _drawDashedLine(canvas, from, pointerPosition!);
       }
     }
@@ -143,35 +166,53 @@ class EdgePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    if (children.length == 1) {
-      // 자녀가 1명: 중점에서 자녀까지 직선(부드러운 커브)
-      final childPos = children.first.pos;
-      final path = _curvePath(coupleMid, childPos);
-      canvas.drawPath(path, paint);
-      final mid = _midPoint(coupleMid, childPos);
-      _drawLabel(canvas, mid, RelationType.child.label);
+    // 자녀 카드 상단 좌표로 변환
+    final childTopPositions = children
+        .map((c) => _ChildEdgeInfo(
+              pos: Offset(c.pos.dx, c.pos.dy - kNodeCardHeight / 2),
+              edgeId: c.edgeId,
+            ))
+        .toList();
+
+    if (childTopPositions.length == 1) {
+      // 자녀가 1명: 직선 경로 (수직 → 수평 → 수직)
+      final childTop = childTopPositions.first.pos;
+      final midY = coupleMid.dy + (childTop.dy - coupleMid.dy) * 0.5;
+      // 수직 하강
+      canvas.drawLine(coupleMid, Offset(coupleMid.dx, midY), paint);
+      // 수평 이동
+      canvas.drawLine(
+          Offset(coupleMid.dx, midY), Offset(childTop.dx, midY), paint);
+      // 수직 하강
+      canvas.drawLine(Offset(childTop.dx, midY), childTop, paint);
+      final labelY = (coupleMid.dy + midY) / 2;
+      _drawLabel(canvas, Offset(coupleMid.dx, labelY), RelationType.child.label);
       return;
     }
 
     // 자녀가 2명 이상: T-shape 구조
-    // 자녀 중 가장 위에 있는 Y 좌표 (수평 분기선 높이)
-    final childMinY = children.map((c) => c.pos.dy).reduce(math.min);
+    // 자녀 카드 상단 중 가장 위에 있는 Y 좌표
+    final childMinY =
+        childTopPositions.map((c) => c.pos.dy).reduce(math.min);
 
     // 수직 하강 높이: 부부 중점과 자녀 사이의 중간 지점
-    final branchY = coupleMid.dy + (childMinY - coupleMid.dy) * 0.6;
+    final branchY = coupleMid.dy + (childMinY - coupleMid.dy) * 0.5;
 
     // 1) 부부 중점에서 수직 하강
     canvas.drawLine(coupleMid, Offset(coupleMid.dx, branchY), paint);
 
     // 2) 수평 분기선 (coupleMid.dx 포함하여 좌측~우측 범위)
-    final allXs = [...children.map((c) => c.pos.dx), coupleMid.dx];
+    final allXs = [
+      ...childTopPositions.map((c) => c.pos.dx),
+      coupleMid.dx,
+    ];
     allXs.sort();
     final leftX = allXs.first;
     final rightX = allXs.last;
     canvas.drawLine(Offset(leftX, branchY), Offset(rightX, branchY), paint);
 
-    // 3) 수평 분기선에서 각 자녀로 수직 하강
-    for (final child in children) {
+    // 3) 수평 분기선에서 각 자녀 카드 상단으로 수직 하강
+    for (final child in childTopPositions) {
       canvas.drawLine(
         Offset(child.pos.dx, branchY),
         child.pos,
@@ -200,6 +241,20 @@ class EdgePainter extends CustomPainter {
       node.positionX + kNodeCardWidth / 2,
       node.positionY + kNodeCardHeight / 2,
     );
+  }
+
+  /// 직선 엣지 (배우자/구조선용 — 끊김 없음)
+  void _drawStraightEdge(
+      Canvas canvas, Offset from, Offset to, RelationType relation) {
+    final color = _edgeColor(relation);
+    final paint = Paint()
+      ..color = color.withAlpha(180)
+      ..strokeWidth = 1.8
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(from, to, paint);
+    final mid = _midPoint(from, to);
+    _drawLabel(canvas, mid, relation.label);
   }
 
   void _drawEdge(
@@ -275,6 +330,24 @@ class EdgePainter extends CustomPainter {
     );
 
     tp.paint(canvas, pos - Offset(tp.width / 2, tp.height / 2));
+  }
+
+  /// 카드 중심에서 대상 방향으로의 카드 외곽 교차점 계산
+  /// center: 노드 카드의 중심, target: 연결 대상 위치
+  /// → 카드 사각형 외곽선의 교차점 반환
+  Offset _borderPoint(Offset center, Offset target) {
+    final dx = target.dx - center.dx;
+    final dy = target.dy - center.dy;
+    if (dx == 0 && dy == 0) return center;
+
+    const halfW = kNodeCardWidth / 2;
+    const halfH = kNodeCardHeight / 2;
+
+    final scaleX = dx != 0 ? halfW / dx.abs() : double.infinity;
+    final scaleY = dy != 0 ? halfH / dy.abs() : double.infinity;
+    final scale = math.min(scaleX, scaleY);
+
+    return Offset(center.dx + dx * scale, center.dy + dy * scale);
   }
 
   Offset _midPoint(Offset a, Offset b) =>

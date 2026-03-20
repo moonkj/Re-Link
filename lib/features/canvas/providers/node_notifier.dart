@@ -92,6 +92,21 @@ class NodeNotifier extends _$NodeNotifier {
 
   // ── 관계 ──────────────────────────────────────────────────────────────────
 
+  /// 두 노드 사이의 기존 엣지 조회 (방향 무관)
+  Future<NodeEdge?> findEdge({
+    required String fromNodeId,
+    required String toNodeId,
+  }) async {
+    try {
+      return await _repo.findEdge(
+        fromNodeId: fromNodeId,
+        toNodeId: toNodeId,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<NodeEdge?> addEdge({
     required String fromNodeId,
     required String toNodeId,
@@ -106,8 +121,9 @@ class NodeNotifier extends _$NodeNotifier {
         label: label,
       );
       return edge;
-    } catch (e, st) {
-      state = AsyncError(e, st);
+    } catch (e) {
+      // 엣지 추가 실패 시 AsyncError로 전환하지 않음 (UI 깨짐 방지)
+      // 호출자가 null 반환으로 에러를 감지하도록 함
       return null;
     }
   }

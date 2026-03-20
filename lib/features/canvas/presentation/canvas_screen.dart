@@ -547,23 +547,39 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     final fromNode = state.nodes.where((n) => n.id == fromId).firstOrNull;
     if (fromNode == null) return;
 
-    // 관계 타입 선택
-    final relation = await showModalBottomSheet<RelationType>(
+    // 기존 관계 확인
+    final existingEdge = await ref
+        .read(nodeNotifierProvider.notifier)
+        .findEdge(fromNodeId: fromId, toNodeId: toNode.id);
+
+    if (!mounted) return;
+
+    // 관계 타입 선택 (기존 관계 있으면 삭제 옵션 포함)
+    final result = await showModalBottomSheet<RelationPickerResult>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => RelationPickerSheet(fromNode: fromNode, toNode: toNode),
+      builder: (_) => RelationPickerSheet(
+        fromNode: fromNode,
+        toNode: toNode,
+        existingRelation: existingEdge?.relation,
+      ),
     );
 
     if (!mounted) return;
     ref.read(canvasNotifierProvider.notifier).cancelConnectMode();
 
-    if (relation != null) {
-      await ref.read(nodeNotifierProvider.notifier).addEdge(
+    if (result is RelationSelected) {
+      final edge = await ref.read(nodeNotifierProvider.notifier).addEdge(
             fromNodeId: fromId,
             toNodeId: toNode.id,
-            relation: relation,
+            relation: result.type,
           );
-      HapticService.connectionMade();
+      if (edge != null && mounted) {
+        HapticService.connectionMade();
+      }
+    } else if (result is RelationDeleted && existingEdge != null) {
+      await ref.read(nodeNotifierProvider.notifier).deleteEdge(existingEdge.id);
+      if (mounted) HapticService.light();
     }
   }
 

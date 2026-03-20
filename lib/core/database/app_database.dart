@@ -161,6 +161,22 @@ class AppDatabase extends _$AppDatabase {
         .write(NodeEdgesTableCompanion(relation: Value(relation)));
   }
 
+  /// 엣지의 관계 타입 + 방향(from/to) 전체 업데이트
+  Future<void> updateEdgeFull(
+    String edgeId, {
+    required String fromNodeId,
+    required String toNodeId,
+    required String relation,
+  }) async {
+    await (update(nodeEdgesTable)..where((t) => t.id.equals(edgeId))).write(
+      NodeEdgesTableCompanion(
+        fromNodeId: Value(fromNodeId),
+        toNodeId: Value(toNodeId),
+        relation: Value(relation),
+      ),
+    );
+  }
+
   Future<int> deleteEdge(String id) =>
       (delete(nodeEdgesTable)..where((t) => t.id.equals(id))).go();
 

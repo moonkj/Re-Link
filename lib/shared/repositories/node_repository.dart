@@ -147,21 +147,29 @@ class NodeRepository {
     required RelationType relation,
     String? label,
   }) async {
-    // 두 노드 사이에 이미 엣지가 존재하면 관계 타입 업데이트
+    // 두 노드 사이에 이미 엣지가 존재하면 관계 타입 업데이트 (멱등성 보장)
     final existing = await findEdge(
       fromNodeId: fromNodeId,
       toNodeId: toNodeId,
     );
     if (existing != null) {
-      if (existing.relation == relation) {
-        throw Exception('이미 동일한 관계가 존재합니다.');
+      // 같은 관계가 이미 존재하면 기존 edge 그대로 반환 (no-op, 멱등성)
+      if (existing.relation == relation &&
+          existing.fromNodeId == fromNodeId &&
+          existing.toNodeId == toNodeId) {
+        return existing;
       }
-      // 기존 엣지의 관계 타입만 업데이트
-      await updateEdgeRelation(existing.id, relation);
+      // 관계 타입 또는 방향이 다르면 전체 업데이트 (relation + from/to 방향)
+      await updateEdgeFull(
+        existing.id,
+        fromNodeId: fromNodeId,
+        toNodeId: toNodeId,
+        relation: relation,
+      );
       return NodeEdge(
         id: existing.id,
-        fromNodeId: existing.fromNodeId,
-        toNodeId: existing.toNodeId,
+        fromNodeId: fromNodeId,
+        toNodeId: toNodeId,
         relation: relation,
         label: existing.label,
         createdAt: existing.createdAt,
@@ -192,6 +200,20 @@ class NodeRepository {
   Future<void> updateEdgeRelation(
       String edgeId, RelationType newRelation) =>
       _db.updateEdgeRelation(edgeId, newRelation.name);
+
+  /// 엣지의 관계 타입 + 방향(from/to) 전체 업데이트
+  Future<void> updateEdgeFull(
+    String edgeId, {
+    required String fromNodeId,
+    required String toNodeId,
+    required RelationType relation,
+  }) =>
+      _db.updateEdgeFull(
+        edgeId,
+        fromNodeId: fromNodeId,
+        toNodeId: toNodeId,
+        relation: relation.name,
+      );
 
   Future<void> deleteEdge(String id) => _db.deleteEdge(id);
 

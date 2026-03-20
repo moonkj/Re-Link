@@ -388,13 +388,10 @@ class _NodeAvatar extends StatelessWidget {
       child: hasPhoto
           ? null
           : Center(
-              child: Text(
-                node.name.isNotEmpty ? node.name[0] : '?',
-                style: TextStyle(
-                  fontSize: size * 0.4,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+              child: Icon(
+                Icons.person,
+                size: size * 0.5,
+                color: Colors.white,
               ),
             ),
     );

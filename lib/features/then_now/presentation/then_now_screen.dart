@@ -186,13 +186,11 @@ class _ThenNowScreenState extends ConsumerState<ThenNowScreen>
       if (!mounted) return;
 
       // 공유
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path)],
-          text: _label != null && _label!.isNotEmpty
-              ? '${_label!} - Then & Now | Re-Link'
-              : 'Then & Now | Re-Link',
-        ),
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: _label != null && _label!.isNotEmpty
+            ? '${_label!} - Then & Now | Re-Link'
+            : 'Then & Now | Re-Link',
       );
     } catch (_) {
       if (mounted) {

@@ -76,7 +76,7 @@ class MediaService {
     final thumbPath = p.join(thumbsDir.path, '${id}_thumb.webp');
 
     // 원본 WebP 압축
-    await FlutterImageCompress.compressAndGetFile(
+    final photo = await FlutterImageCompress.compressAndGetFile(
       source.absolute.path,
       photoPath,
       format: CompressFormat.webp,
@@ -84,9 +84,11 @@ class MediaService {
       minWidth: 1,
       minHeight: 1,
     );
+    // 압축 실패 시 원본 복사
+    if (photo == null) await source.copy(photoPath);
 
     // 썸네일 생성
-    await FlutterImageCompress.compressAndGetFile(
+    final thumb = await FlutterImageCompress.compressAndGetFile(
       source.absolute.path,
       thumbPath,
       format: CompressFormat.webp,
@@ -94,11 +96,13 @@ class MediaService {
       minWidth: 300,
       minHeight: 300,
     );
+    // 썸네일 실패 시 원본 복사
+    if (thumb == null) await source.copy(thumbPath);
 
     return (photoPath: photoPath, thumbnailPath: thumbPath);
   }
 
-  /// 아바타(프로필) 사진 저장
+  /// 아바타(프로필/노드) 사진 저장 — UUID 고유 경로 + 반환값 검증
   Future<String?> pickAndSaveAvatar() async {
     final picked = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -107,9 +111,10 @@ class MediaService {
     );
     if (picked == null) return null;
 
-    final base = await getApplicationDocumentsDirectory();
-    final avatarPath = p.join(base.path, 'media', 'avatar.webp');
-    await FlutterImageCompress.compressAndGetFile(
+    final photosDir = await _photosDir;
+    final id = _uuid.v4();
+    final avatarPath = p.join(photosDir.path, 'avatar_$id.webp');
+    final result = await FlutterImageCompress.compressAndGetFile(
       picked.path,
       avatarPath,
       format: CompressFormat.webp,
@@ -117,6 +122,7 @@ class MediaService {
       minWidth: 256,
       minHeight: 256,
     );
+    if (result == null) return null;
     return avatarPath;
   }
 
