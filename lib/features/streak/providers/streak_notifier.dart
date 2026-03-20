@@ -63,22 +63,27 @@ class StreakState {
 class StreakNotifier extends _$StreakNotifier {
   @override
   Future<StreakState> build() async {
-    final repo = ref.read(settingsRepositoryProvider);
-    final count = await repo.getStreakCount();
-    final lastDate = await repo.getStreakLastDate();
-    final freezeCount = await repo.getStreakFreezeCount();
+    try {
+      final repo = ref.read(settingsRepositoryProvider);
+      final count = await repo.getStreakCount();
+      final lastDate = await repo.getStreakLastDate();
+      final freezeCount = await repo.getStreakFreezeCount();
 
-    final now = DateTime.now();
-    final today = DateUtils.dateOnly(now);
-    final isTodayRecorded =
-        lastDate != null && DateUtils.isSameDay(lastDate, today);
+      final now = DateTime.now();
+      final today = DateUtils.dateOnly(now);
+      final isTodayRecorded =
+          lastDate != null && DateUtils.isSameDay(lastDate, today);
 
-    return StreakState(
-      count: count,
-      lastDate: lastDate,
-      freezeRemaining: freezeCount,
-      isTodayRecorded: isTodayRecorded,
-    );
+      return StreakState(
+        count: count,
+        lastDate: lastDate,
+        freezeRemaining: freezeCount,
+        isTodayRecorded: isTodayRecorded,
+      );
+    } catch (e) {
+      // DB 미완료 등 초기화 실패 시 기본값 반환 (블랙 스크린 방지)
+      return const StreakState();
+    }
   }
 
   SettingsRepository get _repo => ref.read(settingsRepositoryProvider);

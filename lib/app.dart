@@ -45,7 +45,10 @@ class ReLink extends ConsumerWidget {
         : (themeMode == ThemeMode.dark ? Brightness.dark : Brightness.light);
     AppColors.updateBrightness(resolvedBrightness);
 
+    // 테마 변경 시 AppColors static getter를 사용하는 모든 위젯이
+    // 즉시 리빌드되도록 brightness 기반 Key로 트리 강제 갱신
     return MaterialApp.router(
+      key: ValueKey(resolvedBrightness),
       title: 'Re-Link',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,

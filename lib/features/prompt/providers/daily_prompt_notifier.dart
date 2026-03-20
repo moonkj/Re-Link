@@ -38,18 +38,28 @@ class DailyPromptState {
 class DailyPromptNotifier extends _$DailyPromptNotifier {
   @override
   Future<DailyPromptState> build() async {
-    final repo = ref.read(settingsRepositoryProvider);
-    final today = _todayString();
-    final dismissedDate =
-        await repo.get(SettingsKey.dailyPromptDismissedDate);
-    final isDismissed = dismissedDate == today;
-    final prompt = _getTodayPrompt();
+    try {
+      final repo = ref.read(settingsRepositoryProvider);
+      final today = _todayString();
+      final dismissedDate =
+          await repo.get(SettingsKey.dailyPromptDismissedDate);
+      final isDismissed = dismissedDate == today;
+      final prompt = _getTodayPrompt();
 
-    return DailyPromptState(
-      currentPrompt: prompt,
-      isDismissed: isDismissed,
-      lastShownDate: today,
-    );
+      return DailyPromptState(
+        currentPrompt: prompt,
+        isDismissed: isDismissed,
+        lastShownDate: today,
+      );
+    } catch (e) {
+      // DB 미완료 등 초기화 실패 시 기본값 반환 (블랙 스크린 방지)
+      final prompt = _getTodayPrompt();
+      return DailyPromptState(
+        currentPrompt: prompt,
+        isDismissed: true, // 에러 시 프롬프트 숨김
+        lastShownDate: _todayString(),
+      );
+    }
   }
 
   /// 날짜 기반 결정론적 프롬프트 선택

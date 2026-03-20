@@ -30,11 +30,32 @@ class EdgePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 부부 엣지 수집: couple midpoint -> child 통합 선 그리기
+    // 부부 엣지 수집
     final spouseEdges =
         edges.where((e) => e.relation == RelationType.spouse).toList();
-    final childEdges =
-        edges.where((e) => e.relation == RelationType.child).toList();
+
+    // 부모-자녀 엣지 정규화 (방향 통일: parentNodeId → childNodeId)
+    // child 타입: fromNodeId=parent, toNodeId=child (관례)
+    // parent 타입: fromNodeId=child, toNodeId=parent (역방향)
+    final normalizedChildEdges = <_NormalizedChildEdge>[];
+    for (final e in edges) {
+      if (e.relation == RelationType.child) {
+        // 양방향 대응: coupleIds에 포함된 쪽이 parent
+        normalizedChildEdges.add(_NormalizedChildEdge(
+          edgeId: e.id,
+          parentNodeId: e.fromNodeId,
+          childNodeId: e.toNodeId,
+        ));
+      } else if (e.relation == RelationType.parent) {
+        // parent 타입: fromNodeId=child, toNodeId=parent → 방향 스왑
+        normalizedChildEdges.add(_NormalizedChildEdge(
+          edgeId: e.id,
+          parentNodeId: e.toNodeId,
+          childNodeId: e.fromNodeId,
+        ));
+      }
+    }
+
     final drawnChildEdgeIds = <String>{};
 
     // 각 부부 쌍에 대해 통합 자녀 선 처리
@@ -49,20 +70,28 @@ class EdgePainter extends CustomPainter {
       // 부부 중앙점
       final coupleMid = Offset((p1.dx + p2.dx) / 2, (p1.dy + p2.dy) / 2);
 
-      // 이 부부의 자녀 찾기 (양쪽 부모 중 하나가 child 관계인 엣지)
+      // 이 부부의 자녀 찾기 (양방향 + parent 타입 포함)
       final coupleIds = {se.fromNodeId, se.toNodeId};
-      final coupleChildren =
-          childEdges.where((ce) => coupleIds.contains(ce.fromNodeId)).toList();
+      final coupleChildren = normalizedChildEdges
+          .where((ce) => coupleIds.contains(ce.parentNodeId))
+          .toList();
 
       if (coupleChildren.isEmpty) continue;
 
-      // 자녀 위치 수집
+      // 자녀 위치 수집 (동일 자녀 중복 방지)
       final childPositions = <_ChildEdgeInfo>[];
+      final seenChildIds = <String>{};
       for (final ce in coupleChildren) {
-        final childPos = _centerOf(ce.toNodeId);
+        if (seenChildIds.contains(ce.childNodeId)) {
+          // 동일 자녀의 중복 엣지 (양쪽 부모 각각) → 처리 완료 표시만
+          drawnChildEdgeIds.add(ce.edgeId);
+          continue;
+        }
+        final childPos = _centerOf(ce.childNodeId);
         if (childPos == null) continue;
-        drawnChildEdgeIds.add(ce.id);
-        childPositions.add(_ChildEdgeInfo(pos: childPos, edgeId: ce.id));
+        drawnChildEdgeIds.add(ce.edgeId);
+        seenChildIds.add(ce.childNodeId);
+        childPositions.add(_ChildEdgeInfo(pos: childPos, edgeId: ce.edgeId));
       }
 
       if (childPositions.isEmpty) continue;
@@ -134,10 +163,11 @@ class EdgePainter extends CustomPainter {
     // 1) 부부 중점에서 수직 하강
     canvas.drawLine(coupleMid, Offset(coupleMid.dx, branchY), paint);
 
-    // 2) 수평 분기선 (가장 좌측 자녀 ~ 가장 우측 자녀 x범위)
-    final childXs = children.map((c) => c.pos.dx).toList()..sort();
-    final leftX = childXs.first;
-    final rightX = childXs.last;
+    // 2) 수평 분기선 (coupleMid.dx 포함하여 좌측~우측 범위)
+    final allXs = [...children.map((c) => c.pos.dx), coupleMid.dx];
+    allXs.sort();
+    final leftX = allXs.first;
+    final rightX = allXs.last;
     canvas.drawLine(Offset(leftX, branchY), Offset(rightX, branchY), paint);
 
     // 3) 수평 분기선에서 각 자녀로 수직 하강
@@ -274,4 +304,16 @@ class _ChildEdgeInfo {
   const _ChildEdgeInfo({required this.pos, required this.edgeId});
   final Offset pos;
   final String edgeId;
+}
+
+/// 정규화된 부모-자녀 엣지 (방향 통일: parent → child)
+class _NormalizedChildEdge {
+  const _NormalizedChildEdge({
+    required this.edgeId,
+    required this.parentNodeId,
+    required this.childNodeId,
+  });
+  final String edgeId;
+  final String parentNodeId;
+  final String childNodeId;
 }

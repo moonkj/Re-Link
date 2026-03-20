@@ -61,8 +61,12 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _resetZoom();
-      // 스트릭 상태 확인 (앱 진입 시)
-      ref.read(streakNotifierProvider.notifier).checkStreak();
+      // 스트릭 상태 확인 (앱 진입 시) — 에러 흡수하여 블랙 스크린 방지
+      try {
+        ref.read(streakNotifierProvider.notifier).checkStreak().catchError((_) {});
+      } catch (_) {
+        // provider 초기화 미완료 시 무시
+      }
     });
   }
 

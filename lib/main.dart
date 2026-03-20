@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,6 +44,18 @@ Future<void> main() async {
         ),
       ),
     );
+  };
+
+  // ── 글로벌 에러 핸들링 (release 모드 블랙 스크린 방지) ──────────────
+  // Flutter 프레임워크 에러 → 콘솔 출력 (크래시 방지)
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+  };
+
+  // 비동기 미처리 에러 → 플랫폼 디스패처가 흡수 (앱 종료 방지)
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('[Re-Link] Unhandled error: $error\n$stack');
+    return true; // true = 에러 처리됨, 앱 종료 방지
   };
 
   // 상태바 스타일 (동기, 빠름)
