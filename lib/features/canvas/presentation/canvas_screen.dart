@@ -19,6 +19,9 @@ import '../widgets/time_event_toast.dart';
 import '../widgets/minimap_widget.dart';
 import '../../../core/utils/haptic_service.dart';
 import '../../settings/providers/spouse_snap_notifier.dart';
+import '../../streak/providers/streak_notifier.dart';
+import '../../streak/widgets/streak_badge.dart';
+import '../../prompt/widgets/daily_prompt_card.dart';
 import '../utils/quad_tree.dart';
 import '../utils/lod_utils.dart';
 import '../utils/generation_utils.dart';
@@ -58,6 +61,8 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _resetZoom();
+      // 스트릭 상태 확인 (앱 진입 시)
+      ref.read(streakNotifierProvider.notifier).checkStreak();
     });
   }
 
@@ -340,6 +345,9 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                         ),
                       ),
                     const SizedBox(width: AppSpacing.sm),
+                    // 스트릭 배지
+                    const StreakBadge(),
+                    const SizedBox(width: AppSpacing.sm),
                     Tooltip(
                       message: '검색',
                       child: GlassCard(
@@ -387,6 +395,12 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                 ),
               ),
             ),
+          ),
+
+          // ── 데일리 프롬프트 카드 ────────────────────────────────────────
+          Positioned(
+            top: 100, left: AppSpacing.lg, right: AppSpacing.lg,
+            child: const DailyPromptCard(),
           ),
 
           // ── 연결 모드 배너 ───────────────────────────────────────────────

@@ -8,6 +8,8 @@ import 'tables/nodes_table.dart';
 import 'tables/node_edges_table.dart';
 import 'tables/memories_table.dart';
 import 'tables/settings_table.dart';
+import 'tables/temperature_logs_table.dart';
+import 'tables/bouquets_table.dart';
 
 part 'app_database.g.dart';
 
@@ -17,6 +19,8 @@ part 'app_database.g.dart';
   NodeEdgesTable,
   MemoriesTable,
   SettingsTable,
+  TemperatureLogsTable,
+  BouquetsTable,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -29,7 +33,7 @@ class AppDatabase extends _$AppDatabase {
       : super(NativeDatabase(File(path)));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -41,6 +45,11 @@ class AppDatabase extends _$AppDatabase {
           // v1 → v2: memories.isPrivate 컬럼 추가 (Privacy Layer)
           if (from < 2) {
             await m.addColumn(memoriesTable, memoriesTable.isPrivate);
+          }
+          // v2 → v3: temperature_logs + bouquets 테이블 생성
+          if (from < 3) {
+            await m.createTable(temperatureLogsTable);
+            await m.createTable(bouquetsTable);
           }
         },
       );
@@ -171,6 +180,72 @@ class AppDatabase extends _$AppDatabase {
         .get();
     return rows.fold<int>(0, (sum, r) => sum + (r.durationSeconds ?? 0));
   }
+
+  // ── Temperature Logs ──────────────────────────────────────────────────────
+
+  Future<void> upsertTemperatureLog(TemperatureLogsTableCompanion log) =>
+      into(temperatureLogsTable).insertOnConflictUpdate(log);
+
+  Future<List<TemperatureLogsTableData>> getTemperatureLogsForNode(
+    String nodeId, {
+    DateTime? from,
+    DateTime? to,
+  }) {
+    final query = select(temperatureLogsTable)
+      ..where((t) => t.nodeId.equals(nodeId))
+      ..orderBy([(t) => OrderingTerm.desc(t.date)]);
+    if (from != null) {
+      query.where((t) => t.date.isBiggerOrEqualValue(from));
+    }
+    if (to != null) {
+      query.where((t) => t.date.isSmallerOrEqualValue(to));
+    }
+    return query.get();
+  }
+
+  Stream<List<TemperatureLogsTableData>> watchTemperatureLogsForNode(
+      String nodeId) =>
+      (select(temperatureLogsTable)
+            ..where((t) => t.nodeId.equals(nodeId))
+            ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+          .watch();
+
+  Future<int> deleteTemperatureLog(String id) =>
+      (delete(temperatureLogsTable)..where((t) => t.id.equals(id))).go();
+
+  // ── Bouquets (Memory Bouquet) ─────────────────────────────────────────────
+
+  Future<void> upsertBouquet(BouquetsTableCompanion bouquet) =>
+      into(bouquetsTable).insertOnConflictUpdate(bouquet);
+
+  Future<List<BouquetsTableData>> getBouquetsForNode(String toNodeId) =>
+      (select(bouquetsTable)
+            ..where((t) => t.toNodeId.equals(toNodeId))
+            ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+          .get();
+
+  /// 이번 주(7일) 동안 특정 노드에 보내진 꽃
+  Future<List<BouquetsTableData>> getBouquetsThisWeek(String toNodeId) {
+    final weekAgo = DateTime.now().subtract(const Duration(days: 7));
+    return (select(bouquetsTable)
+          ..where((t) =>
+              t.toNodeId.equals(toNodeId) &
+              t.date.isBiggerOrEqualValue(weekAgo))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .get();
+  }
+
+  /// 올해 전체 꽃 (연간 리포트용)
+  Future<List<BouquetsTableData>> getBouquetsThisYear() {
+    final yearStart = DateTime(DateTime.now().year);
+    return (select(bouquetsTable)
+          ..where((t) => t.date.isBiggerOrEqualValue(yearStart))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .get();
+  }
+
+  Future<int> deleteBouquet(String id) =>
+      (delete(bouquetsTable)..where((t) => t.id.equals(id))).go();
 
   // ── Settings ───────────────────────────────────────────────────────────────
 

@@ -37,4 +37,13 @@ abstract final class SettingsKey {
 
   // ── 캔버스 ────────────────────────────────────────────────────────────────
   static const String spouseSnap = 'spouse_snap';         // true / false
+
+  // ── 스트릭 ────────────────────────────────────────────────────────────────
+  static const String streakCount = 'streak_count';         // int as string
+  static const String streakLastDate = 'streak_last_date';  // ISO8601 date
+  static const String streakFreezeCount = 'streak_freeze_count'; // int as string
+  static const String streakFreezeUsedMonth = 'streak_freeze_used_month'; // YYYY-MM
+
+  // ── 데일리 프롬프트 ──────────────────────────────────────────────────────
+  static const String dailyPromptDismissedDate = 'daily_prompt_dismissed_date'; // YYYY-MM-DD
 }

@@ -122,4 +122,36 @@ class SettingsRepository {
 
   Future<void> setSpouseSnap(bool enabled) =>
       set(SettingsKey.spouseSnap, enabled.toString());
+
+  // ── 스트릭 ────────────────────────────────────────────────────────────────
+
+  Future<int> getStreakCount() async {
+    final v = await get(SettingsKey.streakCount);
+    return v == null ? 0 : int.tryParse(v) ?? 0;
+  }
+
+  Future<void> setStreakCount(int count) =>
+      set(SettingsKey.streakCount, count.toString());
+
+  Future<DateTime?> getStreakLastDate() async {
+    final v = await get(SettingsKey.streakLastDate);
+    return v == null ? null : DateTime.tryParse(v);
+  }
+
+  Future<void> setStreakLastDate(DateTime date) =>
+      set(SettingsKey.streakLastDate, date.toIso8601String());
+
+  Future<int> getStreakFreezeCount() async {
+    final v = await get(SettingsKey.streakFreezeCount);
+    return v == null ? 0 : int.tryParse(v) ?? 0;
+  }
+
+  Future<void> setStreakFreezeCount(int count) =>
+      set(SettingsKey.streakFreezeCount, count.toString());
+
+  Future<String?> getStreakFreezeUsedMonth() =>
+      get(SettingsKey.streakFreezeUsedMonth);
+
+  Future<void> setStreakFreezeUsedMonth(String month) =>
+      set(SettingsKey.streakFreezeUsedMonth, month);
 }

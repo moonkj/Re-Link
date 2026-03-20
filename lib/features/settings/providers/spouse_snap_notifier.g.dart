@@ -7,7 +7,7 @@ part of 'spouse_snap_notifier.dart';
 // **************************************************************************
 
 String _$spouseSnapNotifierHash() =>
-    r'a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4';
+    r'2f3dff2a0d0d306f4c4974d036f4b0a1262cb116';
 
 /// 부부 자석 스냅 On/Off 상태
 ///

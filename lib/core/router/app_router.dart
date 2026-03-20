@@ -16,6 +16,7 @@ import '../../features/subscription/presentation/subscription_screen.dart';
 import '../../features/settings/presentation/privacy_policy_screen.dart';
 import '../../features/settings/presentation/terms_screen.dart';
 import '../../features/family/presentation/merge_preview_screen.dart';
+import '../../features/temperature/presentation/temperature_diary_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
 import '../../shared/widgets/ad_banner_widget.dart';
 
@@ -36,8 +37,11 @@ abstract final class AppRoutes {
   static const String terms = '/terms';
   static const String firstFamily = '/first-family';
   static const String mergePreview = '/merge-preview';
+  static const String temperatureDiary = '/temperature-diary/:nodeId';
 
   static String memoryPath(String nodeId) => '/memory/$nodeId';
+  static String temperatureDiaryPath(String nodeId) =>
+      '/temperature-diary/$nodeId';
 }
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -115,6 +119,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, s) => MergePreviewScreen(
           rlinkPath: s.uri.queryParameters['path'] ?? '',
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.temperatureDiary,
+        builder: (_, s) {
+          final nodeId = s.pathParameters['nodeId']!;
+          final nodeName = (s.extra as String?) ?? '';
+          return TemperatureDiaryScreen(
+            nodeId: nodeId,
+            nodeName: nodeName,
+          );
+        },
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

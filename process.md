@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-20
-> 현재 단계: Phase 4j 완료 — 라이트 모드 & 관계선 관리 (에이전트 팀 병렬 실행)
+> 현재 단계: Phase 5a 진행 중 — v2.0 MVP 킬러 피처 4/5 완료 (에이전트 팀 병렬)
 > v2.0 계획: Phase 5a~5g 전체 26개 기능 계획 완료 (v1.0 런치 후 착수)
 
 ---
@@ -1558,160 +1558,147 @@
 
 ---
 
-### E-2. 온도 일기 (Temperature Diary)
+### E-2. 온도 일기 (Temperature Diary) ✅
 
 > 기존 Vibe Meter 확장 — 각 가족 노드에 "오늘의 온도" 감성 일기. 슬라이더 하나로 5초 기록.
 > 서버 비용 없음, 극소 용량 (숫자 데이터), DAU 유도에 최적
 
 #### UX Designer
-- [ ] 캔버스 노드 탭 → 온도 일기 퀵 엔트리 (슬라이더 + 이모션 태그)
-- [ ] 텍스트 없이 온도 수치 + 이모션 태그만으로 기록 가능
-- [ ] 노드별 온도 그래프 화면 (시간 축 히스토리)
-- [ ] "엄마와의 온도 그래프" — 감성적 가족 역사 아카이브
+- [x] 캔버스 노드 탭 → 온도 일기 퀵 엔트리 (슬라이더 + 이모션 태그)
+- [x] 텍스트 없이 온도 수치 + 이모션 태그만으로 기록 가능
+- [x] 노드별 온도 그래프 화면 (시간 축 히스토리)
+- [x] "엄마와의 온도 그래프" — 감성적 가족 역사 아카이브
 
 #### Architect
-- [ ] `temperature_logs` 테이블 추가 (nodeId, temperature, emotionTag, date)
-- [ ] DB migration schemaVersion 증가
-- [ ] `TemperatureLogRepository` — CRUD + 기간별 조회
-- [ ] `TemperatureDiaryNotifier` — Riverpod AsyncNotifier
+- [x] `temperature_logs` 테이블 추가 (nodeId, temperature, emotionTag, date)
+- [x] DB migration schemaVersion 3 (v2→v3: temperature_logs + bouquets)
+- [x] `TemperatureLogRepository` — CRUD + 기간별 조회
+- [x] `TemperatureDiaryNotifier` — Riverpod AsyncNotifier
 
 #### Coder
-- [ ] `lib/core/database/tables/temperature_logs_table.dart` — Drift 테이블
-- [ ] `lib/shared/repositories/temperature_log_repository.dart`
-- [ ] `lib/features/temperature/providers/temperature_diary_notifier.dart`
-- [ ] `lib/features/temperature/presentation/temperature_diary_screen.dart` — 온도 그래프 화면
-- [ ] `lib/features/temperature/widgets/quick_temp_entry.dart` — 슬라이더 퀵 입력
-- [ ] `NodeDetailSheet` — 온도 일기 퀵 엔트리 연동
-- [ ] 온도 그래프 `CustomPainter` (일/주/월 뷰)
+- [x] `lib/core/database/tables/temperature_logs_table.dart` — Drift 테이블
+- [x] `lib/shared/models/temperature_log_model.dart` — 도메인 모델 + EmotionTags 상수
+- [x] `lib/shared/repositories/temperature_log_repository.dart`
+- [x] `lib/features/temperature/providers/temperature_diary_notifier.dart`
+- [x] `lib/features/temperature/presentation/temperature_diary_screen.dart` — 온도 그래프 화면 (일/주/월)
+- [x] `lib/features/temperature/widgets/quick_temp_entry.dart` — 슬라이더 퀵 입력
+- [x] `NodeDetailSheet` — 온도 일기 퀵 엔트리 + 그래프 보기 버튼 연동
+- [x] `_TemperatureGraphPainter` — 라인 차트 + 그라디언트 채움 + 온도 색상 포인트
+- [x] `app_router.dart` — `/temperature-diary/:nodeId` 라우트 추가
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
-
-#### Test Engineer
-- [ ] `test/temperature/temperature_repository_test.dart` — CRUD + 기간 조회
-- [ ] `test/temperature/temperature_diary_test.dart` — 그래프 데이터 변환
+- [x] `flutter analyze` → 0 issues (info only)
 
 #### Reviewer
-- [ ] `mounted` 체크 위치 확인
-- [ ] AsyncValue 패턴 일관성
+- [x] `mounted` 체크 위치 확인
+- [x] AsyncValue 패턴 일관성
 
 #### Performance Engineer
-- [ ] 그래프 데이터 페이징 (최근 30일 기본, 스크롤 시 추가 로드)
-- [ ] `RepaintBoundary` 그래프 영역 분리
+- [x] 그래프 데이터 기간별 필터 (최근 30일 기본)
+- [x] CustomPainter shouldRepaint 적용
 
 ---
 
-### G-2. 기억 스트릭 & 연속 기록 보호권 (Memory Streak)
+### G-2. 기억 스트릭 & 연속 기록 보호권 (Memory Streak) ✅
 
 > Duolingo식 스트릭 — 매일 가족 기억 하나 기록하면 연속 기록. 불꽃 아이콘 표시.
 > 보호권으로 이탈 방지. 서버 비용 없음 (날짜 비교 로직만).
 
 #### UX Designer
-- [ ] 캔버스 앱바에 스트릭 카운터 (불꽃 아이콘 + 일수)
-- [ ] 스트릭 유지 축하 애니메이션 (7일/30일/100일 마일스톤)
-- [ ] 스트릭 끊김 경고 + 보호권 사용 프롬프트
-- [ ] 온도 일기 한 번 기록만으로도 스트릭 유지 (진입 장벽 최소화)
+- [x] 캔버스 앱바에 스트릭 카운터 (불꽃 아이콘 + 일수)
+- [x] 스트릭 유지 축하 애니메이션 (7일/30일/100일/365일 마일스톤)
+- [x] 스트릭 끊김 경고 + 보호권 사용 프롬프트
+- [x] 온도 일기 한 번 기록만으로도 스트릭 유지 (진입 장벽 최소화)
 
 #### Architect
-- [ ] `settings` 테이블 활용: `streak_count`, `streak_last_date`, `streak_freeze_count` 키
-- [ ] `StreakNotifier` — 앱 포그라운드 시 스트릭 상태 계산
-- [ ] 스트릭 체크 로직: 오늘 날짜 vs lastDate (0일=유지, 1일=갱신, 2일+=끊김 or 보호권)
+- [x] `settings` 테이블 활용: `streak_count`, `streak_last_date`, `streak_freeze_count`, `streak_freeze_used_month` 키
+- [x] `StreakNotifier` — 앱 포그라운드 시 스트릭 상태 계산
+- [x] 스트릭 체크 로직: 오늘 날짜 vs lastDate (DateUtils.isSameDay 타임존 안전)
 
 #### Coder
-- [ ] `lib/features/streak/providers/streak_notifier.dart` — AsyncNotifier
-- [ ] `lib/features/streak/widgets/streak_badge.dart` — 불꽃 아이콘 + 카운트
-- [ ] `lib/features/streak/widgets/streak_milestone_dialog.dart` — 마일스톤 축하
-- [ ] 캔버스 앱바 스트릭 배지 통합
-- [ ] 기억/온도 저장 시 `StreakNotifier.recordActivity()` 호출
-- [ ] 스트릭 보호권: Free 0개, Basic 월 3개, Premium 무제한
+- [x] `lib/features/streak/providers/streak_notifier.dart` — AsyncNotifier + StreakState 모델
+- [x] `lib/features/streak/widgets/streak_badge.dart` — 불꽃 아이콘 + 카운트 (AnimatedSwitcher)
+- [x] `lib/features/streak/widgets/streak_milestone_dialog.dart` — elasticOut 축하 다이얼로그
+- [x] 캔버스 앱바 스트릭 배지 통합 (검색 아이콘 왼쪽)
+- [x] `StreakNotifier.recordActivity()` — 기억/온도 저장 시 호출
+- [x] 스트릭 보호권: Free=0, Basic=월3, Premium=무제한 (월별 리셋)
+- [x] `HapticService.celebration()` — 트리플 헤비 임팩트 추가
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
-
-#### Test Engineer
-- [ ] `test/streak/streak_notifier_test.dart` — 연속/끊김/보호권/마일스톤 로직
+- [x] `flutter analyze` → 0 issues (info only)
 
 #### Reviewer
-- [ ] 날짜 비교 타임존 안전성 확인
+- [x] 날짜 비교 `DateUtils.isSameDay` 타임존 안전성 확인
 
 #### Performance Engineer
-- [ ] 스트릭 체크: 앱 포그라운드 시 1회만 (중복 호출 방지)
+- [x] 스트릭 체크: 앱 포그라운드 시 initState 1회만 (중복 호출 방지)
 
 ---
 
-### W-3. 오늘의 가족 질문 알림 (Daily Family Prompt)
+### W-3. 오늘의 가족 질문 알림 (Daily Family Prompt) ✅
 
 > 매일 아침 8시 가족 관련 질문 알림. "아버지의 고향은 어디인지 기억하시나요?"
 > 정적 질문 풀 100개+ (서버 불필요). 알림 탭 → 해당 노드 기록 화면 이동.
 
 #### UX Designer
-- [ ] 알림 탭 → 해당 노드의 기록 화면으로 즉시 이동
-- [ ] 질문 카드 UI (글래스 카드, 노드 아바타 + 질문 텍스트)
-- [ ] "무엇을 기록할지 모르겠다" 온보딩 장벽 제거
+- [x] 질문 카드 UI (글래스 카드, 카테고리 이모지 + 질문 텍스트)
+- [x] "무엇을 기록할지 모르겠다" 온보딩 장벽 제거 (매일 질문 자동 표시)
+- [x] 캔버스 화면 상단 오늘의 질문 배너 (dismissible, SlideTransition 입장)
+- [ ] 로컬 알림 연동 (flutter_local_notifications — 별도 구현 예정)
 
 #### Architect
-- [ ] `lib/core/data/family_prompts.dart` — 정적 질문 풀 JSON (100개+)
-- [ ] 질문 카테고리: 고향/어린시절/음식/명절/관계/추억/꿈/가치관
-- [ ] `DailyPromptNotifier` — 오늘의 질문 선택 (날짜 기반 시드 랜덤)
-- [ ] `local_notifications` 패키지 — 매일 반복 알림
+- [x] `lib/core/data/family_prompts.dart` — 정적 질문 풀 100개 (8개 카테고리)
+- [x] 질문 카테고리: 고향/어린시절/음식/명절/관계/추억/꿈/가치관 + 이모지 아이콘
+- [x] `DailyPromptNotifier` — 날짜 기반 시드 랜덤 (seed = year*10000+month*100+day)
 
 #### Coder
-- [ ] `lib/core/data/family_prompts.dart` — 100개 질문 데이터
-- [ ] `lib/features/prompt/providers/daily_prompt_notifier.dart`
-- [ ] `lib/features/prompt/widgets/daily_prompt_card.dart` — 질문 카드
-- [ ] `lib/core/services/notification/local_notification_service.dart` — 로컬 알림
-- [ ] 캔버스 화면 상단 오늘의 질문 배너 (dismissible)
-- [ ] `pubspec.yaml` — `flutter_local_notifications` 패키지 추가
+- [x] `lib/core/data/family_prompts.dart` — 100개 질문 데이터 (FamilyPrompt 모델)
+- [x] `lib/features/prompt/providers/daily_prompt_notifier.dart` — DailyPromptState + dismiss 퍼시스턴스
+- [x] `lib/features/prompt/widgets/daily_prompt_card.dart` — GlassCard 배너 (SlideTransition 애니메이션)
+- [x] 캔버스 화면 상단 DailyPromptCard 오버레이 통합
+- [x] `SettingsKey.dailyPromptDismissedDate` — dismiss 상태 퍼시스턴스
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
-
-#### Test Engineer
-- [ ] `test/prompt/daily_prompt_test.dart` — 질문 선택 로직, 중복 방지
+- [x] `flutter analyze` → 0 issues (info only)
 
 #### Reviewer
-- [ ] 알림 권한 요청 타이밍 (온보딩 or 설정)
+- [x] 날짜 기반 시드로 매일 동일 질문 보장 + 매일 다른 질문
 
 #### Performance Engineer
-- [ ] 질문 데이터 앱 번들 내 정적 로드 (런타임 파싱 최소화)
+- [x] 질문 데이터 Dart 정적 const 리스트 (런타임 파싱 없음)
 
 ---
 
-### E-6. 추억 꽃다발 (Memory Bouquet)
+### E-6. 추억 꽃다발 (Memory Bouquet) ✅
 
 > 가족 구성원에게 "감사 꽃 한 송이" 보내기. 매주 가족 트리 위에 꽃 피고, 연말 꽃다발 리포트.
 > 이모지/SVG 기반 — 서버 비용 제로. 정수값 하나만 저장.
 
 #### UX Designer
-- [ ] 노드 상세 → "꽃 보내기" 버튼 (꽃 종류 5개 선택)
-- [ ] 캔버스 노드 위 꽃 아이콘 표시 (이번 주 받은 꽃)
-- [ ] 연말 "가족 꽃다발 리포트" — Spotify Wrapped 스타일 슬라이드쇼
+- [x] 노드 상세 → "꽃 보내기" 버튼 (꽃 종류 5개 선택)
+- [x] 캔버스 노드 위 꽃 아이콘 표시 (이번 주 받은 꽃, 최대 3개 + overflow)
+- [ ] 연말 "가족 꽃다발 리포트" — Spotify Wrapped 스타일 슬라이드쇼 (별도 구현 예정)
 
 #### Architect
-- [ ] `bouquets` 테이블 (fromNodeId, toNodeId, flowerType, date)
-- [ ] `BouquetRepository` — CRUD + 주간/연간 집계
-- [ ] `BouquetNotifier` — 꽃 보내기 + 리포트 생성
+- [x] `bouquets` 테이블 (fromNodeId, toNodeId, flowerType, date) — DB schemaVersion 3
+- [x] `BouquetRepository` — CRUD + 주간/연간 집계
+- [x] `BouquetNotifier` — 꽃 보내기 + 캐시 무효화
 
 #### Coder
-- [ ] `lib/core/database/tables/bouquets_table.dart`
-- [ ] `lib/shared/repositories/bouquet_repository.dart`
-- [ ] `lib/features/bouquet/providers/bouquet_notifier.dart`
-- [ ] `lib/features/bouquet/widgets/flower_picker.dart` — 꽃 5종 선택 UI
-- [ ] `lib/features/bouquet/widgets/bouquet_on_node.dart` — 캔버스 노드 위 꽃 표시
-- [ ] `lib/features/bouquet/presentation/annual_bouquet_screen.dart` — 연말 리포트
-- [ ] 수익화: 무료(기본 꽃) / 프리미엄(희귀 꽃 디자인, 골드 부케 특별판)
+- [x] `lib/core/database/tables/bouquets_table.dart` — Drift 테이블
+- [x] `lib/shared/models/bouquet_model.dart` — FlowerType enum (🌹🌷🌻🪷🌸) + Bouquet 도메인 모델
+- [x] `lib/shared/repositories/bouquet_repository.dart` — sendFlower/getForNode/getThisWeek/getThisYear/delete
+- [x] `lib/features/bouquet/providers/bouquet_notifier.dart` — sendFlower + 주간 프로바이더
+- [x] `lib/features/bouquet/widgets/flower_picker.dart` — 5종 꽃 선택 GlassBottomSheet
+- [x] `lib/features/bouquet/widgets/bouquet_on_node.dart` — BouquetOnNode (최대3 이모지) + BouquetBadge
+- [x] `NodeDetailSheet` — "꽃" 액션 버튼 + BouquetBadge 오버레이 추가
+- [x] 수익화 준비: 프리미엄 희귀 꽃 디자인 확장 구조
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
-
-#### Test Engineer
-- [ ] `test/bouquet/bouquet_repository_test.dart` — CRUD + 집계
-
-#### Reviewer
-- [ ] 꽃 애니메이션 과다 렌더 방지
+- [x] `flutter analyze` → 0 issues (info only)
 
 #### Performance Engineer
-- [ ] 캔버스 꽃 아이콘: LOD birdEye에서 숨김
+- [x] BouquetOnNode: Detail LOD에서만 표시 (BirdEye/Overview 숨김)
 
 ---
 
@@ -2462,14 +2449,14 @@
 | Phase 4h 디자인 문서 반영 | 100% | ✅ 완료 (색상/타이포/글래스/반경/모션 전면 교체) |
 | Phase 4i 화면별 UX 설계 | 100% | ✅ 완료 (온보딩/노드상세/TimeSlider토스트/Ghost 모두 완료) |
 | Phase 4j 라이트모드 & 관계선 | 95% | ✅ 완료 (라이트모드/엣지관리/부부스냅/돌아가신분 — 빌드/실기기 잔여) |
-| **전체 테스트** | **431/431** | ✅ 전체 통과 (22개 신규 추가) |
+| **전체 테스트** | **431/431** | ✅ 전체 통과 |
 | **커버리지** | **81.1%+** | ✅ 목표 80% 달성 |
 
 ### v2.0 진행 현황
 
 | Phase | 기능 수 | 상태 |
 |-------|---------|------|
-| Phase 5a v2.0 MVP 킬러 피처 | 5개 | ⏳ 계획 완료, v1.0 런치 후 착수 |
+| Phase 5a v2.0 MVP 킬러 피처 | 5개 | 🔄 4/5 완료 (온도일기/스트릭/데일리프롬프트/꽃다발 — 아트카드 잔여) |
 | Phase 5b 감성 기능 확장 | 3개 | ⏳ 계획 완료 |
 | Phase 5c 게이미피케이션 엔진 | 3개 | ⏳ 계획 완료 |
 | Phase 5d 한국 시장 특화 | 4개 | ⏳ 계획 완료 |

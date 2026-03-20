@@ -1,26 +1,28 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'node_notifier.dart';
+part of 'bouquet_repository.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$nodeNotifierHash() => r'c83e1effcd6d2905de4d65582ab11c4d3c69aa11';
+String _$bouquetRepositoryHash() => r'4eb67c27bf509ad28dadc1f16079df38e623f08e';
 
-/// See also [NodeNotifier].
-@ProviderFor(NodeNotifier)
-final nodeNotifierProvider =
-    AutoDisposeNotifierProvider<NodeNotifier, AsyncValue<void>>.internal(
-      NodeNotifier.new,
-      name: r'nodeNotifierProvider',
+/// See also [bouquetRepository].
+@ProviderFor(bouquetRepository)
+final bouquetRepositoryProvider =
+    AutoDisposeProvider<BouquetRepository>.internal(
+      bouquetRepository,
+      name: r'bouquetRepositoryProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
           ? null
-          : _$nodeNotifierHash,
+          : _$bouquetRepositoryHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
-typedef _$NodeNotifier = AutoDisposeNotifier<AsyncValue<void>>;
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef BouquetRepositoryRef = AutoDisposeProviderRef<BouquetRepository>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

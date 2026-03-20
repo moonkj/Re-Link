@@ -70,4 +70,14 @@ abstract final class HapticService {
 
   /// 백업 완료 (lightImpact)
   static Future<void> backupComplete() => HapticFeedback.lightImpact();
+
+  /// 축하 (마일스톤 달성 등) — heavyImpact × 3 연속
+  static Future<void> celebration() async {
+    if (!enabled) return;
+    await HapticFeedback.heavyImpact();
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    await HapticFeedback.heavyImpact();
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    await HapticFeedback.heavyImpact();
+  }
 }

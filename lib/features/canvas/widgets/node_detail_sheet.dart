@@ -13,6 +13,9 @@ import '../../../shared/widgets/empty_state_widget.dart';
 import '../../memory/providers/memory_notifier.dart';
 import '../providers/canvas_notifier.dart';
 import '../providers/node_notifier.dart';
+import '../../temperature/widgets/quick_temp_entry.dart';
+import '../../bouquet/widgets/bouquet_on_node.dart';
+import '../../bouquet/widgets/flower_picker.dart';
 import 'edit_node_sheet.dart';
 import 'node_card.dart';
 import 'vibe_meter_sheet.dart';
@@ -63,6 +66,75 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
               tempColor: tempColor,
               onAvatarTap: () => _showPhotoFullScreen(context, node),
               onTempTap: () => _showVibeMeter(context, node),
+            ),
+
+            // ── 온도 일기 바로가기 ────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.xs,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GlassCard(
+                      onTap: () => _openQuickTempEntry(context, node),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.edit_calendar,
+                              color: tempColor, size: 16),
+                          const SizedBox(width: AppSpacing.xs),
+                          Text(
+                            '온도 일기',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: tempColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: GlassCard(
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(
+                          AppRoutes.temperatureDiaryPath(node.id),
+                          extra: node.name,
+                        );
+                      },
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.show_chart,
+                              color: AppColors.primary, size: 16),
+                          const SizedBox(width: AppSpacing.xs),
+                          Text(
+                            '그래프 보기',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
 
             // ── Ghost 노드 배너 ─────────────────────────────────────────
@@ -248,6 +320,13 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
+                    child: _FlowerActionButton(
+                      nodeId: node.id,
+                      onTap: () => _showFlowerPicker(context, ref, node),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
                     child: _ActionButton(
                       icon: Icons.delete_outline,
                       label: '삭제',
@@ -275,6 +354,19 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
     );
   }
 
+  // ── 온도 일기 빠른 기록 ──────────────────────────────────────────────────
+  void _openQuickTempEntry(BuildContext context, NodeModel node) {
+    showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => QuickTempEntry(
+        nodeId: node.id,
+        nodeName: node.name,
+      ),
+    );
+  }
+
   // ── 온도 뱃지 탭 → VibeMeterSheet ────────────────────────────────────────
   void _showVibeMeter(BuildContext context, NodeModel node) {
     showModalBottomSheet<void>(
@@ -283,6 +375,20 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
       builder: (_) => VibeMeterSheet(
         nodeId: node.id,
         initialTemperature: node.temperature,
+      ),
+    );
+  }
+
+  // ── 꽃 보내기 (Memory Bouquet) ─────────────────────────────────────────
+  void _showFlowerPicker(
+      BuildContext context, WidgetRef ref, NodeModel node) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => FlowerPickerSheet(
+        fromNodeId: 'self',
+        toNodeId: node.id,
+        toNodeName: node.name,
       ),
     );
   }
@@ -1292,6 +1398,46 @@ class _ActionButton extends StatelessWidget {
           Icon(icon, color: color, size: 22),
           const SizedBox(height: 4),
           Text(label, style: TextStyle(fontSize: 11, color: color)),
+        ],
+      ),
+    );
+  }
+}
+
+/// 꽃 보내기 액션 버튼 — 이번 주 꽃 수 뱃지 포함
+class _FlowerActionButton extends ConsumerWidget {
+  const _FlowerActionButton({
+    required this.nodeId,
+    required this.onTap,
+  });
+
+  final String nodeId;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GlassCard(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Column(
+            children: [
+              Icon(Icons.local_florist_outlined,
+                  color: AppColors.accent, size: 22),
+              const SizedBox(height: 4),
+              Text(
+                '꽃',
+                style: TextStyle(fontSize: 11, color: AppColors.accent),
+              ),
+            ],
+          ),
+          Positioned(
+            top: -4,
+            right: -4,
+            child: BouquetBadge(toNodeId: nodeId),
+          ),
         ],
       ),
     );

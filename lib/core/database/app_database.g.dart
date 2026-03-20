@@ -2726,6 +2726,839 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
   }
 }
 
+class $TemperatureLogsTableTable extends TemperatureLogsTable
+    with TableInfo<$TemperatureLogsTableTable, TemperatureLogsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TemperatureLogsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nodeIdMeta = const VerificationMeta('nodeId');
+  @override
+  late final GeneratedColumn<String> nodeId = GeneratedColumn<String>(
+    'node_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _temperatureMeta = const VerificationMeta(
+    'temperature',
+  );
+  @override
+  late final GeneratedColumn<int> temperature = GeneratedColumn<int>(
+    'temperature',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _emotionTagMeta = const VerificationMeta(
+    'emotionTag',
+  );
+  @override
+  late final GeneratedColumn<String> emotionTag = GeneratedColumn<String>(
+    'emotion_tag',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    nodeId,
+    temperature,
+    emotionTag,
+    date,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'temperature_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TemperatureLogsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('node_id')) {
+      context.handle(
+        _nodeIdMeta,
+        nodeId.isAcceptableOrUnknown(data['node_id']!, _nodeIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nodeIdMeta);
+    }
+    if (data.containsKey('temperature')) {
+      context.handle(
+        _temperatureMeta,
+        temperature.isAcceptableOrUnknown(
+          data['temperature']!,
+          _temperatureMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_temperatureMeta);
+    }
+    if (data.containsKey('emotion_tag')) {
+      context.handle(
+        _emotionTagMeta,
+        emotionTag.isAcceptableOrUnknown(data['emotion_tag']!, _emotionTagMeta),
+      );
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TemperatureLogsTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TemperatureLogsTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      nodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}node_id'],
+      )!,
+      temperature: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}temperature'],
+      )!,
+      emotionTag: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}emotion_tag'],
+      ),
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TemperatureLogsTableTable createAlias(String alias) {
+    return $TemperatureLogsTableTable(attachedDatabase, alias);
+  }
+}
+
+class TemperatureLogsTableData extends DataClass
+    implements Insertable<TemperatureLogsTableData> {
+  final String id;
+  final String nodeId;
+  final int temperature;
+  final String? emotionTag;
+  final DateTime date;
+  final DateTime createdAt;
+  const TemperatureLogsTableData({
+    required this.id,
+    required this.nodeId,
+    required this.temperature,
+    this.emotionTag,
+    required this.date,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['node_id'] = Variable<String>(nodeId);
+    map['temperature'] = Variable<int>(temperature);
+    if (!nullToAbsent || emotionTag != null) {
+      map['emotion_tag'] = Variable<String>(emotionTag);
+    }
+    map['date'] = Variable<DateTime>(date);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  TemperatureLogsTableCompanion toCompanion(bool nullToAbsent) {
+    return TemperatureLogsTableCompanion(
+      id: Value(id),
+      nodeId: Value(nodeId),
+      temperature: Value(temperature),
+      emotionTag: emotionTag == null && nullToAbsent
+          ? const Value.absent()
+          : Value(emotionTag),
+      date: Value(date),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory TemperatureLogsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TemperatureLogsTableData(
+      id: serializer.fromJson<String>(json['id']),
+      nodeId: serializer.fromJson<String>(json['nodeId']),
+      temperature: serializer.fromJson<int>(json['temperature']),
+      emotionTag: serializer.fromJson<String?>(json['emotionTag']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'nodeId': serializer.toJson<String>(nodeId),
+      'temperature': serializer.toJson<int>(temperature),
+      'emotionTag': serializer.toJson<String?>(emotionTag),
+      'date': serializer.toJson<DateTime>(date),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  TemperatureLogsTableData copyWith({
+    String? id,
+    String? nodeId,
+    int? temperature,
+    Value<String?> emotionTag = const Value.absent(),
+    DateTime? date,
+    DateTime? createdAt,
+  }) => TemperatureLogsTableData(
+    id: id ?? this.id,
+    nodeId: nodeId ?? this.nodeId,
+    temperature: temperature ?? this.temperature,
+    emotionTag: emotionTag.present ? emotionTag.value : this.emotionTag,
+    date: date ?? this.date,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  TemperatureLogsTableData copyWithCompanion(
+    TemperatureLogsTableCompanion data,
+  ) {
+    return TemperatureLogsTableData(
+      id: data.id.present ? data.id.value : this.id,
+      nodeId: data.nodeId.present ? data.nodeId.value : this.nodeId,
+      temperature: data.temperature.present
+          ? data.temperature.value
+          : this.temperature,
+      emotionTag: data.emotionTag.present
+          ? data.emotionTag.value
+          : this.emotionTag,
+      date: data.date.present ? data.date.value : this.date,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TemperatureLogsTableData(')
+          ..write('id: $id, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('temperature: $temperature, ')
+          ..write('emotionTag: $emotionTag, ')
+          ..write('date: $date, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, nodeId, temperature, emotionTag, date, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TemperatureLogsTableData &&
+          other.id == this.id &&
+          other.nodeId == this.nodeId &&
+          other.temperature == this.temperature &&
+          other.emotionTag == this.emotionTag &&
+          other.date == this.date &&
+          other.createdAt == this.createdAt);
+}
+
+class TemperatureLogsTableCompanion
+    extends UpdateCompanion<TemperatureLogsTableData> {
+  final Value<String> id;
+  final Value<String> nodeId;
+  final Value<int> temperature;
+  final Value<String?> emotionTag;
+  final Value<DateTime> date;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const TemperatureLogsTableCompanion({
+    this.id = const Value.absent(),
+    this.nodeId = const Value.absent(),
+    this.temperature = const Value.absent(),
+    this.emotionTag = const Value.absent(),
+    this.date = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TemperatureLogsTableCompanion.insert({
+    required String id,
+    required String nodeId,
+    required int temperature,
+    this.emotionTag = const Value.absent(),
+    required DateTime date,
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       nodeId = Value(nodeId),
+       temperature = Value(temperature),
+       date = Value(date);
+  static Insertable<TemperatureLogsTableData> custom({
+    Expression<String>? id,
+    Expression<String>? nodeId,
+    Expression<int>? temperature,
+    Expression<String>? emotionTag,
+    Expression<DateTime>? date,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (nodeId != null) 'node_id': nodeId,
+      if (temperature != null) 'temperature': temperature,
+      if (emotionTag != null) 'emotion_tag': emotionTag,
+      if (date != null) 'date': date,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TemperatureLogsTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? nodeId,
+    Value<int>? temperature,
+    Value<String?>? emotionTag,
+    Value<DateTime>? date,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return TemperatureLogsTableCompanion(
+      id: id ?? this.id,
+      nodeId: nodeId ?? this.nodeId,
+      temperature: temperature ?? this.temperature,
+      emotionTag: emotionTag ?? this.emotionTag,
+      date: date ?? this.date,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (nodeId.present) {
+      map['node_id'] = Variable<String>(nodeId.value);
+    }
+    if (temperature.present) {
+      map['temperature'] = Variable<int>(temperature.value);
+    }
+    if (emotionTag.present) {
+      map['emotion_tag'] = Variable<String>(emotionTag.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TemperatureLogsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('temperature: $temperature, ')
+          ..write('emotionTag: $emotionTag, ')
+          ..write('date: $date, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $BouquetsTableTable extends BouquetsTable
+    with TableInfo<$BouquetsTableTable, BouquetsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BouquetsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fromNodeIdMeta = const VerificationMeta(
+    'fromNodeId',
+  );
+  @override
+  late final GeneratedColumn<String> fromNodeId = GeneratedColumn<String>(
+    'from_node_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _toNodeIdMeta = const VerificationMeta(
+    'toNodeId',
+  );
+  @override
+  late final GeneratedColumn<String> toNodeId = GeneratedColumn<String>(
+    'to_node_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _flowerTypeMeta = const VerificationMeta(
+    'flowerType',
+  );
+  @override
+  late final GeneratedColumn<String> flowerType = GeneratedColumn<String>(
+    'flower_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    fromNodeId,
+    toNodeId,
+    flowerType,
+    date,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'bouquets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BouquetsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('from_node_id')) {
+      context.handle(
+        _fromNodeIdMeta,
+        fromNodeId.isAcceptableOrUnknown(
+          data['from_node_id']!,
+          _fromNodeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_fromNodeIdMeta);
+    }
+    if (data.containsKey('to_node_id')) {
+      context.handle(
+        _toNodeIdMeta,
+        toNodeId.isAcceptableOrUnknown(data['to_node_id']!, _toNodeIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_toNodeIdMeta);
+    }
+    if (data.containsKey('flower_type')) {
+      context.handle(
+        _flowerTypeMeta,
+        flowerType.isAcceptableOrUnknown(data['flower_type']!, _flowerTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_flowerTypeMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BouquetsTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BouquetsTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      fromNodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}from_node_id'],
+      )!,
+      toNodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}to_node_id'],
+      )!,
+      flowerType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}flower_type'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $BouquetsTableTable createAlias(String alias) {
+    return $BouquetsTableTable(attachedDatabase, alias);
+  }
+}
+
+class BouquetsTableData extends DataClass
+    implements Insertable<BouquetsTableData> {
+  final String id;
+  final String fromNodeId;
+  final String toNodeId;
+  final String flowerType;
+  final DateTime date;
+  final DateTime createdAt;
+  const BouquetsTableData({
+    required this.id,
+    required this.fromNodeId,
+    required this.toNodeId,
+    required this.flowerType,
+    required this.date,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['from_node_id'] = Variable<String>(fromNodeId);
+    map['to_node_id'] = Variable<String>(toNodeId);
+    map['flower_type'] = Variable<String>(flowerType);
+    map['date'] = Variable<DateTime>(date);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  BouquetsTableCompanion toCompanion(bool nullToAbsent) {
+    return BouquetsTableCompanion(
+      id: Value(id),
+      fromNodeId: Value(fromNodeId),
+      toNodeId: Value(toNodeId),
+      flowerType: Value(flowerType),
+      date: Value(date),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory BouquetsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BouquetsTableData(
+      id: serializer.fromJson<String>(json['id']),
+      fromNodeId: serializer.fromJson<String>(json['fromNodeId']),
+      toNodeId: serializer.fromJson<String>(json['toNodeId']),
+      flowerType: serializer.fromJson<String>(json['flowerType']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'fromNodeId': serializer.toJson<String>(fromNodeId),
+      'toNodeId': serializer.toJson<String>(toNodeId),
+      'flowerType': serializer.toJson<String>(flowerType),
+      'date': serializer.toJson<DateTime>(date),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  BouquetsTableData copyWith({
+    String? id,
+    String? fromNodeId,
+    String? toNodeId,
+    String? flowerType,
+    DateTime? date,
+    DateTime? createdAt,
+  }) => BouquetsTableData(
+    id: id ?? this.id,
+    fromNodeId: fromNodeId ?? this.fromNodeId,
+    toNodeId: toNodeId ?? this.toNodeId,
+    flowerType: flowerType ?? this.flowerType,
+    date: date ?? this.date,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  BouquetsTableData copyWithCompanion(BouquetsTableCompanion data) {
+    return BouquetsTableData(
+      id: data.id.present ? data.id.value : this.id,
+      fromNodeId: data.fromNodeId.present
+          ? data.fromNodeId.value
+          : this.fromNodeId,
+      toNodeId: data.toNodeId.present ? data.toNodeId.value : this.toNodeId,
+      flowerType: data.flowerType.present
+          ? data.flowerType.value
+          : this.flowerType,
+      date: data.date.present ? data.date.value : this.date,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BouquetsTableData(')
+          ..write('id: $id, ')
+          ..write('fromNodeId: $fromNodeId, ')
+          ..write('toNodeId: $toNodeId, ')
+          ..write('flowerType: $flowerType, ')
+          ..write('date: $date, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, fromNodeId, toNodeId, flowerType, date, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BouquetsTableData &&
+          other.id == this.id &&
+          other.fromNodeId == this.fromNodeId &&
+          other.toNodeId == this.toNodeId &&
+          other.flowerType == this.flowerType &&
+          other.date == this.date &&
+          other.createdAt == this.createdAt);
+}
+
+class BouquetsTableCompanion extends UpdateCompanion<BouquetsTableData> {
+  final Value<String> id;
+  final Value<String> fromNodeId;
+  final Value<String> toNodeId;
+  final Value<String> flowerType;
+  final Value<DateTime> date;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const BouquetsTableCompanion({
+    this.id = const Value.absent(),
+    this.fromNodeId = const Value.absent(),
+    this.toNodeId = const Value.absent(),
+    this.flowerType = const Value.absent(),
+    this.date = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BouquetsTableCompanion.insert({
+    required String id,
+    required String fromNodeId,
+    required String toNodeId,
+    required String flowerType,
+    required DateTime date,
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       fromNodeId = Value(fromNodeId),
+       toNodeId = Value(toNodeId),
+       flowerType = Value(flowerType),
+       date = Value(date);
+  static Insertable<BouquetsTableData> custom({
+    Expression<String>? id,
+    Expression<String>? fromNodeId,
+    Expression<String>? toNodeId,
+    Expression<String>? flowerType,
+    Expression<DateTime>? date,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (fromNodeId != null) 'from_node_id': fromNodeId,
+      if (toNodeId != null) 'to_node_id': toNodeId,
+      if (flowerType != null) 'flower_type': flowerType,
+      if (date != null) 'date': date,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BouquetsTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? fromNodeId,
+    Value<String>? toNodeId,
+    Value<String>? flowerType,
+    Value<DateTime>? date,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return BouquetsTableCompanion(
+      id: id ?? this.id,
+      fromNodeId: fromNodeId ?? this.fromNodeId,
+      toNodeId: toNodeId ?? this.toNodeId,
+      flowerType: flowerType ?? this.flowerType,
+      date: date ?? this.date,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (fromNodeId.present) {
+      map['from_node_id'] = Variable<String>(fromNodeId.value);
+    }
+    if (toNodeId.present) {
+      map['to_node_id'] = Variable<String>(toNodeId.value);
+    }
+    if (flowerType.present) {
+      map['flower_type'] = Variable<String>(flowerType.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BouquetsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('fromNodeId: $fromNodeId, ')
+          ..write('toNodeId: $toNodeId, ')
+          ..write('flowerType: $flowerType, ')
+          ..write('date: $date, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2734,6 +3567,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $NodeEdgesTableTable nodeEdgesTable = $NodeEdgesTableTable(this);
   late final $MemoriesTableTable memoriesTable = $MemoriesTableTable(this);
   late final $SettingsTableTable settingsTable = $SettingsTableTable(this);
+  late final $TemperatureLogsTableTable temperatureLogsTable =
+      $TemperatureLogsTableTable(this);
+  late final $BouquetsTableTable bouquetsTable = $BouquetsTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2744,6 +3580,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     nodeEdgesTable,
     memoriesTable,
     settingsTable,
+    temperatureLogsTable,
+    bouquetsTable,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -4566,6 +5404,472 @@ typedef $$SettingsTableTableProcessedTableManager =
       SettingsTableData,
       PrefetchHooks Function()
     >;
+typedef $$TemperatureLogsTableTableCreateCompanionBuilder =
+    TemperatureLogsTableCompanion Function({
+      required String id,
+      required String nodeId,
+      required int temperature,
+      Value<String?> emotionTag,
+      required DateTime date,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$TemperatureLogsTableTableUpdateCompanionBuilder =
+    TemperatureLogsTableCompanion Function({
+      Value<String> id,
+      Value<String> nodeId,
+      Value<int> temperature,
+      Value<String?> emotionTag,
+      Value<DateTime> date,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$TemperatureLogsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $TemperatureLogsTableTable> {
+  $$TemperatureLogsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nodeId => $composableBuilder(
+    column: $table.nodeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get temperature => $composableBuilder(
+    column: $table.temperature,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get emotionTag => $composableBuilder(
+    column: $table.emotionTag,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TemperatureLogsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $TemperatureLogsTableTable> {
+  $$TemperatureLogsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nodeId => $composableBuilder(
+    column: $table.nodeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get temperature => $composableBuilder(
+    column: $table.temperature,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get emotionTag => $composableBuilder(
+    column: $table.emotionTag,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TemperatureLogsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TemperatureLogsTableTable> {
+  $$TemperatureLogsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get nodeId =>
+      $composableBuilder(column: $table.nodeId, builder: (column) => column);
+
+  GeneratedColumn<int> get temperature => $composableBuilder(
+    column: $table.temperature,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get emotionTag => $composableBuilder(
+    column: $table.emotionTag,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$TemperatureLogsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TemperatureLogsTableTable,
+          TemperatureLogsTableData,
+          $$TemperatureLogsTableTableFilterComposer,
+          $$TemperatureLogsTableTableOrderingComposer,
+          $$TemperatureLogsTableTableAnnotationComposer,
+          $$TemperatureLogsTableTableCreateCompanionBuilder,
+          $$TemperatureLogsTableTableUpdateCompanionBuilder,
+          (
+            TemperatureLogsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $TemperatureLogsTableTable,
+              TemperatureLogsTableData
+            >,
+          ),
+          TemperatureLogsTableData,
+          PrefetchHooks Function()
+        > {
+  $$TemperatureLogsTableTableTableManager(
+    _$AppDatabase db,
+    $TemperatureLogsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TemperatureLogsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TemperatureLogsTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$TemperatureLogsTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> nodeId = const Value.absent(),
+                Value<int> temperature = const Value.absent(),
+                Value<String?> emotionTag = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TemperatureLogsTableCompanion(
+                id: id,
+                nodeId: nodeId,
+                temperature: temperature,
+                emotionTag: emotionTag,
+                date: date,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String nodeId,
+                required int temperature,
+                Value<String?> emotionTag = const Value.absent(),
+                required DateTime date,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TemperatureLogsTableCompanion.insert(
+                id: id,
+                nodeId: nodeId,
+                temperature: temperature,
+                emotionTag: emotionTag,
+                date: date,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TemperatureLogsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TemperatureLogsTableTable,
+      TemperatureLogsTableData,
+      $$TemperatureLogsTableTableFilterComposer,
+      $$TemperatureLogsTableTableOrderingComposer,
+      $$TemperatureLogsTableTableAnnotationComposer,
+      $$TemperatureLogsTableTableCreateCompanionBuilder,
+      $$TemperatureLogsTableTableUpdateCompanionBuilder,
+      (
+        TemperatureLogsTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $TemperatureLogsTableTable,
+          TemperatureLogsTableData
+        >,
+      ),
+      TemperatureLogsTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$BouquetsTableTableCreateCompanionBuilder =
+    BouquetsTableCompanion Function({
+      required String id,
+      required String fromNodeId,
+      required String toNodeId,
+      required String flowerType,
+      required DateTime date,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$BouquetsTableTableUpdateCompanionBuilder =
+    BouquetsTableCompanion Function({
+      Value<String> id,
+      Value<String> fromNodeId,
+      Value<String> toNodeId,
+      Value<String> flowerType,
+      Value<DateTime> date,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$BouquetsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $BouquetsTableTable> {
+  $$BouquetsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fromNodeId => $composableBuilder(
+    column: $table.fromNodeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get toNodeId => $composableBuilder(
+    column: $table.toNodeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get flowerType => $composableBuilder(
+    column: $table.flowerType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$BouquetsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $BouquetsTableTable> {
+  $$BouquetsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fromNodeId => $composableBuilder(
+    column: $table.fromNodeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get toNodeId => $composableBuilder(
+    column: $table.toNodeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get flowerType => $composableBuilder(
+    column: $table.flowerType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$BouquetsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BouquetsTableTable> {
+  $$BouquetsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get fromNodeId => $composableBuilder(
+    column: $table.fromNodeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get toNodeId =>
+      $composableBuilder(column: $table.toNodeId, builder: (column) => column);
+
+  GeneratedColumn<String> get flowerType => $composableBuilder(
+    column: $table.flowerType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$BouquetsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BouquetsTableTable,
+          BouquetsTableData,
+          $$BouquetsTableTableFilterComposer,
+          $$BouquetsTableTableOrderingComposer,
+          $$BouquetsTableTableAnnotationComposer,
+          $$BouquetsTableTableCreateCompanionBuilder,
+          $$BouquetsTableTableUpdateCompanionBuilder,
+          (
+            BouquetsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $BouquetsTableTable,
+              BouquetsTableData
+            >,
+          ),
+          BouquetsTableData,
+          PrefetchHooks Function()
+        > {
+  $$BouquetsTableTableTableManager(_$AppDatabase db, $BouquetsTableTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BouquetsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BouquetsTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BouquetsTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> fromNodeId = const Value.absent(),
+                Value<String> toNodeId = const Value.absent(),
+                Value<String> flowerType = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BouquetsTableCompanion(
+                id: id,
+                fromNodeId: fromNodeId,
+                toNodeId: toNodeId,
+                flowerType: flowerType,
+                date: date,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String fromNodeId,
+                required String toNodeId,
+                required String flowerType,
+                required DateTime date,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BouquetsTableCompanion.insert(
+                id: id,
+                fromNodeId: fromNodeId,
+                toNodeId: toNodeId,
+                flowerType: flowerType,
+                date: date,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$BouquetsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BouquetsTableTable,
+      BouquetsTableData,
+      $$BouquetsTableTableFilterComposer,
+      $$BouquetsTableTableOrderingComposer,
+      $$BouquetsTableTableAnnotationComposer,
+      $$BouquetsTableTableCreateCompanionBuilder,
+      $$BouquetsTableTableUpdateCompanionBuilder,
+      (
+        BouquetsTableData,
+        BaseReferences<_$AppDatabase, $BouquetsTableTable, BouquetsTableData>,
+      ),
+      BouquetsTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4580,4 +5884,8 @@ class $AppDatabaseManager {
       $$MemoriesTableTableTableManager(_db, _db.memoriesTable);
   $$SettingsTableTableTableManager get settingsTable =>
       $$SettingsTableTableTableManager(_db, _db.settingsTable);
+  $$TemperatureLogsTableTableTableManager get temperatureLogsTable =>
+      $$TemperatureLogsTableTableTableManager(_db, _db.temperatureLogsTable);
+  $$BouquetsTableTableTableManager get bouquetsTable =>
+      $$BouquetsTableTableTableManager(_db, _db.bouquetsTable);
 }
