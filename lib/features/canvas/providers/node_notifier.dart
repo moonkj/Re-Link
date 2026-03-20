@@ -194,7 +194,7 @@ class NodeNotifier extends _$NodeNotifier {
               final ghostSpouse = await _repo.create(
                 name: '미확인 배우자',
                 isGhost: true,
-                positionX: parentNode.positionX + 220,
+                positionX: parentNode.positionX + 160,
                 positionY: parentNode.positionY,
               );
               await _repo.addEdge(
@@ -229,8 +229,8 @@ class NodeNotifier extends _$NodeNotifier {
         final ghostFather = await _repo.create(
           name: '미확인 아버지',
           isGhost: true,
-          positionX: child.positionX - 120,
-          positionY: child.positionY - 220,
+          positionX: child.positionX - 80,
+          positionY: child.positionY - 200,
         );
         await _repo.addEdge(
           fromNodeId: ghostFather.id,
@@ -243,8 +243,8 @@ class NodeNotifier extends _$NodeNotifier {
           final ghostMother = await _repo.create(
             name: '미확인 어머니',
             isGhost: true,
-            positionX: child.positionX + 120,
-            positionY: child.positionY - 220,
+            positionX: child.positionX + 80,
+            positionY: child.positionY - 200,
           );
           await _repo.addEdge(
             fromNodeId: ghostMother.id,

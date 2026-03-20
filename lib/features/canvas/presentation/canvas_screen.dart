@@ -52,8 +52,8 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
   /// 드래그 중인 노드의 실시간 좌표 (EdgePainter용)
   Offset? _draggingPos;
 
-  /// 겹치는 노드 자동 분산 1회 실행 플래그
-  bool _didSpreadNodes = false;
+  /// 겹치는 노드 자동 분산 — 마지막으로 분산 처리한 노드 수
+  int _lastSpreadNodeCount = 0;
 
   /// Time Slider 이벤트 토스트 메시지
   String? _timeEventMessage;
@@ -131,6 +131,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
   }
 
   /// 겹치는 노드들을 쌍별(pair-wise) 감지 후 자동 분산
+  /// 노드 추가/삭제 시마다 재실행됨
   void _spreadOverlappingNodes(List<NodeModel> nodes) {
     if (nodes.length <= 1) return;
 
@@ -141,9 +142,9 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     // 위치 복사
     final pos = {for (final n in nodes) n.id: Offset(n.positionX, n.positionY)};
 
-    // 최대 15라운드 반복하며 겹침 해소
+    // 최대 20라운드 반복하며 겹침 해소
     bool changed = false;
-    for (int round = 0; round < 15; round++) {
+    for (int round = 0; round < 20; round++) {
       bool roundMoved = false;
       for (int i = 0; i < nodes.length; i++) {
         for (int j = i + 1; j < nodes.length; j++) {
@@ -153,9 +154,9 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
           final dy = a.dy - b.dy;
 
           if (dx.abs() < minDx && dy.abs() < minDy) {
-            // 겹침 — 수평 방향으로 밀어내기
+            // 수평 분리
             final pushX = (minDx - dx.abs()) / 2 + 5;
-            final signX = dx >= 0 ? 1.0 : -1.0;
+            final signX = dx.abs() < 1 ? 1.0 : (dx >= 0 ? 1.0 : -1.0);
             pos[nodes[i].id] = Offset(
               (a.dx + signX * pushX).clamp(100.0, 3800.0),
               a.dy,
@@ -164,6 +165,21 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
               (b.dx - signX * pushX).clamp(100.0, 3800.0),
               b.dy,
             );
+
+            // 수직으로도 너무 가까우면 Y축도 분리
+            if (dy.abs() < minDy / 2) {
+              final pushY = (minDy - dy.abs()) / 4 + 5;
+              final signY = dy.abs() < 1 ? 1.0 : (dy >= 0 ? 1.0 : -1.0);
+              pos[nodes[i].id] = Offset(
+                pos[nodes[i].id]!.dx,
+                (a.dy + signY * pushY).clamp(100.0, 3800.0),
+              );
+              pos[nodes[j].id] = Offset(
+                pos[nodes[j].id]!.dx,
+                (b.dy - signY * pushY).clamp(100.0, 3800.0),
+              );
+            }
+
             roundMoved = true;
             changed = true;
           }
@@ -201,9 +217,9 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     // "나" 노드 ID
     final myNodeId = ref.watch(myNodeNotifierProvider).valueOrNull;
 
-    // 겹치는 노드 자동 분산 (1회만 실행)
-    if (!_didSpreadNodes && nodes.length > 1) {
-      _didSpreadNodes = true;
+    // 겹치는 노드 자동 분산 — 노드 수 변경 시마다 재실행
+    if (nodes.length > 1 && nodes.length != _lastSpreadNodeCount) {
+      _lastSpreadNodeCount = nodes.length;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _spreadOverlappingNodes(nodes);
       });
