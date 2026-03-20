@@ -23,6 +23,19 @@ class AddMemorySheet extends ConsumerStatefulWidget {
   ConsumerState<AddMemorySheet> createState() => _AddMemorySheetState();
 }
 
+/// 감정 태그 (메모용)
+enum EmotionTag {
+  joy('기쁨', '😊'),
+  longing('그리움', '🥺'),
+  surprise('놀람', '😲'),
+  love('사랑', '❤️'),
+  sadness('슬픔', '😢');
+
+  const EmotionTag(this.label, this.emoji);
+  final String label;
+  final String emoji;
+}
+
 class _AddMemorySheetState extends ConsumerState<AddMemorySheet> {
   MemoryType? _selectedType;
   bool _saving = false;
@@ -30,6 +43,10 @@ class _AddMemorySheetState extends ConsumerState<AddMemorySheet> {
   // 메모 필드
   final _titleCtrl = TextEditingController();
   final _noteCtrl = TextEditingController();
+
+  // 감정 태그 + 공개 범위 (메모용)
+  EmotionTag? _emotionTag;
+  bool _isPrivate = false;
 
   // 사진 미리보기
   String? _photoPath;
@@ -64,7 +81,7 @@ class _AddMemorySheetState extends ConsumerState<AddMemorySheet> {
             ),
 
             if (_selectedType == null) ...[
-              const Text(
+              Text(
                 '기억 추가',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
               ),
@@ -98,6 +115,10 @@ class _AddMemorySheetState extends ConsumerState<AddMemorySheet> {
                 titleCtrl: _titleCtrl,
                 noteCtrl: _noteCtrl,
                 saving: _saving,
+                emotionTag: _emotionTag,
+                isPrivate: _isPrivate,
+                onEmotionChanged: (t) => setState(() => _emotionTag = t),
+                onPrivateChanged: (v) => setState(() => _isPrivate = v),
                 onSave: _saveNote,
                 onBack: () => setState(() => _selectedType = null),
               ),
@@ -193,6 +214,8 @@ class _AddMemorySheetState extends ConsumerState<AddMemorySheet> {
         nodeId: widget.nodeId,
         description: desc,
         title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
+        tags: _emotionTag != null ? [_emotionTag!.name] : const [],
+        isPrivate: _isPrivate,
       );
       if (!mounted) return;
       HapticService.memoryAdded();
@@ -314,9 +337,9 @@ class _PhotoForm extends StatelessWidget {
       children: [
         Row(
           children: [
-            GestureDetector(onTap: onBack, child: const Icon(Icons.arrow_back, color: AppColors.textSecondary)),
+            GestureDetector(onTap: onBack, child: Icon(Icons.arrow_back, color: AppColors.textSecondary)),
             const SizedBox(width: AppSpacing.sm),
-            const Text('사진 기억', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text('사진 기억', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
@@ -365,7 +388,7 @@ class _PhotoForm extends StatelessWidget {
           GlassCard(
             onTap: onPickGallery,
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.refresh, color: AppColors.textSecondary, size: 16),
@@ -388,8 +411,8 @@ class _PhotoForm extends StatelessWidget {
               Expanded(
                 child: TextField(
                   controller: titleCtrl,
-                  style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
-                  decoration: const InputDecoration(
+                  style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                  decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: '제목 (선택)',
                     hintStyle: TextStyle(fontSize: 14, color: AppColors.textTertiary),
@@ -423,6 +446,10 @@ class _NoteForm extends StatelessWidget {
     required this.titleCtrl,
     required this.noteCtrl,
     required this.saving,
+    required this.emotionTag,
+    required this.isPrivate,
+    required this.onEmotionChanged,
+    required this.onPrivateChanged,
     required this.onSave,
     required this.onBack,
   });
@@ -430,6 +457,10 @@ class _NoteForm extends StatelessWidget {
   final TextEditingController titleCtrl;
   final TextEditingController noteCtrl;
   final bool saving;
+  final EmotionTag? emotionTag;
+  final bool isPrivate;
+  final void Function(EmotionTag?) onEmotionChanged;
+  final void Function(bool) onPrivateChanged;
   final VoidCallback onSave;
   final VoidCallback onBack;
 
@@ -440,9 +471,9 @@ class _NoteForm extends StatelessWidget {
       children: [
         Row(
           children: [
-            GestureDetector(onTap: onBack, child: const Icon(Icons.arrow_back, color: AppColors.textSecondary)),
+            GestureDetector(onTap: onBack, child: Icon(Icons.arrow_back, color: AppColors.textSecondary)),
             const SizedBox(width: AppSpacing.sm),
-            const Text('메모 기억', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text('메모 기억', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
@@ -456,8 +487,8 @@ class _NoteForm extends StatelessWidget {
               Expanded(
                 child: TextField(
                   controller: titleCtrl,
-                  style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
-                  decoration: const InputDecoration(
+                  style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                  decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: '제목 (선택)',
                     hintStyle: TextStyle(fontSize: 14, color: AppColors.textTertiary),
@@ -485,8 +516,8 @@ class _NoteForm extends StatelessWidget {
                 child: TextField(
                   controller: noteCtrl,
                   maxLines: 6,
-                  style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
-                  decoration: const InputDecoration(
+                  style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                  decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: '내용을 입력하세요...',
                     hintStyle: TextStyle(fontSize: 14, color: AppColors.textTertiary),
@@ -498,7 +529,74 @@ class _NoteForm extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.xxl),
+        const SizedBox(height: AppSpacing.md),
+
+        // 감정 태그 선택
+        Text(
+          '감정 태그',
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: EmotionTag.values.map((tag) {
+            final selected = emotionTag == tag;
+            return GestureDetector(
+              onTap: () => onEmotionChanged(selected ? null : tag),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(100),
+                  color: selected
+                      ? AppColors.primary.withAlpha(30)
+                      : AppColors.glassSurface,
+                  border: Border.all(
+                    color: selected ? AppColors.primary : AppColors.glassBorder,
+                    width: 1.5,
+                  ),
+                ),
+                child: Text(
+                  '${tag.emoji} ${tag.label}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                    color: selected ? AppColors.primary : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: AppSpacing.md),
+
+        // 공개 범위 토글
+        GlassCard(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 2),
+          child: Row(
+            children: [
+              Icon(
+                isPrivate ? Icons.lock_outline : Icons.public,
+                color: isPrivate ? AppColors.accent : AppColors.primary,
+                size: 18,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  isPrivate ? '개인 전용 메모' : '가족 공유 메모',
+                  style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                ),
+              ),
+              Switch(
+                value: isPrivate,
+                onChanged: onPrivateChanged,
+                activeThumbColor: AppColors.accent,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xl),
 
         SizedBox(
           width: double.infinity,

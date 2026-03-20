@@ -16,11 +16,11 @@ class PrivacyPolicyScreen extends StatelessWidget {
         backgroundColor: AppColors.bgBase,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
+          icon: Icon(Icons.arrow_back_ios,
               color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           '개인정보 처리방침',
           style: TextStyle(
             color: AppColors.textPrimary,
@@ -45,7 +45,7 @@ class _PrivacyContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
+      children: [
         _Heading('Re-Link 개인정보 처리방침'),
         _Body('최종 수정일: 2026년 1월 1일'),
         SizedBox(height: AppSpacing.lg),
@@ -135,7 +135,7 @@ class _Heading extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.w700,
         color: AppColors.textPrimary,

@@ -35,11 +35,11 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     return Scaffold(
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
-        title: const Text('백업 & 복원',
+        title: Text('백업 & 복원',
             style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        iconTheme: IconThemeData(color: AppColors.textPrimary),
       ),
       body: Stack(
         children: [
@@ -81,7 +81,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               // 클라우드 백업 목록
               if (state.cloudBackups.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.xxl),
-                const Text(
+                Text(
                   '클라우드 백업 목록',
                   style: TextStyle(
                     fontSize: 13,
@@ -114,7 +114,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               _AutoBackupToggle(),
 
               const SizedBox(height: AppSpacing.lg),
-              const Text(
+              Text(
                 '• 백업 파일(.rlink)에는 모든 인물 정보, 사진, 음성이 포함됩니다\n'
                 '• 파일로 내보내기를 통해 가족과 트리를 공유할 수 있습니다\n'
                 '• 복원 시 현재 데이터가 덮어쓰여집니다',
@@ -237,8 +237,8 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.bgElevated,
-        title: const Text('복원 확인', style: TextStyle(color: AppColors.textPrimary)),
-        content: const Text(
+        title: Text('복원 확인', style: TextStyle(color: AppColors.textPrimary)),
+        content: Text(
           '현재 데이터가 백업 파일로 덮어쓰여집니다.\n계속하시겠습니까?',
           style: TextStyle(color: AppColors.textSecondary),
         ),
@@ -282,12 +282,12 @@ class _StatusCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('마지막 백업', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Text('마지막 백업', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                 Text(
                   state.lastBackupAt == null
                       ? '아직 백업이 없습니다'
                       : _formatDate(state.lastBackupAt!),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 Text(providerLabel, style: const TextStyle(fontSize: 12, color: AppColors.secondary)),
               ],
@@ -324,12 +324,12 @@ class _BackupListTile extends StatelessWidget {
               children: [
                 Text(
                   backup.filename,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   backup.formattedSize,
-                  style: const TextStyle(fontSize: 11, color: AppColors.textTertiary),
+                  style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
                 ),
               ],
             ),
@@ -359,7 +359,7 @@ class _AutoBackupToggle extends ConsumerWidget {
             children: [
               const Icon(Icons.schedule_outlined, color: AppColors.primary, size: 24),
               const SizedBox(width: AppSpacing.md),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -421,7 +421,7 @@ class _ActionTile extends StatelessWidget {
                     color: isDestructive ? AppColors.error : AppColors.textPrimary,
                   ),
                 ),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Text(subtitle, style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
               ],
             ),
           ),
@@ -429,7 +429,7 @@ class _ActionTile extends StatelessWidget {
             const SizedBox(width: 20, height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
           else
-            const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+            Icon(Icons.chevron_right, color: AppColors.textTertiary),
         ],
       ),
     );

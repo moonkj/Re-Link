@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ (API 31+) SplashScreen API 설정 -->
+<resources>
+    <!-- 앱 시작 시 표시되는 스플래시 테마 -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <!-- 스플래시 배경색: Re-Link 다크 네이비 -->
+        <item name="android:windowSplashScreenBackground">#0A0A1A</item>
+        <!-- 스플래시 중앙 아이콘: 앱 아이콘 -->
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <!-- 아이콘 배경색 (원형 마스크 내부) -->
+        <item name="android:windowSplashScreenIconBackgroundColor">#0A0A1A</item>
+    </style>
+
+    <!-- Flutter UI 초기화 후 전환되는 일반 테마 -->
+    <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+</resources>

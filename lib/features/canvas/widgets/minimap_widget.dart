@@ -28,7 +28,7 @@ class MinimapWidget extends StatelessWidget {
             height: _minimapHeight,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              color: const Color(0xCC0A0A1A),
+              color: const Color(0xCC0D1117),
               border: Border.all(color: AppColors.glassBorder, width: 1),
             ),
             child: ClipRRect(

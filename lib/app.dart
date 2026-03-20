@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router/app_router.dart';
+import 'core/utils/haptic_service.dart';
+import 'design/tokens/app_colors.dart';
 import 'design/tokens/app_theme.dart';
 import 'features/settings/providers/elderly_mode_notifier.dart';
+import 'features/settings/providers/haptic_notifier.dart';
+import 'features/settings/providers/theme_mode_notifier.dart';
 
 /// Re-Link 앱 루트
 class ReLink extends ConsumerWidget {
@@ -11,14 +15,42 @@ class ReLink extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
+
     // 어르신 모드: 1.3× textScaler를 앱 전역에 주입
     final isElderly =
-        ref.watch(elderlyModeNotifierProvider).valueOrNull ?? false;
+        ref.watch(elderlyModeNotifierProvider).maybeWhen(
+          data: (v) => v,
+          orElse: () => false,
+        );
+
+    // 테마 모드: system / light / dark
+    final themeMode =
+        ref.watch(themeModeNotifierProvider).maybeWhen(
+          data: (v) => v,
+          orElse: () => ThemeMode.system,
+        );
+
+    // 햅틱 글로벌 On/Off 동기화
+    final hapticEnabled =
+        ref.watch(hapticNotifierProvider).maybeWhen(
+          data: (v) => v,
+          orElse: () => true,
+        );
+    HapticService.enabled = hapticEnabled;
+
+    // 밝기 동기화 — AppColors getter가 올바른 Day/Night 값 반환하도록
+    final platformBrightness = MediaQuery.platformBrightnessOf(context);
+    final resolvedBrightness = themeMode == ThemeMode.system
+        ? platformBrightness
+        : (themeMode == ThemeMode.dark ? Brightness.dark : Brightness.light);
+    AppColors.updateBrightness(resolvedBrightness);
 
     return MaterialApp.router(
       title: 'Re-Link',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: themeMode,
       routerConfig: router,
       builder: isElderly
           ? (context, child) => MediaQuery(

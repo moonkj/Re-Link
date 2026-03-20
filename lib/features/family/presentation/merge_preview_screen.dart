@@ -34,11 +34,11 @@ class _MergePreviewScreenState extends ConsumerState<MergePreviewScreen> {
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
         backgroundColor: AppColors.bgBase,
-        title: const Text(
+        title: Text(
           '가족 트리 가져오기',
           style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700),
         ),
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        iconTheme: IconThemeData(color: AppColors.textPrimary),
       ),
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
@@ -64,7 +64,7 @@ class _ErrorView extends StatelessWidget {
             const Icon(Icons.error_outline, color: AppColors.error, size: 48),
             const SizedBox(height: AppSpacing.lg),
             Text(error,
-                style: const TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: AppColors.textSecondary),
                 textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.lg),
             PrimaryGlassButton(
@@ -146,7 +146,7 @@ class _PreviewBody extends ConsumerWidget {
                     )),
               ],
               if (state.totalIncoming == 0)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.all(AppSpacing.xxl),
                   child: Center(
                     child: Text(
@@ -232,7 +232,7 @@ class _StatChip extends StatelessWidget {
             ),
             TextSpan(
               text: ' $label',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13, color: AppColors.textSecondary,
               ),
             ),
@@ -253,7 +253,7 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12, fontWeight: FontWeight.w600,
           color: AppColors.textSecondary, letterSpacing: 0.5,
         ),
@@ -291,11 +291,11 @@ class _NodeTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(name,
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: AppColors.textPrimary,
                           fontWeight: FontWeight.w600)),
                   Text(subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: AppColors.textSecondary, fontSize: 12)),
                 ],
               ),
@@ -342,7 +342,7 @@ class _ConflictTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(conflict.myNode.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: AppColors.textPrimary,
                           fontWeight: FontWeight.w600)),
                   Text(
@@ -353,7 +353,7 @@ class _ConflictTile extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right,
+            Icon(Icons.chevron_right,
                 color: AppColors.textSecondary, size: 18),
           ],
         ),

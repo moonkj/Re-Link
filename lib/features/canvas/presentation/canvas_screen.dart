@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,8 +15,10 @@ import '../widgets/add_node_sheet.dart';
 import '../widgets/node_detail_sheet.dart';
 import '../widgets/relation_picker_sheet.dart';
 import '../widgets/time_slider.dart';
+import '../widgets/time_event_toast.dart';
 import '../widgets/minimap_widget.dart';
 import '../../../core/utils/haptic_service.dart';
+import '../../settings/providers/spouse_snap_notifier.dart';
 import '../utils/quad_tree.dart';
 import '../utils/lod_utils.dart';
 import '../utils/generation_utils.dart';
@@ -36,6 +39,27 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
 
   /// 드래그 중인 노드 ID
   String? _draggingId;
+
+  /// 드래그 중인 노드의 실시간 좌표 (EdgePainter용)
+  Offset? _draggingPos;
+
+  /// 겹치는 노드 자동 분산 1회 실행 플래그
+  bool _didSpreadNodes = false;
+
+  /// Time Slider 이벤트 토스트 메시지
+  String? _timeEventMessage;
+
+  /// 이전 Time Slider 연도 (변경 감지용)
+  int? _prevTimeSliderYear;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _resetZoom();
+    });
+  }
 
   /// 연결 모드 포인터 위치 (캔버스 좌표)
   Offset? _connectPointer;
@@ -88,6 +112,41 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     );
   }
 
+  /// 겹치는 노드들을 격자 패턴으로 자동 분산
+  void _spreadOverlappingNodes(List<NodeModel> nodes) {
+    if (nodes.length <= 1) return;
+
+    // 모든 노드가 좁은 영역(200×200) 안에 있는지 확인
+    double minX = nodes[0].positionX, maxX = minX;
+    double minY = nodes[0].positionY, maxY = minY;
+    for (final node in nodes) {
+      if (node.positionX < minX) minX = node.positionX;
+      if (node.positionX > maxX) maxX = node.positionX;
+      if (node.positionY < minY) minY = node.positionY;
+      if (node.positionY > maxY) maxY = node.positionY;
+    }
+
+    // 이미 분산된 상태면 건너뜀
+    if (maxX - minX > 200 || maxY - minY > 200) return;
+
+    final centerX = (minX + maxX) / 2;
+    final centerY = (minY + maxY) / 2;
+    const spacing = 160.0;
+    final cols = nodes.length.clamp(1, 5);
+
+    final notifier = ref.read(canvasNotifierProvider.notifier);
+    for (int i = 0; i < nodes.length; i++) {
+      final col = i % cols;
+      final row = i ~/ cols;
+      final newX = (centerX - (cols - 1) * spacing / 2 + col * spacing)
+          .clamp(100.0, 3800.0);
+      final newY = (centerY - ((nodes.length - 1) ~/ cols) * spacing / 2 +
+              row * spacing)
+          .clamp(100.0, 3800.0);
+      notifier.saveNodePosition(nodes[i].id, newX, newY);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final canvasState = ref.watch(canvasNotifierProvider);
@@ -95,8 +154,32 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     final edges = canvasState.edges;
     final isConnectMode = canvasState.isConnectMode;
 
+    // 겹치는 노드 자동 분산 (1회만 실행)
+    if (!_didSpreadNodes && nodes.length > 1) {
+      _didSpreadNodes = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _spreadOverlappingNodes(nodes);
+      });
+    }
+
     // 세대 깊이 갱신 (nodes/edges 변경 시 build 재호출됨)
     _generations = computeGenerations(nodes: nodes, edges: edges);
+
+    // Time Slider 연도 변경 감지 → 이벤트 토스트
+    final currentSliderYear = canvasState.timeSliderYear;
+    if (currentSliderYear != _prevTimeSliderYear) {
+      _prevTimeSliderYear = currentSliderYear;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final msg = TimeEventToast.buildEventMessage(
+          year: currentSliderYear,
+          nodes: nodes,
+        );
+        if (msg != null) {
+          setState(() => _timeEventMessage = msg);
+        }
+      });
+    }
 
     return Scaffold(
       backgroundColor: AppColors.bgBase,
@@ -108,6 +191,8 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
           // ── 무한 캔버스 ──────────────────────────────────────────────────
           InteractiveViewer(
             transformationController: _transformCtrl,
+            constrained: false,
+            clipBehavior: Clip.none,
             minScale: 0.3,
             maxScale: 3.0,
             boundaryMargin: const EdgeInsets.all(double.infinity),
@@ -127,13 +212,15 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                           edges: edges,
                           connectingNodeId: canvasState.connectingNodeId,
                           pointerPosition: _connectPointer,
+                          draggingNodeId: _draggingId,
+                          draggingPosition: _draggingPos,
                         ),
                       ),
                     ),
                   ),
 
                   // 빈 상태 안내
-                  if (nodes.isEmpty) _EmptyHint(),
+                  if (nodes.isEmpty) const _EmptyHint(),
 
                   // 노드 카드들 — AnimatedBuilder로 뷰포트 컬링 + LOD 적용
                   AnimatedBuilder(
@@ -151,7 +238,11 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                           .toList();
 
                       return Stack(
-                        children: timeFiltered.map((node) {
+                        clipBehavior: Clip.none,
+                        children: [
+                          // 사이즈 앵커: Stack이 0×0으로 축소되지 않도록
+                          const SizedBox(width: 4000, height: 4000),
+                          ...timeFiltered.map((node) {
                           final depth = _generations[node.id] ?? 0;
                           return _DraggableNodeCard(
                             key: ValueKey(node.id),
@@ -162,18 +253,27 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                             generationDepth: depth,
                             transformCtrl: _transformCtrl,
                             onDragStarted: () =>
-                                setState(() => _draggingId = node.id),
+                                setState(() {
+                                  _draggingId = node.id;
+                                  _draggingPos = Offset(node.positionX, node.positionY);
+                                }),
+                            onDragUpdate: (dx, dy) =>
+                                setState(() => _draggingPos = Offset(dx, dy)),
                             onDragEnded: (dx, dy) async {
-                              setState(() => _draggingId = null);
-                              await ref
-                                  .read(canvasNotifierProvider.notifier)
-                                  .saveNodePosition(node.id, dx, dy);
+                              setState(() {
+                                _draggingId = null;
+                                _draggingPos = null;
+                              });
+                              final snapOn = ref.read(spouseSnapNotifierProvider).valueOrNull ?? true;
+                              final pos = snapOn ? _spouseSnap(node.id, dx, dy, canvasState) : Offset(dx, dy);
+                              await ref.read(canvasNotifierProvider.notifier).saveNodePosition(node.id, pos.dx, pos.dy);
                             },
                             onTap: () => _onNodeTap(node, canvasState),
-                            onLongPress: () => _onNodeLongPress(node),
                             onDoubleTap: () => _onNodeDoubleTap(node),
+                            onLongPress: () => _onNodeLongPress(node),
                           );
-                        }).toList(),
+                        }),
+                        ],
                       );
                     },
                   ),
@@ -181,6 +281,27 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
               ),
             ),
           ),
+
+          // ── 연결 모드 포인터 추적 (InteractiveViewer 위에 배치) ───────────
+          if (isConnectMode)
+            Positioned.fill(
+              child: Listener(
+                behavior: HitTestBehavior.translucent,
+                onPointerMove: (e) {
+                  final matrix = _transformCtrl.value;
+                  final scale = matrix.getMaxScaleOnAxis();
+                  final tx = matrix.getTranslation();
+                  setState(() {
+                    _connectPointer = Offset(
+                      (e.position.dx - tx.x) / scale,
+                      (e.position.dy - tx.y) / scale,
+                    );
+                  });
+                },
+                onPointerUp: (_) => setState(() => _connectPointer = null),
+                child: const SizedBox.expand(),
+              ),
+            ),
 
           // ── 상단 앱바 ────────────────────────────────────────────────────
           Positioned(
@@ -212,7 +333,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                         ),
                         child: Text(
                           '${nodes.length}명',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             color: AppColors.textSecondary,
                           ),
@@ -224,7 +345,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                       child: GlassCard(
                         padding: const EdgeInsets.all(AppSpacing.sm),
                         onTap: () => context.push(AppRoutes.search),
-                        child: const Icon(
+                        child: Icon(
                           Icons.search,
                           color: AppColors.textSecondary,
                           size: 20,
@@ -255,7 +376,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                       child: GlassCard(
                         padding: const EdgeInsets.all(AppSpacing.sm),
                         onTap: _resetZoom,
-                        child: const Icon(
+                        child: Icon(
                           Icons.center_focus_strong,
                           color: AppColors.textSecondary,
                           size: 20,
@@ -280,7 +401,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                   children: [
                     const Icon(Icons.link, color: AppColors.primary),
                     const SizedBox(width: AppSpacing.sm),
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         '연결할 인물을 탭하세요',
                         style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
@@ -288,7 +409,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                     ),
                     GestureDetector(
                       onTap: () => ref.read(canvasNotifierProvider.notifier).cancelConnectMode(),
-                      child: const Icon(Icons.close, color: AppColors.textSecondary, size: 20),
+                      child: Icon(Icons.close, color: AppColors.textSecondary, size: 20),
                     ),
                   ],
                 ),
@@ -296,7 +417,10 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
             ),
 
           // ── Time Slider ─────────────────────────────────────────────────
-          TimeSliderWidget(),
+          const TimeSliderWidget(),
+
+          // ── Time Slider 이벤트 토스트 ──────────────────────────────────
+          TimeEventToast(message: _timeEventMessage),
 
           // ── Minimap (우하단) ─────────────────────────────────────────────
           Positioned(
@@ -345,13 +469,13 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
-                      colors: [Color(0xFF6C63FF), Color(0xFF9C94FF)],
+                      colors: [Color(0xFF6EC6CA), Color(0xFF4A9EBF)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Color(0x4D6C63FF),
+                        color: Color(0x4D6EC6CA),
                         blurRadius: 20,
                         offset: Offset(0, 4),
                       ),
@@ -422,7 +546,57 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
       notifier.clearFocus();
     } else {
       notifier.setFocus(node.id);
+      // Focus Mode 진입 시 카메라를 포커스 노드 중앙으로 이동
+      _animateCameraToNode(node);
     }
+  }
+
+  /// 카메라를 특정 노드 중앙으로 이동
+  void _animateCameraToNode(NodeModel node) {
+    final screenSize = MediaQuery.of(context).size;
+    final nodeCenter = Offset(
+      node.positionX + kNodeCardWidth / 2,
+      node.positionY + kNodeCardHeight / 2,
+    );
+    final dx = -(nodeCenter.dx - screenSize.width / 2);
+    final dy = -(nodeCenter.dy - screenSize.height / 2);
+    _transformCtrl.value = Matrix4.translationValues(dx, dy, 0);
+  }
+
+  /// 부부 자석 스냅: 배우자가 가까우면 옆에 자동 정렬
+  Offset _spouseSnap(
+    String nodeId, double x, double y, CanvasState state,
+  ) {
+    const snapDistance = 200.0;
+    const snapGap = 130.0; // 노드 가로 폭 + 약간의 간격
+
+    // 이 노드의 배우자 엣지 찾기
+    final spouseEdge = state.edges.where((e) =>
+        e.relation == RelationType.spouse &&
+        (e.fromNodeId == nodeId || e.toNodeId == nodeId),
+    ).firstOrNull;
+    if (spouseEdge == null) return Offset(x, y);
+
+    final spouseId = spouseEdge.fromNodeId == nodeId
+        ? spouseEdge.toNodeId
+        : spouseEdge.fromNodeId;
+    final spouse = state.nodes.where((n) => n.id == spouseId).firstOrNull;
+    if (spouse == null) return Offset(x, y);
+
+    final dx = x - spouse.positionX;
+    final dy = y - spouse.positionY;
+    final dist = (Offset(dx, dy)).distance;
+
+    // 스냅 범위 내이면 배우자 옆으로 정렬
+    if (dist < snapDistance) {
+      final side = dx >= 0 ? 1.0 : -1.0;
+      return Offset(
+        spouse.positionX + side * snapGap,
+        spouse.positionY, // 같은 Y 높이
+      );
+    }
+
+    return Offset(x, y);
   }
 
   Future<void> _showAddNodeSheet() async {
@@ -431,28 +605,64 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     final scale = matrix.getMaxScaleOnAxis();
     final tx = matrix.getTranslation();
     final screenSize = MediaQuery.of(context).size;
-    final cx = (screenSize.width / 2 - tx.x) / scale;
-    final cy = (screenSize.height / 2 - tx.y) / scale;
+    double newX = (screenSize.width / 2 - tx.x) / scale;
+    double newY = (screenSize.height / 2 - tx.y) / scale;
+
+    // 기존 노드와 겹침 방지
+    final nodes = ref.read(canvasNotifierProvider).nodes;
+    for (int i = 0; i < 20; i++) {
+      final overlap = nodes.any((n) =>
+          (n.positionX - newX).abs() < 130 &&
+          (n.positionY - newY).abs() < 150);
+      if (!overlap) break;
+      newX += 140;
+      if (newX > 3800) {
+        newX = (screenSize.width / 2 - tx.x) / scale;
+        newY += 160;
+      }
+    }
 
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => AddNodeSheet(
-        initialPositionX: cx.clamp(100, 3800),
-        initialPositionY: cy.clamp(100, 3800),
+        initialPositionX: newX.clamp(100, 3800),
+        initialPositionY: newY.clamp(100, 3800),
       ),
     );
   }
 
   void _resetZoom() {
-    final dx = -(4000 / 2 - MediaQuery.of(context).size.width / 2);
-    final dy = -(4000 / 2 - MediaQuery.of(context).size.height / 2);
+    final screenSize = MediaQuery.of(context).size;
+    final nodes = ref.read(canvasNotifierProvider).nodes;
+
+    double centerX;
+    double centerY;
+
+    if (nodes.isNotEmpty) {
+      // 노드 중심점으로 이동
+      double sumX = 0, sumY = 0;
+      for (final node in nodes) {
+        sumX += node.positionX + kNodeCardWidth / 2;
+        sumY += node.positionY + kNodeCardHeight / 2;
+      }
+      centerX = sumX / nodes.length;
+      centerY = sumY / nodes.length;
+    } else {
+      // 노드 없으면 캔버스 중앙
+      centerX = 2000;
+      centerY = 2000;
+    }
+
+    final dx = -(centerX - screenSize.width / 2);
+    final dy = -(centerY - screenSize.height / 2);
     _transformCtrl.value = Matrix4.translationValues(dx, dy, 0);
   }
 }
 
 /// 드래그 가능한 노드 카드 래퍼 (LOD + Pseudo-3D 적용)
+/// Listener 기반 제스처 — GestureDetector 아레나 우회
 class _DraggableNodeCard extends StatefulWidget {
   const _DraggableNodeCard({
     super.key,
@@ -463,9 +673,10 @@ class _DraggableNodeCard extends StatefulWidget {
     required this.generationDepth,
     required this.transformCtrl,
     required this.onTap,
-    required this.onLongPress,
     required this.onDoubleTap,
+    required this.onLongPress,
     required this.onDragStarted,
+    required this.onDragUpdate,
     required this.onDragEnded,
   });
 
@@ -476,9 +687,10 @@ class _DraggableNodeCard extends StatefulWidget {
   final int generationDepth;
   final TransformationController transformCtrl;
   final VoidCallback onTap;
-  final VoidCallback onLongPress;
   final VoidCallback onDoubleTap;
+  final VoidCallback onLongPress;
   final VoidCallback onDragStarted;
+  final void Function(double dx, double dy) onDragUpdate;
   final void Function(double dx, double dy) onDragEnded;
 
   @override
@@ -488,8 +700,16 @@ class _DraggableNodeCard extends StatefulWidget {
 class _DraggableNodeCardState extends State<_DraggableNodeCard> {
   late double _x;
   late double _y;
-  Offset? _dragStart;
-  Offset? _posStart;
+
+  // Listener 기반 제스처 상태
+  Offset? _pointerDownPos;
+  DateTime? _pointerDownTime;
+  bool _isLongPress = false;
+  bool _isDragging = false;
+  Timer? _longPressTimer;
+
+  // 더블탭 감지
+  DateTime? _lastTapTime;
 
   @override
   void initState() {
@@ -501,67 +721,164 @@ class _DraggableNodeCardState extends State<_DraggableNodeCard> {
   @override
   void didUpdateWidget(_DraggableNodeCard old) {
     super.didUpdateWidget(old);
-    // 드래그 중이 아닐 때만 외부 위치 업데이트 수용
-    if (_dragStart == null) {
+    if (!_isDragging) {
       _x = widget.node.positionX;
       _y = widget.node.positionY;
     }
   }
 
   @override
+  void dispose() {
+    _longPressTimer?.cancel();
+    super.dispose();
+  }
+
+  // ── Listener 콜백 ──────────────────────────────────────────────────────
+
+  void _onPointerDown(PointerDownEvent e) {
+    _pointerDownPos = e.position;
+    _pointerDownTime = DateTime.now();
+    _isLongPress = false;
+    _isDragging = false;
+
+    // 400ms 후 롱프레스 감지
+    _longPressTimer = Timer(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
+      _isLongPress = true;
+      HapticService.medium();
+      setState(() {}); // 롱프레스 시각 피드백 (스케일 업)
+    });
+  }
+
+  void _onPointerMove(PointerMoveEvent e) {
+    if (_pointerDownPos == null) return;
+    final distance = (e.position - _pointerDownPos!).distance;
+
+    if (!_isLongPress) {
+      // 롱프레스 전 이동 → 캔버스 팬 (InteractiveViewer에 위임)
+      if (distance > 10) _longPressTimer?.cancel();
+      return;
+    }
+
+    // 롱프레스 후 이동 → 노드 드래그
+    if (!_isDragging && distance > 5) {
+      _isDragging = true;
+      widget.onDragStarted(); // _draggingId 설정 → panEnabled: false
+    }
+
+    if (_isDragging) {
+      final scale = widget.transformCtrl.value.getMaxScaleOnAxis();
+      final delta = e.position - _pointerDownPos!;
+      setState(() {
+        _x = (widget.node.positionX + delta.dx / scale).clamp(0.0, 3900.0);
+        _y = (widget.node.positionY + delta.dy / scale).clamp(0.0, 3900.0);
+      });
+      widget.onDragUpdate(_x, _y);
+    }
+  }
+
+  void _onPointerUp(PointerUpEvent e) {
+    _longPressTimer?.cancel();
+
+    if (_isDragging) {
+      // 드래그 종료 → 위치 저장
+      widget.onDragEnded(_x, _y);
+    } else if (_isLongPress) {
+      // 롱프레스 후 이동 없이 떼기 → 연결 모드
+      widget.onLongPress();
+    } else if (_pointerDownPos != null && _pointerDownTime != null) {
+      // 탭 판정: 짧은 시간 + 적은 이동
+      final now = DateTime.now();
+      final duration = now.difference(_pointerDownTime!);
+      final distance = (e.position - _pointerDownPos!).distance;
+      if (duration.inMilliseconds < 300 && distance < 20) {
+        // 더블탭 판정: 이전 탭으로부터 300ms 이내
+        if (_lastTapTime != null &&
+            now.difference(_lastTapTime!).inMilliseconds < 300) {
+          _lastTapTime = null;
+          widget.onDoubleTap();
+        } else {
+          _lastTapTime = now;
+          widget.onTap();
+        }
+      }
+    }
+
+    _pointerDownPos = null;
+    _pointerDownTime = null;
+    _isLongPress = false;
+    _isDragging = false;
+  }
+
+  void _onPointerCancel(PointerCancelEvent e) {
+    _longPressTimer?.cancel();
+    if (_isDragging) widget.onDragEnded(_x, _y);
+    _pointerDownPos = null;
+    _pointerDownTime = null;
+    _isLongPress = false;
+    _isDragging = false;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final state = widget.canvasState;
-
-    // Pseudo-3D 세대 깊이 변환
     final p3d = pseudo3dTransform(widget.generationDepth);
-
-    // Focus Mode opacity × Pseudo-3D opacity (두 효과 합성)
     final combinedOpacity = (widget.focusOpacity * p3d.opacity).clamp(0.0, 1.0);
+
+    // 롱프레스/드래그 중 scale 1.08, Focus Mode 포커스 노드 scale 1.2
+    final isLifted = _isLongPress || _isDragging;
+    final isFocusTarget = state.focusedNodeId == widget.node.id;
+    final double scaleMultiplier;
+    if (isLifted) {
+      scaleMultiplier = 1.08;
+    } else if (isFocusTarget) {
+      scaleMultiplier = 1.15; // Focus Mode 포커스 노드 확대
+    } else {
+      scaleMultiplier = 1.0;
+    }
+    final visualScale = p3d.scale * scaleMultiplier;
 
     return Positioned(
       left: _x,
       top: _y,
-      child: Transform.translate(
-        offset: Offset(0, p3d.translateY),
-        child: Transform.scale(
-          scale: p3d.scale,
-          child: AnimatedOpacity(
-            opacity: combinedOpacity,
-            duration: const Duration(milliseconds: 200),
-            child: GestureDetector(
-              onTap: widget.onTap,
-              onDoubleTap: widget.onDoubleTap,
-              onLongPress: widget.onLongPress,
-              onPanStart: (d) {
-                _dragStart = d.globalPosition;
-                _posStart = Offset(_x, _y);
-                widget.onDragStarted();
-              },
-              onPanUpdate: (d) {
-                if (_dragStart == null || _posStart == null) return;
-                final scale =
-                    widget.transformCtrl.value.getMaxScaleOnAxis();
-                final delta = d.globalPosition - _dragStart!;
-                setState(() {
-                  // 스크린 델타 → 캔버스 좌표 변환 (scale 보정)
-                  _x = (_posStart!.dx + delta.dx / scale).clamp(0.0, 3900.0);
-                  _y = (_posStart!.dy + delta.dy / scale).clamp(0.0, 3900.0);
-                });
-              },
-              onPanEnd: (_) {
-                _dragStart = null;
-                _posStart = null;
-                widget.onDragEnded(_x, _y);
-              },
-              child: NodeCardLod(
-                node: widget.node,
-                lodLevel: widget.lodLevel,
-                isSelected: state.selectedNodeId == widget.node.id,
-                isConnectSource: state.connectingNodeId == widget.node.id,
-                isConnectMode: state.isConnectMode,
-                onTap: widget.onTap,
-                onLongPress: widget.onLongPress,
-                onDragEnd: widget.onDragEnded,
+      child: Listener(
+        behavior: HitTestBehavior.opaque,
+        onPointerDown: _onPointerDown,
+        onPointerMove: _onPointerMove,
+        onPointerUp: _onPointerUp,
+        onPointerCancel: _onPointerCancel,
+        child: Transform.translate(
+          offset: Offset(0, p3d.translateY + (isLifted ? -4.0 : 0.0)),
+          child: AnimatedScale(
+            scale: visualScale,
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+            child: AnimatedOpacity(
+              opacity: combinedOpacity,
+              duration: const Duration(milliseconds: 200),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                decoration: isFocusTarget
+                    ? const BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0x806EC6CA), // Mint glow 50%
+                            blurRadius: 24,
+                            spreadRadius: 4,
+                          ),
+                        ],
+                      )
+                    : null,
+                child: NodeCardLod(
+                  node: widget.node,
+                  lodLevel: widget.lodLevel,
+                  isSelected: state.selectedNodeId == widget.node.id,
+                  isConnectSource: state.connectingNodeId == widget.node.id,
+                  isConnectMode: state.isConnectMode,
+                  ghostLabel: widget.node.isGhost
+                      ? resolveGhostLabel(widget.node, state.edges)
+                      : null,
+                ),
               ),
             ),
           ),
@@ -573,6 +890,8 @@ class _DraggableNodeCardState extends State<_DraggableNodeCard> {
 
 /// 빈 캔버스 안내
 class _EmptyHint extends StatelessWidget {
+  const _EmptyHint();
+
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -584,7 +903,7 @@ class _EmptyHint extends StatelessWidget {
           children: [
             const Icon(Icons.account_tree_outlined, size: 64, color: AppColors.primary),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               '가족 트리를 시작해 보세요',
               style: TextStyle(
                 fontSize: 20,
@@ -594,7 +913,7 @@ class _EmptyHint extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               '+ 버튼으로 첫 번째 인물을 추가하세요',
               style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
               textAlign: TextAlign.center,
@@ -610,25 +929,24 @@ class _EmptyHint extends StatelessWidget {
 class _CanvasBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const RepaintBoundary(
+    return RepaintBoundary(
       child: _StaticBackground(),
     );
   }
 }
 
 class _StaticBackground extends StatelessWidget {
-  const _StaticBackground();
-
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return CustomPaint(
-      painter: _GridPainter(),
+      painter: _GridPainter(isDark: isDark),
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: RadialGradient(
             center: Alignment.center,
             radius: 1.5,
-            colors: [Color(0xFF1A1040), Color(0xFF0A0A1A)],
+            colors: [AppColors.bgSurface, AppColors.bgBase],
           ),
         ),
       ),
@@ -695,8 +1013,8 @@ class _FocusInfoPanel extends StatelessWidget {
                   border: Border.all(color: tempColor, width: 1.5),
                 ),
                 child: n.isGhost
-                    ? const Icon(Icons.help_outline, color: Colors.white54, size: 18)
-                    : const Icon(Icons.person, color: Colors.white70, size: 20),
+                    ? Icon(Icons.help_outline, color: AppColors.textTertiary, size: 18)
+                    : Icon(Icons.person, color: AppColors.textSecondary, size: 20),
               ),
               const SizedBox(width: AppSpacing.md),
               // 이름 + 관계수 + 온도
@@ -707,7 +1025,7 @@ class _FocusInfoPanel extends StatelessWidget {
                   children: [
                     Text(
                       n.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15, fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                       ),
@@ -716,11 +1034,11 @@ class _FocusInfoPanel extends StatelessWidget {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        const Icon(Icons.people_outline, size: 12, color: AppColors.textSecondary),
+                        Icon(Icons.people_outline, size: 12, color: AppColors.textSecondary),
                         const SizedBox(width: 3),
                         Text(
                           '연결 $edgeCount명',
-                          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                         ),
                         const SizedBox(width: 8),
                         Container(
@@ -748,7 +1066,7 @@ class _FocusInfoPanel extends StatelessWidget {
               // 닫기
               GestureDetector(
                 onTap: onClose,
-                child: const Icon(Icons.close, size: 16, color: AppColors.textSecondary),
+                child: Icon(Icons.close, size: 16, color: AppColors.textSecondary),
               ),
             ],
           ),
@@ -760,10 +1078,13 @@ class _FocusInfoPanel extends StatelessWidget {
 
 /// 배경 그리드 점
 class _GridPainter extends CustomPainter {
+  const _GridPainter({required this.isDark});
+  final bool isDark;
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0x1AFFFFFF)
+      ..color = isDark ? const Color(0x1AFFFFFF) : const Color(0x1A000000)
       ..strokeWidth = 1;
     const spacing = 32.0;
     for (double x = 0; x < size.width; x += spacing) {
@@ -774,5 +1095,6 @@ class _GridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _GridPainter oldDelegate) =>
+      oldDelegate.isDark != isDark;
 }

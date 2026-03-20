@@ -9,6 +9,35 @@ import '../utils/lod_utils.dart';
 const double kNodeCardWidth = 110.0;
 const double kNodeCardHeight = 130.0;
 
+/// Ghost 노드 라벨을 연결된 관계 타입에 따라 결정
+String resolveGhostLabel(NodeModel node, List<NodeEdge> edges) {
+  if (!node.isGhost) return '';
+
+  // 이 Ghost 노드와 연결된 edge 찾기
+  final connectedEdges = edges.where(
+    (e) => e.fromNodeId == node.id || e.toNodeId == node.id,
+  );
+
+  if (connectedEdges.isEmpty) return '?';
+
+  // 연결된 관계 타입으로 라벨 결정
+  for (final edge in connectedEdges) {
+    switch (edge.relation) {
+      case RelationType.parent:
+      case RelationType.child:
+        return '알 수 없는 조상';
+      case RelationType.spouse:
+        return '미확인 배우자';
+      case RelationType.other:
+        return '관계 미상';
+      case RelationType.sibling:
+        return '?';
+    }
+  }
+
+  return '?';
+}
+
 /// 캔버스 위 인물 노드 카드
 class NodeCard extends StatefulWidget {
   const NodeCard({
@@ -17,18 +46,16 @@ class NodeCard extends StatefulWidget {
     required this.isSelected,
     required this.isConnectSource,
     required this.isConnectMode,
-    required this.onTap,
-    required this.onLongPress,
-    required this.onDragEnd,
+    this.ghostLabel,
   });
 
   final NodeModel node;
   final bool isSelected;
   final bool isConnectSource;
   final bool isConnectMode;
-  final VoidCallback onTap;
-  final VoidCallback onLongPress;
-  final void Function(double dx, double dy) onDragEnd;
+
+  /// Ghost 노드에 표시할 라벨 (null이면 기본 '미확인')
+  final String? ghostLabel;
 
   @override
   State<NodeCard> createState() => _NodeCardState();
@@ -106,17 +133,17 @@ class _NodeCardState extends State<NodeCard>
     final node = widget.node;
     final tempColor = AppColors.tempColor(node.temperature);
 
+    final ghostLabelText = widget.ghostLabel ?? '미확인';
     final semanticsLabel = node.isGhost
-        ? '미확인 인물${node.name.isNotEmpty ? " ${node.name}" : ""}'
-        : node.name;
+        ? '$ghostLabelText${node.name.isNotEmpty ? " ${node.name}" : ""}'
+        : !node.isAlive
+            ? '${node.name}, 고인'
+            : node.name;
 
     return Semantics(
       label: semanticsLabel,
       hint: '탭하면 상세 정보를 볼 수 있습니다',
       button: true,
-      child: GestureDetector(
-      onTap: widget.onTap,
-      onLongPress: widget.onLongPress,
       child: AnimatedBuilder(
         animation: Listenable.merge([_pulseAnim, _fillScale, _fillGlow]),
         builder: (context, child) {
@@ -142,29 +169,55 @@ class _NodeCardState extends State<NodeCard>
                 : child!,
           );
         },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: kNodeCardWidth,
-          height: kNodeCardHeight,
-          decoration: _buildDecoration(node, tempColor),
-          child: node.isGhost
-              ? _GhostContent(node: node)
-              : _NormalContent(node: node, tempColor: tempColor),
+        child: Opacity(
+          opacity: (!node.isGhost && !node.isAlive) ? 0.7 : 1.0,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: kNodeCardWidth,
+            height: kNodeCardHeight,
+            decoration: _buildDecoration(node, tempColor),
+            child: node.isGhost
+                ? _GhostContent(node: node, ghostLabel: ghostLabelText)
+                : Stack(
+                    children: [
+                      _NormalContent(node: node, tempColor: tempColor),
+                      if (!node.isAlive)
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Icon(
+                              Icons.local_florist,
+                              size: 16,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+          ),
         ),
-      ),
       ),
     );
   }
 
-  BoxDecoration _buildDecoration(NodeModel node, Color tempColor) {
+  BoxDecoration _buildDecoration(NodeModel node, Color baseColor) {
+    // 돌아가신 분은 회색 테두리로 존경의 의미 표현
+    const deceasedBorderColor = Color(0xFF8E8E93);
+    final tempColor = node.isAlive ? baseColor : deceasedBorderColor;
+
     if (node.isGhost) {
       return BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: const Color(0x1AFFFFFF),
+        color: AppColors.glassSurface,
         border: Border.all(
-          color: Colors.white30,
+          color: AppColors.glassBorder,
           width: 1.5,
-          // 점선 효과는 CustomPaint로 처리 (Flutter Border는 점선 미지원)
         ),
         boxShadow: const [
           BoxShadow(color: Color(0x1A6C63FF), blurRadius: 12),
@@ -174,7 +227,7 @@ class _NodeCardState extends State<NodeCard>
 
     return BoxDecoration(
       borderRadius: BorderRadius.circular(16),
-      color: const Color(0x1AFFFFFF),
+      color: AppColors.glassSurface,
       border: Border.all(
         color: widget.isSelected
             ? AppColors.nodeSelected
@@ -222,7 +275,7 @@ class _NormalContent extends StatelessWidget {
           // 이름
           Text(
             node.name,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
@@ -235,20 +288,20 @@ class _NormalContent extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               '${node.birthDate!.year}년생',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 color: AppColors.textTertiary,
               ),
             ),
           ],
           const SizedBox(height: 4),
-          // 온도 인디케이터
+          // 온도 인디케이터 (돌아가신 분은 회색)
           Container(
             width: 28,
             height: 4,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(2),
-              color: tempColor,
+              color: node.isAlive ? tempColor : const Color(0xFF8E8E93),
             ),
           ),
         ],
@@ -257,10 +310,11 @@ class _NormalContent extends StatelessWidget {
   }
 }
 
-/// Ghost Node 콘텐츠 (반투명, 물음표)
+/// Ghost Node 콘텐츠 (반투명, 관계 기반 라벨)
 class _GhostContent extends StatelessWidget {
-  const _GhostContent({required this.node});
+  const _GhostContent({required this.node, required this.ghostLabel});
   final NodeModel node;
+  final String ghostLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -276,26 +330,30 @@ class _GhostContent extends StatelessWidget {
               height: 48,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white38, width: 1.5),
-                color: Colors.white10,
+                border: Border.all(color: AppColors.glassBorder, width: 1.5),
+                color: AppColors.glassSurface,
               ),
-              child: const Icon(Icons.help_outline, color: Colors.white54, size: 24),
+              child: Icon(Icons.help_outline, color: AppColors.textTertiary, size: 24),
             ),
             const SizedBox(height: 6),
             Text(
-              node.name.isEmpty ? '미확인' : node.name,
-              style: const TextStyle(
+              node.name.isEmpty ? ghostLabel : node.name,
+              style: TextStyle(
                 fontSize: 12,
-                color: Colors.white60,
+                color: AppColors.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 2),
-            const Text(
-              'Ghost',
-              style: TextStyle(fontSize: 10, color: Colors.white38),
+            Text(
+              ghostLabel,
+              style: TextStyle(fontSize: 9, color: AppColors.textTertiary),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -364,9 +422,7 @@ class NodeCardLod extends StatelessWidget {
     required this.isSelected,
     required this.isConnectSource,
     required this.isConnectMode,
-    required this.onTap,
-    required this.onLongPress,
-    required this.onDragEnd,
+    this.ghostLabel,
   });
 
   final NodeModel node;
@@ -374,38 +430,39 @@ class NodeCardLod extends StatelessWidget {
   final bool isSelected;
   final bool isConnectSource;
   final bool isConnectMode;
-  final VoidCallback onTap;
-  final VoidCallback onLongPress;
-  final void Function(double dx, double dy) onDragEnd;
+
+  /// Ghost 노드에 표시할 라벨
+  final String? ghostLabel;
 
   @override
   Widget build(BuildContext context) {
     return switch (lodLevel) {
       LodLevel.birdEye => _BirdEyeDot(node: node),
-      LodLevel.overview => _OverviewCard(node: node, onTap: onTap),
+      LodLevel.overview => _OverviewCard(node: node),
       LodLevel.detail || LodLevel.zoom => NodeCard(
           node: node,
           isSelected: isSelected,
           isConnectSource: isConnectSource,
           isConnectMode: isConnectMode,
-          onTap: onTap,
-          onLongPress: onLongPress,
-          onDragEnd: onDragEnd,
+          ghostLabel: ghostLabel,
         ),
     };
   }
 }
 
-/// Bird's Eye (< 0.5×) — 8×8 컬러 점
+/// Bird's Eye (< 0.5x) — 8x8 컬러 점
 class _BirdEyeDot extends StatelessWidget {
   const _BirdEyeDot({required this.node});
   final NodeModel node;
 
   @override
   Widget build(BuildContext context) {
+    // Ghost → 반투명 흰색, 돌아가신 분 → 회색, 일반 → 온도 색상
     final color = node.isGhost
         ? Colors.white38
-        : AppColors.tempColor(node.temperature);
+        : !node.isAlive
+            ? const Color(0xFF8E8E93)
+            : AppColors.tempColor(node.temperature);
     return SizedBox(
       width: kNodeCardWidth,
       height: kNodeCardHeight,
@@ -426,35 +483,51 @@ class _BirdEyeDot extends StatelessWidget {
   }
 }
 
-/// Overview (0.5×–1.0×) — 원형 아바타 + 이름
+/// Overview (0.5x-1.0x) — 원형 아바타 + 이름
 class _OverviewCard extends StatelessWidget {
-  const _OverviewCard({required this.node, required this.onTap});
+  const _OverviewCard({required this.node});
   final NodeModel node;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
+    final isDeceased = !node.isGhost && !node.isAlive;
+    return Opacity(
+      opacity: isDeceased ? 0.7 : 1.0,
       child: SizedBox(
         width: kNodeCardWidth,
         height: kNodeCardHeight,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Stack(
           children: [
-            _NodeAvatar(node: node, size: 40),
-            const SizedBox(height: 4),
-            Text(
-              node.name.isEmpty ? '미확인' : node.name,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _NodeAvatar(node: node, size: 40),
+                  const SizedBox(height: 4),
+                  Text(
+                    node.name.isEmpty ? '미확인' : node.name,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
             ),
+            if (isDeceased)
+              const Positioned(
+                top: 20,
+                right: 16,
+                child: Icon(
+                  Icons.local_florist,
+                  size: 14,
+                  color: Color(0xFF8E8E93),
+                ),
+              ),
           ],
         ),
       ),
@@ -469,7 +542,7 @@ class GhostNodeBorder extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white38
+      ..color = AppColors.glassBorder
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
 

@@ -112,6 +112,16 @@ class NodeNotifier extends _$NodeNotifier {
     }
   }
 
+  /// 기존 엣지의 관계 타입을 변경합니다.
+  Future<void> updateEdgeRelation(
+      String edgeId, RelationType newRelation) async {
+    try {
+      await _repo.updateEdgeRelation(edgeId, newRelation);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
   Future<void> deleteEdge(String id) async {
     try {
       await _repo.deleteEdge(id);
@@ -190,6 +200,49 @@ class NodeNotifier extends _$NodeNotifier {
       state = AsyncError(e, st);
       return null;
     }
+  }
+
+  /// 새 노드의 Ghost 부모(아버지/어머니)를 자동으로 생성합니다.
+  /// 플랜 한도 내에서 최대 2개의 Ghost 노드를 생성합니다.
+  Future<void> createGhostParentsFor(NodeModel child) async {
+    try {
+      final plan = await _settings.getUserPlan();
+      int count = await _repo.count();
+
+      if (count < plan.maxNodes) {
+        final ghostFather = await _repo.create(
+          name: '미확인 아버지',
+          isGhost: true,
+          positionX: child.positionX - 120,
+          positionY: child.positionY - 220,
+        );
+        await _repo.addEdge(
+          fromNodeId: ghostFather.id,
+          toNodeId: child.id,
+          relation: RelationType.child,
+        );
+        count++;
+
+        if (count < plan.maxNodes) {
+          final ghostMother = await _repo.create(
+            name: '미확인 어머니',
+            isGhost: true,
+            positionX: child.positionX + 120,
+            positionY: child.positionY - 220,
+          );
+          await _repo.addEdge(
+            fromNodeId: ghostMother.id,
+            toNodeId: child.id,
+            relation: RelationType.child,
+          );
+          await _repo.addEdge(
+            fromNodeId: ghostFather.id,
+            toNodeId: ghostMother.id,
+            relation: RelationType.spouse,
+          );
+        }
+      }
+    } catch (_) {}
   }
 
   // ── 플랜 제한 체크 ────────────────────────────────────────────────────────

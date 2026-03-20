@@ -54,11 +54,11 @@ class _MemoryScreenState extends ConsumerState<MemoryScreen>
         children: [
           // 배경
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: RadialGradient(
                 center: Alignment.topCenter,
                 radius: 1.2,
-                colors: [Color(0xFF1A1040), Color(0xFF0A0A1A)],
+                colors: [AppColors.bgSurface, AppColors.bgBase],
               ),
             ),
           ),
@@ -76,12 +76,12 @@ class _MemoryScreenState extends ConsumerState<MemoryScreen>
                     children: [
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                        icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
                       ),
                       Expanded(
                         child: Text(
                           '${widget.nodeName}의 기억',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: AppColors.textPrimary,
@@ -91,7 +91,7 @@ class _MemoryScreenState extends ConsumerState<MemoryScreen>
                       memoriesAsync.when(
                         data: (memories) => Text(
                           '${memories.length}개',
-                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                          style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
                         ),
                         loading: () => const SizedBox.shrink(),
                         error: (e, s) => const SizedBox.shrink(),
@@ -164,13 +164,13 @@ class _MemoryScreenState extends ConsumerState<MemoryScreen>
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [Color(0xFF6C63FF), Color(0xFF9C94FF)],
+                    colors: [Color(0xFF6EC6CA), Color(0xFF4A9EBF)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Color(0x4D6C63FF),
+                      color: Color(0x4D6EC6CA),
                       blurRadius: 20,
                       offset: Offset(0, 4),
                     ),
@@ -280,14 +280,17 @@ class _PhotoGrid extends StatelessWidget {
         final m = memories[i];
         return GestureDetector(
           onTap: () => onTap(m),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: m.thumbnailPath != null
-                ? Image.file(File(m.thumbnailPath!), fit: BoxFit.cover)
-                : Container(
-                    color: AppColors.glassSurface,
-                    child: const Icon(Icons.photo_outlined, color: AppColors.textTertiary),
-                  ),
+          child: Hero(
+            tag: 'photo_${m.id}',
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: m.thumbnailPath != null
+                  ? Image.file(File(m.thumbnailPath!), fit: BoxFit.cover)
+                  : Container(
+                      color: AppColors.glassSurface,
+                      child: Icon(Icons.photo_outlined, color: AppColors.textTertiary),
+                    ),
+            ),
           ),
         );
       },
@@ -325,14 +328,17 @@ class _MixedList extends StatelessWidget {
             final m = photos[i];
             return GestureDetector(
               onTap: () => onTap(m),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: m.thumbnailPath != null
-                    ? Image.file(File(m.thumbnailPath!), fit: BoxFit.cover)
-                    : Container(
-                        color: AppColors.glassSurface,
-                        child: const Icon(Icons.photo_outlined, color: AppColors.textTertiary),
-                      ),
+              child: Hero(
+                tag: 'photo_${m.id}',
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: m.thumbnailPath != null
+                      ? Image.file(File(m.thumbnailPath!), fit: BoxFit.cover)
+                      : Container(
+                          color: AppColors.glassSurface,
+                          child: Icon(Icons.photo_outlined, color: AppColors.textTertiary),
+                        ),
+                ),
               ),
             );
           },
@@ -390,16 +396,16 @@ class _MemoryListTile extends StatelessWidget {
               children: [
                 Text(
                   memory.title ?? memory.type.label,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (isVoice && memory.formattedDuration != null)
-                  Text(memory.formattedDuration!, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))
+                  Text(memory.formattedDuration!, style: TextStyle(fontSize: 12, color: AppColors.textSecondary))
                 else if (!isVoice && memory.description != null)
                   Text(
                     memory.description!,
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -408,7 +414,7 @@ class _MemoryListTile extends StatelessWidget {
           ),
           Text(
             _formatDate(memory.createdAt),
-            style: const TextStyle(fontSize: 11, color: AppColors.textTertiary),
+            style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
           ),
         ],
       ),
@@ -507,7 +513,7 @@ class _EmptyState extends StatelessWidget {
         children: [
           Icon(icon, size: 56, color: AppColors.textTertiary),
           const SizedBox(height: AppSpacing.md),
-          Text(msg, style: const TextStyle(fontSize: 14, color: AppColors.textTertiary), textAlign: TextAlign.center),
+          Text(msg, style: TextStyle(fontSize: 14, color: AppColors.textTertiary), textAlign: TextAlign.center),
         ],
       ),
     );

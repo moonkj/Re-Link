@@ -5,14 +5,14 @@ import '../tokens/app_radius.dart';
 import '../tokens/app_shadows.dart';
 
 /// Re-Link Glassmorphism 2.0 / Liquid Glass 컴포넌트
+/// 디자인 문서 4.1:
+///   Light — blur:24, opacity:0.72, saturation:1.4, noise:3%
+///   Dark  — blur:32, opacity:0.60, saturation:1.2, noise:2%
 class GlassCard extends StatelessWidget {
   const GlassCard({
     super.key,
     required this.child,
     this.borderRadius = AppRadius.glassCard,
-    this.blur = 20.0,
-    this.opacity = 0.15,
-    this.borderOpacity = 0.2,
     this.padding,
     this.margin,
     this.shadows = AppShadows.glass,
@@ -23,9 +23,6 @@ class GlassCard extends StatelessWidget {
 
   final Widget child;
   final BorderRadius borderRadius;
-  final double blur;
-  final double opacity;
-  final double borderOpacity;
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
   final List<BoxShadow> shadows;
@@ -35,12 +32,13 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 다크/라이트 밝기에 따라 glass opacity 자동 조정
     final brightness = Theme.of(context).brightness;
-    final effectiveOpacity =
-        brightness == Brightness.light ? (opacity * 4.8).clamp(0.0, 1.0) : opacity;
-    final effectiveBorderOpacity =
-        brightness == Brightness.light ? (borderOpacity * 2.0).clamp(0.0, 1.0) : borderOpacity;
+    final isLight = brightness == Brightness.light;
+
+    // Glassmorphism 2.0 specs
+    final blur = isLight ? 24.0 : 32.0;
+    final fillOpacity = isLight ? 0.72 : 0.60;
+    final borderOpacity = isLight ? 0.40 : 0.20;
 
     return Container(
       margin: margin,
@@ -60,9 +58,11 @@ class GlassCard extends StatelessWidget {
               padding: padding,
               decoration: BoxDecoration(
                 borderRadius: borderRadius,
-                color: Color.fromRGBO(255, 255, 255, effectiveOpacity),
+                color: isLight
+                    ? Color.fromRGBO(255, 255, 255, fillOpacity)
+                    : Color.fromRGBO(255, 255, 255, fillOpacity * 0.25),
                 border: Border.all(
-                  color: Color.fromRGBO(255, 255, 255, effectiveBorderOpacity),
+                  color: Color.fromRGBO(255, 255, 255, borderOpacity),
                   width: 1.0,
                 ),
               ),
@@ -119,7 +119,7 @@ class _GlassButtonState extends State<GlassButton> {
               decoration: BoxDecoration(
                 borderRadius: widget.borderRadius,
                 color: _pressed
-                    ? AppColors.glassBorder // 눌림 시 약간 더 불투명
+                    ? AppColors.glassBorder
                     : (widget.backgroundColor ?? AppColors.glassSurface),
                 border: Border.all(
                   color: AppColors.glassBorder,
@@ -135,7 +135,7 @@ class _GlassButtonState extends State<GlassButton> {
   }
 }
 
-/// Primary 글래스 버튼 (보라색 그라디언트)
+/// Primary 글래스 버튼 (Mint→Blue 그라디언트)
 class PrimaryGlassButton extends StatelessWidget {
   const PrimaryGlassButton({
     super.key,
@@ -163,7 +163,7 @@ class PrimaryGlassButton extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: borderRadius,
           gradient: const LinearGradient(
-            colors: [Color(0xFF6C63FF), Color(0xFF9C94FF)],
+            colors: [AppColors.primaryMint, AppColors.primaryBlue],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -213,12 +213,14 @@ class GlassBottomSheet extends StatelessWidget {
     return ClipRRect(
       borderRadius: AppRadius.bottomSheet,
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+        filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
         child: Container(
           padding: padding,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             borderRadius: AppRadius.bottomSheet,
-            color: Color(0xE60A0A1A), // 90% 어두운 배경
+            color: AppColors.isDark
+                ? const Color(0xE60D1117)
+                : const Color(0xF0FFFFFF),
             border: Border(
               top: BorderSide(color: AppColors.glassBorder, width: 1),
               left: BorderSide(color: AppColors.glassBorder, width: 0.5),

@@ -55,6 +55,7 @@ class MemoryRepository {
     int? durationSeconds,
     DateTime? dateTaken,
     List<String> tags = const [],
+    bool isPrivate = false,
   }) async {
     final id = _uuid.v4();
     final now = DateTime.now();
@@ -70,6 +71,7 @@ class MemoryRepository {
       dateTaken: Value(dateTaken),
       tagsJson: Value(jsonEncode(tags)),
       createdAt: Value(now),
+      isPrivate: Value(isPrivate),
     ));
     return (await getById(id))!;
   }

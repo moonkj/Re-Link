@@ -50,14 +50,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           controller: _controller,
           autofocus: true,
           onChanged: _onChanged,
-          style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
+          style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
           decoration: InputDecoration(
             hintText: '인물 이름, 기억 내용 검색...',
-            hintStyle: const TextStyle(color: AppColors.textTertiary),
+            hintStyle: TextStyle(color: AppColors.textTertiary),
             border: InputBorder.none,
             suffixIcon: _controller.text.isNotEmpty
                 ? IconButton(
-                    icon: const Icon(Icons.clear, color: AppColors.textTertiary),
+                    icon: Icon(Icons.clear, color: AppColors.textTertiary),
                     onPressed: () {
                       _controller.clear();
                       ref.read(searchNotifierProvider.notifier).clear();
@@ -66,7 +66,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 : null,
           ),
         ),
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        iconTheme: IconThemeData(color: AppColors.textPrimary),
       ),
       body: asyncResult.when(
         loading: () => const Center(
@@ -125,7 +125,7 @@ class _SectionHeader extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: AppColors.textSecondary,
@@ -194,20 +194,20 @@ class _NodeResultTile extends StatelessWidget {
       ),
       title: Text(
         node.name,
-        style: const TextStyle(
+        style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary),
       ),
       subtitle: node.nickname != null
           ? Text(node.nickname!,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 13, color: AppColors.textSecondary))
           : null,
       trailing: node.isGhost
-          ? const Icon(Icons.help_outline,
+          ? Icon(Icons.help_outline,
               size: 16, color: AppColors.textTertiary)
-          : const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+          : Icon(Icons.chevron_right, color: AppColors.textTertiary),
       onTap: onTap,
     );
   }
@@ -247,7 +247,7 @@ class _MemoryResultTile extends StatelessWidget {
       ),
       title: Text(
         memory.title ?? label,
-        style: const TextStyle(
+        style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary),
@@ -257,14 +257,14 @@ class _MemoryResultTile extends StatelessWidget {
               memory.description!,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 13, color: AppColors.textSecondary),
             )
           : Text(label,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 13, color: AppColors.textTertiary)),
       trailing:
-          const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+          Icon(Icons.chevron_right, color: AppColors.textTertiary),
       onTap: onTap,
     );
   }
@@ -273,14 +273,16 @@ class _MemoryResultTile extends StatelessWidget {
 // ── 빈 상태 ───────────────────────────────────────────────────────────────────
 
 class _EmptyPrompt extends StatelessWidget {
+  const _EmptyPrompt();
+
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.search, size: 56, color: AppColors.textTertiary),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Text(
             '인물 이름이나 기억 내용을\n검색해보세요',
             textAlign: TextAlign.center,
@@ -302,12 +304,12 @@ class _NoResult extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.search_off, size: 56, color: AppColors.textTertiary),
+          Icon(Icons.search_off, size: 56, color: AppColors.textTertiary),
           const SizedBox(height: 12),
           Text(
             '"$query" 검색 결과 없음',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 15, color: AppColors.textSecondary),
+            style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
           ),
         ],
       ),

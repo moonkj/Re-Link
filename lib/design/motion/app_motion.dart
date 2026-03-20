@@ -70,4 +70,29 @@ abstract final class AppMotion {
   static const Duration ghostFill = Duration(milliseconds: 300);
   static const Duration focusPanelSlide = Duration(milliseconds: 280);
   static const Duration vibeMeterStep = Duration(milliseconds: 180);
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── 3-Tier Duration (디자인 문서 4.6) ─────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // Tier 1: Quick (100-200ms) — micro feedback
+  static const Duration tier1Min = Duration(milliseconds: 100);
+  static const Duration tier1Max = Duration(milliseconds: 200);
+  // Tier 2: Standard (250-400ms) — panels, cards
+  static const Duration tier2Min = Duration(milliseconds: 250);
+  static const Duration tier2Max = Duration(milliseconds: 400);
+  // Tier 3: Dramatic (500-800ms) — mode changes
+  static const Duration tier3Min = Duration(milliseconds: 500);
+  static const Duration tier3Max = Duration(milliseconds: 800);
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── Haptic 매핑 (디자인 문서 4.6) ─────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // HapticFeedback 호출 가이드:
+  //   nodeTap       → HapticFeedback.lightImpact()
+  //   nodeLongPress → HapticFeedback.mediumImpact()
+  //   edgeConnect   → HapticFeedback.heavyImpact() (success notification)
+  //   dragSnap      → HapticFeedback.selectionClick() (rigid)
+  //   deleteAction  → HapticFeedback.heavyImpact() (warning)
+  //   modeChange    → HapticFeedback.selectionClick()
+  //   vibeMeterStep → HapticFeedback.selectionClick()
 }

@@ -51,6 +51,7 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
   final _titleCtrl = TextEditingController();
 
   _PlaybackSpeed _speed = _PlaybackSpeed.normal;
+  String? _selectedTag;
 
   @override
   void initState() {
@@ -95,7 +96,7 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
             ),
           ),
 
-          const Text(
+          Text(
             '음성 기억',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
           ),
@@ -110,7 +111,7 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
                       playerController: _playerCtrl!,
                       size: Size(MediaQuery.of(context).size.width - 96, 80),
                       waveformType: WaveformType.fitWidth,
-                      playerWaveStyle: const PlayerWaveStyle(
+                      playerWaveStyle: PlayerWaveStyle(
                         fixedWaveColor: AppColors.glassBorder,
                         liveWaveColor: AppColors.primary,
                         waveCap: StrokeCap.round,
@@ -160,7 +161,7 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
                 GlassCard(
                   onTap: _resetRecording,
                   padding: const EdgeInsets.all(AppSpacing.md),
-                  child: const Icon(Icons.refresh, color: AppColors.textSecondary, size: 24),
+                  child: Icon(Icons.refresh, color: AppColors.textSecondary, size: 24),
                 ),
                 const SizedBox(width: AppSpacing.lg),
                 // 재생/일시정지
@@ -217,6 +218,35 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
             ),
             const SizedBox(height: AppSpacing.lg),
 
+            // 태그 선택
+            Wrap(
+              spacing: AppSpacing.sm,
+              children: ['이야기', '생일', '인터뷰', '노래', '기타'].map((tag) {
+                final isSelected = _selectedTag == tag;
+                return ChoiceChip(
+                  label: Text(tag),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() => _selectedTag = selected ? tag : null);
+                  },
+                  selectedColor: AppColors.primaryMint,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    fontSize: 13,
+                  ),
+                  backgroundColor: AppColors.glassSurface,
+                  side: BorderSide(
+                    color: isSelected ? AppColors.primaryMint : AppColors.glassBorder,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
             // 제목 입력
             GlassCard(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
@@ -227,13 +257,13 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
                   Expanded(
                     child: TextField(
                       controller: _titleCtrl,
-                      style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
-                      decoration: const InputDecoration(
+                      style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                      decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: '제목 (선택)',
                         hintStyle: TextStyle(fontSize: 14, color: AppColors.textTertiary),
                         isDense: true,
-                        contentPadding: EdgeInsets.symmetric(vertical: 10),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 10),
                       ),
                     ),
                   ),
@@ -339,6 +369,7 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
         filePath: _recordedPath!,
         durationSeconds: _recordedSeconds,
         title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
+        tags: _selectedTag != null ? [_selectedTag!] : const [],
       );
       if (!mounted) return;
       HapticService.memoryAdded();

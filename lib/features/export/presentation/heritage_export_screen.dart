@@ -19,6 +19,7 @@ class HeritageExportScreen extends ConsumerStatefulWidget {
 
 class _HeritageExportScreenState extends ConsumerState<HeritageExportScreen> {
   ExportTemplate _template = ExportTemplate.classic;
+  ExportColorTheme _colorTheme = ExportColorTheme.appTheme;
   ExportResolution _resolution = ExportResolution.sns;
   bool _isExporting = false;
   final _repaintKey = GlobalKey();
@@ -32,7 +33,7 @@ class _HeritageExportScreenState extends ConsumerState<HeritageExportScreen> {
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
         backgroundColor: AppColors.bgBase,
-        title: const Text(
+        title: Text(
           '가계도 포스터',
           style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700),
         ),
@@ -54,6 +55,7 @@ class _HeritageExportScreenState extends ConsumerState<HeritageExportScreen> {
                 key: _repaintKey,
                 child: _ExportPreview(
                   template: _template,
+                  colorTheme: _colorTheme,
                   isPremium: isPremium,
                 ),
               ),
@@ -63,14 +65,12 @@ class _HeritageExportScreenState extends ConsumerState<HeritageExportScreen> {
           // ── 컨트롤 패널 ─────────────────────────────────────────────────
           GlassCard(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            blur: 30,
-            opacity: 0.2,
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 템플릿 선택
-                const Text(
+                Text(
                   '템플릿',
                   style: TextStyle(
                     fontSize: 13,
@@ -93,8 +93,32 @@ class _HeritageExportScreenState extends ConsumerState<HeritageExportScreen> {
                 ),
                 const SizedBox(height: AppSpacing.md),
 
+                // 색상 테마 선택
+                Text(
+                  '색상 테마',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: ExportColorTheme.values
+                        .map((ct) => _ColorThemeChip(
+                              colorTheme: ct,
+                              isSelected: _colorTheme == ct,
+                              onTap: () => setState(() => _colorTheme = ct),
+                            ))
+                        .toList(),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+
                 // 해상도 선택
-                const Text(
+                Text(
                   '해상도',
                   style: TextStyle(
                     fontSize: 13,
@@ -130,7 +154,7 @@ class _HeritageExportScreenState extends ConsumerState<HeritageExportScreen> {
                 // Premium 안내
                 if (!isPremium) ...[
                   const SizedBox(height: 8),
-                  const Center(
+                  Center(
                     child: Text(
                       '프리미엄에서 워터마크 없이 내보낼 수 있어요',
                       style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
@@ -168,21 +192,42 @@ class _HeritageExportScreenState extends ConsumerState<HeritageExportScreen> {
   }
 }
 
-/// 포스터 미리보기 (템플릿별)
+/// 포스터 미리보기 (템플릿 × 색상 테마)
 class _ExportPreview extends StatelessWidget {
-  const _ExportPreview({required this.template, required this.isPremium});
+  const _ExportPreview({
+    required this.template,
+    required this.colorTheme,
+    required this.isPremium,
+  });
 
   final ExportTemplate template;
+  final ExportColorTheme colorTheme;
   final bool isPremium;
 
   @override
   Widget build(BuildContext context) {
-    final (bg, titleColor) = switch (template) {
-      ExportTemplate.classic => (const Color(0xFF1A1040), AppColors.primary),
+    // 기본 템플릿 색상
+    var (bg, titleColor) = switch (template) {
+      ExportTemplate.classic => (const Color(0xFF1E2840), AppColors.primary),
       ExportTemplate.modern => (const Color(0xFF0D1F1A), AppColors.secondary),
       ExportTemplate.minimal => (Colors.white, AppColors.textInverse),
       ExportTemplate.festival => (const Color(0xFF1F0D0D), AppColors.accent),
     };
+
+    // 색상 테마 오버라이드
+    switch (colorTheme) {
+      case ExportColorTheme.bw:
+        bg = const Color(0xFF1A1A1A);
+        titleColor = Colors.white;
+      case ExportColorTheme.sepia:
+        bg = const Color(0xFF3E2723);
+        titleColor = const Color(0xFFD7CCC8);
+      case ExportColorTheme.custom:
+        bg = const Color(0xFF1A0D2E);
+        titleColor = const Color(0xFFBB86FC);
+      case ExportColorTheme.appTheme:
+        break; // 기본 템플릿 색상 유지
+    }
 
     return Container(
       width: 280,
@@ -282,6 +327,71 @@ class _TemplateChip extends StatelessWidget {
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               color: isSelected ? AppColors.primary : AppColors.textSecondary,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ColorThemeChip extends StatelessWidget {
+  const _ColorThemeChip({
+    required this.colorTheme,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final ExportColorTheme colorTheme;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  static const _previewColors = {
+    ExportColorTheme.appTheme: AppColors.primary,
+    ExportColorTheme.bw: Colors.white,
+    ExportColorTheme.sepia: Color(0xFFD7CCC8),
+    ExportColorTheme.custom: Color(0xFFBB86FC),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: isSelected
+                ? AppColors.primary.withAlpha(40)
+                : AppColors.glassSurface,
+            border: Border.all(
+              color: isSelected ? AppColors.primary : AppColors.glassBorder,
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _previewColors[colorTheme] ?? AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                colorTheme.label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                ),
+              ),
+            ],
           ),
         ),
       ),

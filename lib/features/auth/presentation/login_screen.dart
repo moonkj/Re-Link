@@ -13,14 +13,14 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF0A0A1A),
-              Color(0xFF1A1040),
-              Color(0xFF0A0A1A),
+              AppColors.bgBase,
+              AppColors.bgSurface,
+              AppColors.bgBase,
             ],
           ),
         ),
@@ -31,7 +31,7 @@ class LoginScreen extends StatelessWidget {
               children: [
                 const Spacer(flex: 2),
                 // 로고 + 태그라인
-                const Column(
+                Column(
                   children: [
                     Text(
                       'Re-Link',
@@ -92,7 +92,7 @@ class LoginScreen extends StatelessWidget {
                       width: double.infinity,
                       child: GlassButton(
                         onPressed: () => _onEmailLogin(context),
-                        child: const Center(
+                        child: Center(
                           child: Text(
                             '이메일로 시작하기',
                             style: TextStyle(
@@ -108,7 +108,7 @@ class LoginScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xxl),
                 // 약관 안내
-                const Text(
+                Text(
                   '시작하면 이용약관 및 개인정보처리방침에 동의하는 것으로 간주합니다.',
                   textAlign: TextAlign.center,
                   style: TextStyle(

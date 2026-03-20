@@ -44,20 +44,20 @@ abstract final class AppShadows {
     ),
   ];
 
-  // ── Primary Glow ──────────────────────────────────────────────────────────
+  // ── Primary Glow (Mint 기반) ────────────────────────────────────────────
   static const List<BoxShadow> primaryGlow = [
     BoxShadow(
-      color: Color(0x4D6C63FF),
+      color: Color(0x4D6EC6CA), // primaryMint 30%
       blurRadius: 20,
       offset: Offset(0, 4),
       spreadRadius: -2,
     ),
   ];
 
-  // ── Node 그림자 ───────────────────────────────────────────────────────────
+  // ── Node 그림자 (Mint 기반) ─────────────────────────────────────────────
   static const List<BoxShadow> node = [
     BoxShadow(
-      color: Color(0x336C63FF),
+      color: Color(0x336EC6CA), // primaryMint 20%
       blurRadius: 16,
       offset: Offset(0, 4),
     ),

@@ -98,11 +98,11 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
         children: [
           // 배경 그라디언트
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: RadialGradient(
                 center: Alignment.topCenter,
                 radius: 1.4,
-                colors: [Color(0xFF1A1040), Color(0xFF0A0A1A)],
+                colors: [AppColors.bgSurface, AppColors.bgBase],
               ),
             ),
           ),
@@ -119,9 +119,9 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                     children: [
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                        icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
                       ),
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           '플랜 선택',
                           style: TextStyle(
@@ -153,7 +153,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                   padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                   child: TextButton(
                     onPressed: _purchasing ? null : _restore,
-                    child: const Text(
+                    child: Text(
                       '구매 복원',
                       style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
                     ),
@@ -299,12 +299,12 @@ class _PlanCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       plan.price,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
                     ),
                     if (plan == UserPlan.basic)
-                      const Text('1회 결제', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                      Text('1회 결제', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
                     if (plan == UserPlan.premium)
-                      const Text('1회 결제 · 영구 사용', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                      Text('1회 결제 · 영구 사용', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
                   ],
                 ),
               ),
@@ -321,7 +321,7 @@ class _PlanCard extends StatelessWidget {
           ),
 
           const SizedBox(height: AppSpacing.md),
-          const Divider(color: AppColors.glassBorder),
+          Divider(color: AppColors.glassBorder),
           const SizedBox(height: AppSpacing.sm),
 
           // 기능 목록
@@ -397,9 +397,9 @@ class _ErrorState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.cloud_off_outlined, size: 48, color: AppColors.textTertiary),
+          Icon(Icons.cloud_off_outlined, size: 48, color: AppColors.textTertiary),
           const SizedBox(height: AppSpacing.md),
-          Text(message, style: const TextStyle(color: AppColors.textSecondary)),
+          Text(message, style: TextStyle(color: AppColors.textSecondary)),
         ],
       ),
     );

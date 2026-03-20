@@ -31,4 +31,10 @@ abstract final class SettingsKey {
   static const String elderlyMode = 'elderly_mode';       // true / false
   static const String privacyEnabled = 'privacy_enabled'; // true / false
   static const String darkMode = 'dark_mode';             // true / false
+  static const String themeMode = 'theme_mode';           // system / light / dark
+  static const String hapticEnabled = 'haptic_enabled';   // true / false
+  static const String reduceMotion = 'reduce_motion';     // true / false
+
+  // ── 캔버스 ────────────────────────────────────────────────────────────────
+  static const String spouseSnap = 'spouse_snap';         // true / false
 }

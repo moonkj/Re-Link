@@ -1,26 +1,29 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'node_notifier.dart';
+part of 'reduce_motion_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$nodeNotifierHash() => r'c93c0e1c82b39f2dd11d14f8d80053520c3f2fe4';
+String _$reduceMotionNotifierHash() =>
+    r'df12a288bb08bdafb42fa35235994ddf5954a00e';
 
-/// See also [NodeNotifier].
-@ProviderFor(NodeNotifier)
-final nodeNotifierProvider =
-    AutoDisposeNotifierProvider<NodeNotifier, AsyncValue<void>>.internal(
-      NodeNotifier.new,
-      name: r'nodeNotifierProvider',
+/// 애니메이션 줄이기 상태 — 앱 전역 반응형 프로바이더
+///
+/// Copied from [ReduceMotionNotifier].
+@ProviderFor(ReduceMotionNotifier)
+final reduceMotionNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<ReduceMotionNotifier, bool>.internal(
+      ReduceMotionNotifier.new,
+      name: r'reduceMotionNotifierProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
           ? null
-          : _$nodeNotifierHash,
+          : _$reduceMotionNotifierHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
-typedef _$NodeNotifier = AutoDisposeNotifier<AsyncValue<void>>;
+typedef _$ReduceMotionNotifier = AutoDisposeAsyncNotifier<bool>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

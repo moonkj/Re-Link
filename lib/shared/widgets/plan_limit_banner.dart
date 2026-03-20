@@ -24,7 +24,7 @@ void showPlanLimitSnackBar(BuildContext context, PlanLimitError error) {
       margin: const EdgeInsets.all(AppSpacing.md),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.glassBorder),
+        side: BorderSide(color: AppColors.glassBorder),
       ),
       content: Row(
         children: [
@@ -33,7 +33,7 @@ void showPlanLimitSnackBar(BuildContext context, PlanLimitError error) {
           Expanded(
             child: Text(
               '$featureLabel 한도 초과\n$requiredPlanName 이상으로 업그레이드하세요',
-              style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 13),
             ),
           ),
           TextButton(

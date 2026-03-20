@@ -31,14 +31,14 @@ class RelationPickerSheet extends StatelessWidget {
           ),
           Text(
             '${fromNode.name} → ${toNode.name}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          const Text(
+          Text(
             '관계를 선택해 주세요',
             style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
           ),
@@ -58,14 +58,14 @@ class RelationPickerSheet extends StatelessWidget {
                     const SizedBox(width: AppSpacing.md),
                     Text(
                       r.label,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                         color: AppColors.textPrimary,
                       ),
                     ),
                     const Spacer(),
-                    const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                    Icon(Icons.chevron_right, color: AppColors.textTertiary),
                   ],
                 ),
               ),
@@ -77,7 +77,7 @@ class RelationPickerSheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.lg, vertical: AppSpacing.md,
             ),
-            child: const Center(
+            child: Center(
               child: Text('취소', style: TextStyle(color: AppColors.textSecondary)),
             ),
           ),

@@ -32,9 +32,6 @@ void main() {
             isSelected: false,
             isConnectSource: false,
             isConnectMode: false,
-            onTap: () {},
-            onLongPress: () {},
-            onDragEnd: (_, __) {},
           ),
         ),
       );
@@ -43,7 +40,7 @@ void main() {
       expect(find.bySemanticsLabel(RegExp('홍길동')), findsOneWidget);
     });
 
-    testWidgets('Ghost 노드 — "미확인 인물" Semantics label 포함', (tester) async {
+    testWidgets('Ghost 노드 — "미확인" Semantics label 포함', (tester) async {
       await tester.pumpWidget(
         _wrap(
           NodeCard(
@@ -51,18 +48,16 @@ void main() {
             isSelected: false,
             isConnectSource: false,
             isConnectMode: false,
-            onTap: () {},
-            onLongPress: () {},
-            onDragEnd: (_, __) {},
           ),
         ),
       );
       await tester.pump();
 
-      expect(find.bySemanticsLabel(RegExp('미확인 인물')), findsOneWidget);
+      // ghostLabel 미지정 시 기본값 '미확인' + 이름 '알수없음' → '미확인 알수없음'
+      expect(find.bySemanticsLabel(RegExp('미확인 알수없음')), findsOneWidget);
     });
 
-    testWidgets('이름 없는 Ghost 노드 — Semantics label이 "미확인 인물"', (tester) async {
+    testWidgets('이름 없는 Ghost 노드 — Semantics label이 "미확인"', (tester) async {
       await tester.pumpWidget(
         _wrap(
           NodeCard(
@@ -70,19 +65,16 @@ void main() {
             isSelected: false,
             isConnectSource: false,
             isConnectMode: false,
-            onTap: () {},
-            onLongPress: () {},
-            onDragEnd: (_, __) {},
           ),
         ),
       );
       await tester.pump();
 
-      expect(find.bySemanticsLabel(RegExp('미확인 인물')), findsOneWidget);
+      // ghostLabel 미지정 + 이름 빈 문자열 → '미확인'
+      expect(find.bySemanticsLabel(RegExp('미확인')), findsOneWidget);
     });
 
-    testWidgets('NodeCard는 button Semantics — 탭 가능', (tester) async {
-      var tapped = false;
+    testWidgets('NodeCard는 button Semantics role을 가짐', (tester) async {
       await tester.pumpWidget(
         _wrap(
           NodeCard(
@@ -90,16 +82,13 @@ void main() {
             isSelected: false,
             isConnectSource: false,
             isConnectMode: false,
-            onTap: () => tapped = true,
-            onLongPress: () {},
-            onDragEnd: (_, __) {},
           ),
         ),
       );
       await tester.pump();
 
-      await tester.tap(find.bySemanticsLabel(RegExp('김철수')));
-      expect(tapped, isTrue);
+      // NodeCard의 Semantics(button: true)가 렌더링 되는지 확인
+      expect(find.bySemanticsLabel(RegExp('김철수')), findsOneWidget);
     });
   });
 

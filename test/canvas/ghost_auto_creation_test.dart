@@ -47,6 +47,46 @@ void main() {
     });
   });
 
+  group('Ghost 부모 자동 생성 (createGhostParentsFor 로직)', () {
+    test('부모 Ghost 2개 생성 후 자녀 노드와 연결', () async {
+      final child = await repo.create(name: '아들', positionX: 500, positionY: 500);
+
+      // ghost father
+      final ghostFather = await repo.create(
+        name: '미확인 아버지',
+        isGhost: true,
+        positionX: child.positionX - 120,
+        positionY: child.positionY - 220,
+      );
+      await repo.addEdge(fromNodeId: ghostFather.id, toNodeId: child.id, relation: RelationType.child);
+
+      // ghost mother
+      final ghostMother = await repo.create(
+        name: '미확인 어머니',
+        isGhost: true,
+        positionX: child.positionX + 120,
+        positionY: child.positionY - 220,
+      );
+      await repo.addEdge(fromNodeId: ghostMother.id, toNodeId: child.id, relation: RelationType.child);
+      await repo.addEdge(fromNodeId: ghostFather.id, toNodeId: ghostMother.id, relation: RelationType.spouse);
+
+      expect(ghostFather.isGhost, isTrue);
+      expect(ghostMother.isGhost, isTrue);
+      expect(ghostFather.positionX, 380.0);
+      expect(ghostFather.positionY, 280.0);
+      expect(ghostMother.positionX, 620.0);
+      expect(await repo.hasSpouse(ghostFather.id), isTrue);
+      expect(await repo.count(), 3); // child + father + mother
+    });
+
+    test('Ghost 부모는 isGhost: true 플래그 보유', () async {
+      final father = await repo.create(name: '미확인 아버지', isGhost: true, positionX: 0, positionY: 0);
+      final mother = await repo.create(name: '미확인 어머니', isGhost: true, positionX: 240, positionY: 0);
+      expect(father.isGhost, isTrue);
+      expect(mother.isGhost, isTrue);
+    });
+  });
+
   group('Ghost Node 위치 자동 배치', () {
     test('Ghost 노드는 원본 노드 옆에 220px 오프셋으로 생성', () async {
       final parent = await repo.create(

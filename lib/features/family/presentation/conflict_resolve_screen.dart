@@ -48,12 +48,12 @@ class _ConflictResolveScreenState
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
         backgroundColor: AppColors.bgBase,
-        title: const Text(
+        title: Text(
           '충돌 해결',
           style: TextStyle(
               color: AppColors.textPrimary, fontWeight: FontWeight.w700),
         ),
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        iconTheme: IconThemeData(color: AppColors.textPrimary),
       ),
       body: Column(
         children: [
@@ -61,7 +61,7 @@ class _ConflictResolveScreenState
             child: ListView(
               padding: const EdgeInsets.all(AppSpacing.lg),
               children: [
-                const Text(
+                Text(
                   '같은 ID의 인물이 두 곳에 존재합니다.\n어떤 버전을 사용할지 선택하세요.',
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                 ),
@@ -115,7 +115,7 @@ class _ConflictResolveScreenState
                                     : AppColors.textPrimary,
                               ),
                             ),
-                            const Text(
+                            Text(
                               '가져온 버전이 새 이름으로 복사됩니다',
                               style: TextStyle(
                                   color: AppColors.textSecondary, fontSize: 12),
@@ -200,7 +200,7 @@ class _VersionCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   node.name as String,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
                     fontSize: 16,
@@ -209,7 +209,7 @@ class _VersionCard extends StatelessWidget {
                 if ((node.bio as String?) != null)
                   Text(
                     node.bio as String,
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: AppColors.textSecondary, fontSize: 12),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

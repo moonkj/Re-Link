@@ -1,26 +1,28 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'node_notifier.dart';
+part of 'theme_mode_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$nodeNotifierHash() => r'c93c0e1c82b39f2dd11d14f8d80053520c3f2fe4';
+String _$themeModeNotifierHash() => r'c545c58ed03cc0340f5c940809cdd686224a87ec';
 
-/// See also [NodeNotifier].
-@ProviderFor(NodeNotifier)
-final nodeNotifierProvider =
-    AutoDisposeNotifierProvider<NodeNotifier, AsyncValue<void>>.internal(
-      NodeNotifier.new,
-      name: r'nodeNotifierProvider',
+/// 테마 모드 상태 — system / light / dark
+///
+/// Copied from [ThemeModeNotifier].
+@ProviderFor(ThemeModeNotifier)
+final themeModeNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<ThemeModeNotifier, ThemeMode>.internal(
+      ThemeModeNotifier.new,
+      name: r'themeModeNotifierProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
           ? null
-          : _$nodeNotifierHash,
+          : _$themeModeNotifierHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
-typedef _$NodeNotifier = AutoDisposeNotifier<AsyncValue<void>>;
+typedef _$ThemeModeNotifier = AutoDisposeAsyncNotifier<ThemeMode>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -64,7 +64,7 @@ class _EditNodeSheetState extends ConsumerState<EditNodeSheet> {
                 ),
               ),
             ),
-            const Text(
+            Text(
               '인물 편집',
               style: TextStyle(
                 fontSize: 20,
@@ -164,11 +164,11 @@ class _EditNodeSheetState extends ConsumerState<EditNodeSheet> {
             child: TextField(
               controller: ctrl,
               maxLines: maxLines,
-              style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+              style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
               decoration: InputDecoration(
                 border: InputBorder.none,
                 hintText: hint,
-                hintStyle: const TextStyle(fontSize: 14, color: AppColors.textTertiary),
+                hintStyle: TextStyle(fontSize: 14, color: AppColors.textTertiary),
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 10),
               ),
@@ -215,7 +215,7 @@ class _EditNodeSheetState extends ConsumerState<EditNodeSheet> {
           if (value != null)
             GestureDetector(
               onTap: () => onChanged(null),
-              child: const Icon(Icons.clear, color: AppColors.textTertiary, size: 16),
+              child: Icon(Icons.clear, color: AppColors.textTertiary, size: 16),
             ),
         ],
       ),

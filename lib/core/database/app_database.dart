@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'tables/profile_table.dart';
@@ -106,6 +105,21 @@ class AppDatabase extends _$AppDatabase {
   Future<void> upsertEdge(NodeEdgesTableCompanion edge) =>
       into(nodeEdgesTable).insertOnConflictUpdate(edge);
 
+  /// 두 노드 사이의 기존 엣지 조회 (방향 무관)
+  Future<NodeEdgesTableData?> findEdgeBetween(
+      String nodeIdA, String nodeIdB) =>
+      (select(nodeEdgesTable)
+            ..where((t) =>
+                (t.fromNodeId.equals(nodeIdA) & t.toNodeId.equals(nodeIdB)) |
+                (t.fromNodeId.equals(nodeIdB) & t.toNodeId.equals(nodeIdA))))
+          .getSingleOrNull();
+
+  /// 엣지의 관계 타입 업데이트
+  Future<void> updateEdgeRelation(String edgeId, String relation) async {
+    await (update(nodeEdgesTable)..where((t) => t.id.equals(edgeId)))
+        .write(NodeEdgesTableCompanion(relation: Value(relation)));
+  }
+
   Future<int> deleteEdge(String id) =>
       (delete(nodeEdgesTable)..where((t) => t.id.equals(id))).go();
 
@@ -197,13 +211,18 @@ class AppDatabase extends _$AppDatabase {
   }
 }
 
-/// DB 파일 연결
+/// DB 파일 연결 — LazyDatabase로 비동기 경로 해결 (background isolate 없음)
 QueryExecutor _openConnection() {
-  return driftDatabase(name: 'relink');
+  return LazyDatabase(() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File(p.join(dir.path, 'relink.db'));
+    return NativeDatabase(file);
+  });
 }
 
 /// 외부 DB 파일 경로 (백업/복원용)
+/// _openConnection()과 동일한 경로를 반환해야 함
 Future<String> getDatabasePath() async {
   final dir = await getApplicationDocumentsDirectory();
-  return p.join(dir.path, 'drift', 'relink.db');
+  return p.join(dir.path, 'relink.db');
 }

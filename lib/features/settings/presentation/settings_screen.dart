@@ -13,6 +13,10 @@ import '../../../shared/repositories/settings_repository.dart';
 import '../../backup/providers/backup_notifier.dart';
 import '../../export/presentation/heritage_export_screen.dart';
 import '../providers/elderly_mode_notifier.dart';
+import '../providers/haptic_notifier.dart';
+import '../providers/reduce_motion_notifier.dart';
+import '../providers/spouse_snap_notifier.dart';
+import '../providers/theme_mode_notifier.dart';
 
 /// 설정 화면
 class SettingsScreen extends ConsumerWidget {
@@ -23,7 +27,7 @@ class SettingsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           '설정',
           style: TextStyle(
               color: AppColors.textPrimary,
@@ -40,6 +44,8 @@ class SettingsScreen extends ConsumerWidget {
           _ProfileSection(),
           SizedBox(height: AppSpacing.xl),
           _PlanSection(),
+          SizedBox(height: AppSpacing.xl),
+          _ThemeSection(),
           SizedBox(height: AppSpacing.xl),
           _BackupSection(),
           SizedBox(height: AppSpacing.xl),
@@ -113,7 +119,7 @@ class _ProfileSection extends ConsumerWidget {
                       children: [
                         Text(
                           profile?.name ?? '프로필 없음',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textPrimary,
@@ -122,7 +128,7 @@ class _ProfileSection extends ConsumerWidget {
                         if (profile?.nickname != null)
                           Text(
                             profile!.nickname!,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 13,
                                 color: AppColors.textSecondary),
                           ),
@@ -200,7 +206,7 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             '프로필 편집',
             style: TextStyle(
                 fontSize: 18,
@@ -210,8 +216,8 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
           const SizedBox(height: AppSpacing.lg),
           TextField(
             controller: _nameCtrl,
-            style: const TextStyle(color: AppColors.textPrimary),
-            decoration: const InputDecoration(
+            style: TextStyle(color: AppColors.textPrimary),
+            decoration: InputDecoration(
               labelText: '이름 *',
               labelStyle: TextStyle(color: AppColors.textSecondary),
               enabledBorder: UnderlineInputBorder(
@@ -223,8 +229,8 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
           const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _nicknameCtrl,
-            style: const TextStyle(color: AppColors.textPrimary),
-            decoration: const InputDecoration(
+            style: TextStyle(color: AppColors.textPrimary),
+            decoration: InputDecoration(
               labelText: '별명 (선택)',
               labelStyle: TextStyle(color: AppColors.textSecondary),
               enabledBorder: UnderlineInputBorder(
@@ -310,7 +316,7 @@ class _PlanSection extends ConsumerWidget {
                       children: [
                         Text(
                           plan.displayName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textPrimary,
@@ -319,7 +325,7 @@ class _PlanSection extends ConsumerWidget {
                         Text(
                           '노드 ${plan.isUnlimited ? "무제한" : "${plan.maxNodes}개"} · '
                           '사진 ${plan.isUnlimited ? "무제한" : "${plan.maxPhotos}장"}',
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 12, color: AppColors.textSecondary),
                         ),
                       ],
@@ -367,14 +373,14 @@ class _BackupSection extends ConsumerWidget {
               ListTile(
                 leading: const Icon(Icons.cloud_done_outlined,
                     color: AppColors.primary),
-                title: const Text('마지막 백업',
+                title: Text('마지막 백업',
                     style: TextStyle(
                         fontSize: 15, color: AppColors.textPrimary)),
                 subtitle: Text(
                   backupState.lastBackupAt == null
                       ? '백업 기록 없음'
                       : _formatDate(backupState.lastBackupAt!),
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 12, color: AppColors.textSecondary),
                 ),
                 trailing: GlassButton(
@@ -385,7 +391,7 @@ class _BackupSection extends ConsumerWidget {
                   ),
                 ),
               ),
-              const Divider(color: AppColors.glassBorder, height: 1),
+              Divider(color: AppColors.glassBorder, height: 1),
               // 자동 백업 토글
               FutureBuilder<bool>(
                 future: ref
@@ -396,10 +402,10 @@ class _BackupSection extends ConsumerWidget {
                   return SwitchListTile(
                     secondary: const Icon(Icons.schedule_outlined,
                         color: AppColors.primary),
-                    title: const Text('자동 백업',
+                    title: Text('자동 백업',
                         style: TextStyle(
                             fontSize: 15, color: AppColors.textPrimary)),
-                    subtitle: const Text('24시간마다 자동 저장',
+                    subtitle: Text('24시간마다 자동 저장',
                         style: TextStyle(
                             fontSize: 12, color: AppColors.textSecondary)),
                     value: enabled,
@@ -421,16 +427,130 @@ class _BackupSection extends ConsumerWidget {
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 }
 
-// ── 접근성 섹션 (어르신 모드, Privacy Layer) ────────────────────────────────────
+// ── 테마 섹션 ──────────────────────────────────────────────────────────────────
+
+class _ThemeSection extends ConsumerWidget {
+  const _ThemeSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeModeAsync = ref.watch(themeModeNotifierProvider);
+    final currentMode = themeModeAsync.valueOrNull ?? ThemeMode.system;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionLabel(label: '테마'),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              _ThemeOption(
+                icon: Icons.brightness_auto,
+                label: '시스템',
+                isSelected: currentMode == ThemeMode.system,
+                onTap: () => ref
+                    .read(themeModeNotifierProvider.notifier)
+                    .setMode(ThemeMode.system),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              _ThemeOption(
+                icon: Icons.light_mode_outlined,
+                label: '라이트',
+                isSelected: currentMode == ThemeMode.light,
+                onTap: () => ref
+                    .read(themeModeNotifierProvider.notifier)
+                    .setMode(ThemeMode.light),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              _ThemeOption(
+                icon: Icons.dark_mode_outlined,
+                label: '다크',
+                isSelected: currentMode == ThemeMode.dark,
+                onTap: () => ref
+                    .read(themeModeNotifierProvider.notifier)
+                    .setMode(ThemeMode.dark),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ThemeOption extends StatelessWidget {
+  const _ThemeOption({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: isSelected
+                ? AppColors.primary.withAlpha(30)
+                : Colors.transparent,
+            border: Border.all(
+              color: isSelected ? AppColors.primary : AppColors.glassBorder,
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(icon,
+                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                  size: 22),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── 접근성 섹션 (어르신 모드, 햅틱, 애니메이션, Privacy Layer) ─────────────────
 
 class _AccessibilitySection extends ConsumerWidget {
   const _AccessibilitySection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // ElderlyModeNotifier로 반응형 구독 (토글 즉시 앱 전역 반영)
     final elderlyAsync = ref.watch(elderlyModeNotifierProvider);
     final elderlyEnabled = elderlyAsync.valueOrNull ?? false;
+
+    final hapticAsync = ref.watch(hapticNotifierProvider);
+    final hapticEnabled = hapticAsync.valueOrNull ?? true;
+
+    final reduceMotionAsync = ref.watch(reduceMotionNotifierProvider);
+    final reduceMotion = reduceMotionAsync.valueOrNull ?? false;
+
+    final spouseSnapAsync = ref.watch(spouseSnapNotifierProvider);
+    final spouseSnap = spouseSnapAsync.valueOrNull ?? true;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -441,7 +561,7 @@ class _AccessibilitySection extends ConsumerWidget {
           padding: EdgeInsets.zero,
           child: Column(
             children: [
-              // 어르신 모드 — ElderlyModeNotifier 반응형
+              // 어르신 모드
               Semantics(
                 label: '어르신 모드',
                 hint: '큰 글씨와 넓은 터치 영역을 사용합니다',
@@ -449,10 +569,10 @@ class _AccessibilitySection extends ConsumerWidget {
                 child: SwitchListTile(
                   secondary: const Icon(Icons.accessibility_new,
                       color: AppColors.secondary),
-                  title: const Text('어르신 모드',
+                  title: Text('어르신 모드',
                       style: TextStyle(
                           fontSize: 15, color: AppColors.textPrimary)),
-                  subtitle: const Text('큰 글씨 · 넓은 터치 영역',
+                  subtitle: Text('큰 글씨 · 넓은 터치 영역',
                       style: TextStyle(
                           fontSize: 12, color: AppColors.textSecondary)),
                   value: elderlyEnabled,
@@ -462,7 +582,73 @@ class _AccessibilitySection extends ConsumerWidget {
                   activeThumbColor: AppColors.secondary,
                 ),
               ),
-              const Divider(color: AppColors.glassBorder, height: 1),
+              Divider(color: AppColors.glassBorder, height: 1),
+              // 햅틱 On/Off
+              Semantics(
+                label: '햅틱 피드백',
+                hint: '진동 피드백을 끄거나 켭니다',
+                toggled: hapticEnabled,
+                child: SwitchListTile(
+                  secondary: const Icon(Icons.vibration,
+                      color: AppColors.primary),
+                  title: Text('햅틱 피드백',
+                      style: TextStyle(
+                          fontSize: 15, color: AppColors.textPrimary)),
+                  subtitle: Text('터치 시 진동 피드백',
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary)),
+                  value: hapticEnabled,
+                  onChanged: (v) => ref
+                      .read(hapticNotifierProvider.notifier)
+                      .setEnabled(v),
+                  activeThumbColor: AppColors.primary,
+                ),
+              ),
+              Divider(color: AppColors.glassBorder, height: 1),
+              // 애니메이션 줄이기
+              Semantics(
+                label: '애니메이션 줄이기',
+                hint: '모션 효과를 줄여 어지러움을 방지합니다',
+                toggled: reduceMotion,
+                child: SwitchListTile(
+                  secondary: const Icon(Icons.animation,
+                      color: AppColors.primary),
+                  title: Text('애니메이션 줄이기',
+                      style: TextStyle(
+                          fontSize: 15, color: AppColors.textPrimary)),
+                  subtitle: Text('모션 효과 최소화',
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary)),
+                  value: reduceMotion,
+                  onChanged: (v) => ref
+                      .read(reduceMotionNotifierProvider.notifier)
+                      .setEnabled(v),
+                  activeThumbColor: AppColors.primary,
+                ),
+              ),
+              Divider(color: AppColors.glassBorder, height: 1),
+              // 부부 자석 스냅
+              Semantics(
+                label: '부부 자석 스냅',
+                hint: '배우자 노드를 가까이 드래그하면 자동 정렬합니다',
+                toggled: spouseSnap,
+                child: SwitchListTile(
+                  secondary: const Icon(Icons.compare_arrows,
+                      color: AppColors.secondary),
+                  title: Text('부부 자석 스냅',
+                      style: TextStyle(
+                          fontSize: 15, color: AppColors.textPrimary)),
+                  subtitle: Text('배우자 노드 가까이 시 자동 정렬',
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary)),
+                  value: spouseSnap,
+                  onChanged: (v) => ref
+                      .read(spouseSnapNotifierProvider.notifier)
+                      .setEnabled(v),
+                  activeThumbColor: AppColors.secondary,
+                ),
+              ),
+              Divider(color: AppColors.glassBorder, height: 1),
               // Privacy Layer
               FutureBuilder<bool>(
                 future: ref.read(settingsRepositoryProvider).isPrivacyEnabled(),
@@ -475,10 +661,10 @@ class _AccessibilitySection extends ConsumerWidget {
                     child: SwitchListTile(
                       secondary: const Icon(Icons.lock_outline,
                           color: AppColors.accent),
-                      title: const Text('개인 메모 잠금',
+                      title: Text('개인 메모 잠금',
                           style: TextStyle(
                               fontSize: 15, color: AppColors.textPrimary)),
-                      subtitle: const Text('Face ID / Touch ID로 보호',
+                      subtitle: Text('Face ID / Touch ID로 보호',
                           style: TextStyle(
                               fontSize: 12, color: AppColors.textSecondary)),
                       value: enabled,
@@ -515,11 +701,11 @@ class _ExportSection extends StatelessWidget {
           child: ListTile(
             leading:
                 const Icon(Icons.photo_size_select_large, color: AppColors.primary),
-            title: const Text('가계도 포스터 내보내기',
+            title: Text('가계도 포스터 내보내기',
                 style: TextStyle(fontSize: 15, color: AppColors.textPrimary)),
-            subtitle: const Text('고해상도 PNG · SNS/A4/A2',
+            subtitle: Text('고해상도 PNG · SNS/A4/A2',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-            trailing: const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+            trailing: Icon(Icons.chevron_right, color: AppColors.textTertiary),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
                   builder: (_) => const HeritageExportScreen()),
@@ -554,38 +740,49 @@ class _AppInfoSection extends StatelessWidget {
                   return ListTile(
                     leading: const Icon(Icons.info_outline,
                         color: AppColors.primary),
-                    title: const Text('버전',
+                    title: Text('버전',
                         style: TextStyle(
                             fontSize: 15, color: AppColors.textPrimary)),
                     trailing: Text(
                       info != null
                           ? '${info.version}+${info.buildNumber}'
                           : '-',
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 13, color: AppColors.textSecondary),
                     ),
                   );
                 },
               ),
-              const Divider(color: AppColors.glassBorder, height: 1),
+              Divider(color: AppColors.glassBorder, height: 1),
               ListTile(
                 leading: const Icon(Icons.privacy_tip_outlined,
                     color: AppColors.primary),
-                title: const Text('개인정보 처리방침',
+                title: Text('개인정보 처리방침',
                     style: TextStyle(
                         fontSize: 15, color: AppColors.textPrimary)),
-                trailing: const Icon(Icons.chevron_right,
+                trailing: Icon(Icons.chevron_right,
                     color: AppColors.textTertiary),
                 onTap: () => context.push(AppRoutes.privacyPolicy),
               ),
-              const Divider(color: AppColors.glassBorder, height: 1),
+              Divider(color: AppColors.glassBorder, height: 1),
+              ListTile(
+                leading: const Icon(Icons.description_outlined,
+                    color: AppColors.primary),
+                title: Text('이용약관',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                trailing: Icon(Icons.chevron_right,
+                    color: AppColors.textTertiary),
+                onTap: () => context.push(AppRoutes.terms),
+              ),
+              Divider(color: AppColors.glassBorder, height: 1),
               ListTile(
                 leading: const Icon(Icons.article_outlined,
                     color: AppColors.primary),
-                title: const Text('오픈소스 라이선스',
+                title: Text('오픈소스 라이선스',
                     style: TextStyle(
                         fontSize: 15, color: AppColors.textPrimary)),
-                trailing: const Icon(Icons.chevron_right,
+                trailing: Icon(Icons.chevron_right,
                     color: AppColors.textTertiary),
                 onTap: () => showLicensePage(
                   context: context,
@@ -593,14 +790,14 @@ class _AppInfoSection extends StatelessWidget {
                   applicationLegalese: '© 2026 Re-Link',
                 ),
               ),
-              const Divider(color: AppColors.glassBorder, height: 1),
+              Divider(color: AppColors.glassBorder, height: 1),
               ListTile(
                 leading: const Icon(Icons.favorite_outline,
                     color: AppColors.accent),
-                title: const Text('Re-Link',
+                title: Text('Re-Link',
                     style: TextStyle(
                         fontSize: 15, color: AppColors.textPrimary)),
-                subtitle: const Text('가족의 기억을 잇다',
+                subtitle: Text('가족의 기억을 잇다',
                     style: TextStyle(
                         fontSize: 12, color: AppColors.textSecondary)),
               ),
@@ -622,7 +819,7 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
         color: AppColors.textSecondary,

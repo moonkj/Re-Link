@@ -73,11 +73,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         children: [
           // ── 배경 그라디언트 ─────────────────────────────────────────────
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: RadialGradient(
                 center: Alignment.topCenter,
                 radius: 1.2,
-                colors: [Color(0xFF1A1040), Color(0xFF0A0A1A)],
+                colors: [AppColors.bgSurface, AppColors.bgBase],
               ),
             ),
           ),
@@ -91,7 +91,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 child: TextButton(
                   onPressed: _skip,
-                  child: const Text(
+                  child: Text(
                     '건너뛰기',
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                   ),
@@ -186,7 +186,7 @@ class _OnboardingPage extends StatelessWidget {
           const SizedBox(height: AppSpacing.xxl),
           Text(
             data.title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
@@ -197,7 +197,7 @@ class _OnboardingPage extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           Text(
             data.subtitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               color: AppColors.textSecondary,
               height: 1.6,

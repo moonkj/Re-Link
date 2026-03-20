@@ -53,7 +53,7 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
           SliverAppBar(
             backgroundColor: AppColors.bgBase,
             pinned: true,
-            title: const Text(
+            title: Text(
               '보관함',
               style: TextStyle(
                 color: AppColors.textPrimary,
@@ -64,11 +64,11 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
             actions: [
               // 정렬 메뉴
               PopupMenuButton<ArchiveSortOrder>(
-                icon: const Icon(Icons.sort, color: AppColors.textSecondary),
+                icon: Icon(Icons.sort, color: AppColors.textSecondary),
                 color: AppColors.bgElevated,
                 onSelected: (o) =>
                     ref.read(archiveNotifierProvider.notifier).setSortOrder(o),
-                itemBuilder: (_) => const [
+                itemBuilder: (_) => [
                   PopupMenuItem(
                     value: ArchiveSortOrder.newest,
                     child: Text('최신순', style: TextStyle(color: AppColors.textPrimary)),
@@ -96,11 +96,11 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
                     ),
                     child: TextField(
                       controller: _searchController,
-                      style: const TextStyle(color: AppColors.textPrimary),
+                      style: TextStyle(color: AppColors.textPrimary),
                       decoration: InputDecoration(
                         hintText: '기억 검색...',
-                        hintStyle: const TextStyle(color: AppColors.textTertiary),
-                        prefixIcon: const Icon(Icons.search, color: AppColors.textTertiary),
+                        hintStyle: TextStyle(color: AppColors.textTertiary),
+                        prefixIcon: Icon(Icons.search, color: AppColors.textTertiary),
                         filled: true,
                         fillColor: AppColors.glassSurface,
                         border: OutlineInputBorder(
@@ -197,7 +197,7 @@ class _ArchiveGroup extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 group.node.name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
@@ -206,7 +206,7 @@ class _ArchiveGroup extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 '${group.memories.length}개',
-                style: const TextStyle(fontSize: 13, color: AppColors.textTertiary),
+                style: TextStyle(fontSize: 13, color: AppColors.textTertiary),
               ),
             ],
           ),
@@ -268,7 +268,7 @@ class _MemoryTile extends StatelessWidget {
               children: [
                 Text(
                   memory.title ?? memory.type.label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary,
@@ -280,7 +280,7 @@ class _MemoryTile extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     memory.description!,
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -290,18 +290,18 @@ class _MemoryTile extends StatelessWidget {
                   children: [
                     Text(
                       dateStr,
-                      style: const TextStyle(fontSize: 11, color: AppColors.textTertiary),
+                      style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
                     ),
                     if (memory.isPrivate) ...[
                       const SizedBox(width: 6),
-                      const Icon(Icons.lock, size: 12, color: AppColors.textTertiary),
+                      Icon(Icons.lock, size: 12, color: AppColors.textTertiary),
                     ],
                   ],
                 ),
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, color: AppColors.textDisabled, size: 18),
+          Icon(Icons.chevron_right, color: AppColors.textDisabled, size: 18),
         ],
       ),
     );

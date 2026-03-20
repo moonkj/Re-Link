@@ -29,6 +29,7 @@ class _AddNodeSheetState extends ConsumerState<AddNodeSheet> {
   String? _photoPath;
   DateTime? _birthDate;
   bool _isGhost = false;
+  bool _autoGhostParents = false;
   bool _saving = false;
 
   @override
@@ -56,7 +57,7 @@ class _AddNodeSheetState extends ConsumerState<AddNodeSheet> {
               ),
             ),
           ),
-          const Text(
+          Text(
             '새 인물 추가',
             style: TextStyle(
               fontSize: 20,
@@ -110,7 +111,7 @@ class _AddNodeSheetState extends ConsumerState<AddNodeSheet> {
                 if (_birthDate != null)
                   GestureDetector(
                     onTap: () => setState(() => _birthDate = null),
-                    child: const Icon(Icons.clear, color: AppColors.textTertiary, size: 18),
+                    child: Icon(Icons.clear, color: AppColors.textTertiary, size: 18),
                   ),
               ],
             ),
@@ -124,9 +125,9 @@ class _AddNodeSheetState extends ConsumerState<AddNodeSheet> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.help_outline, color: AppColors.textSecondary, size: 20),
+                Icon(Icons.help_outline, color: AppColors.textSecondary, size: 20),
                 const SizedBox(width: AppSpacing.sm),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -141,6 +142,36 @@ class _AddNodeSheetState extends ConsumerState<AddNodeSheet> {
                   value: _isGhost,
                   onChanged: (v) => setState(() => _isGhost = v),
                   activeThumbColor: AppColors.primary,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+
+          // 부모 Ghost 자동 생성 토글
+          GlassCard(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md, vertical: AppSpacing.xs,
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.account_tree_outlined, color: AppColors.secondary, size: 20),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('부모 Ghost 자동 생성',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+                      Text('아버지·어머니 Ghost 노드를 자동으로 추가',
+                          style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: _autoGhostParents,
+                  onChanged: (v) => setState(() => _autoGhostParents = v),
+                  activeThumbColor: AppColors.secondary,
                 ),
               ],
             ),
@@ -195,7 +226,8 @@ class _AddNodeSheetState extends ConsumerState<AddNodeSheet> {
     }
     setState(() => _saving = true);
     try {
-      final node = await ref.read(nodeNotifierProvider.notifier).createNode(
+      final notifier = ref.read(nodeNotifierProvider.notifier);
+      final node = await notifier.createNode(
             name: name,
             nickname: _nicknameCtrl.text.trim().isEmpty ? null : _nicknameCtrl.text.trim(),
             photoPath: _photoPath,
@@ -205,7 +237,12 @@ class _AddNodeSheetState extends ConsumerState<AddNodeSheet> {
             positionY: widget.initialPositionY,
           );
       if (!mounted) return;
-      if (node != null) Navigator.of(context).pop(node);
+      if (node != null) {
+        if (_autoGhostParents) {
+          await notifier.createGhostParentsFor(node);
+        }
+        if (mounted) Navigator.of(context).pop(node);
+      }
     } on PlanLimitError catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -277,11 +314,11 @@ class _GlassField extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: controller,
-              style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+              style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
               decoration: InputDecoration(
                 border: InputBorder.none,
                 hintText: hint,
-                hintStyle: const TextStyle(fontSize: 14, color: AppColors.textTertiary),
+                hintStyle: TextStyle(fontSize: 14, color: AppColors.textTertiary),
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
               ),

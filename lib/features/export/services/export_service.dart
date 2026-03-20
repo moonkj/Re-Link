@@ -9,6 +9,17 @@ import 'package:share_plus/share_plus.dart';
 /// 내보내기 템플릿
 enum ExportTemplate { classic, modern, minimal, festival }
 
+/// 내보내기 색상 테마
+enum ExportColorTheme {
+  appTheme('앱 테마'),
+  bw('흑백'),
+  sepia('세피아'),
+  custom('커스텀');
+
+  const ExportColorTheme(this.label);
+  final String label;
+}
+
 /// 내보내기 해상도
 enum ExportResolution {
   sns(1080, 1080, 'SNS'),

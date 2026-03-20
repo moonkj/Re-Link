@@ -33,11 +33,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF0A0A1A), Color(0xFF1A1040), Color(0xFF0A0A1A)],
+            colors: [AppColors.bgBase, AppColors.bgSurface, AppColors.bgBase],
           ),
         ),
         child: SafeArea(
@@ -47,7 +47,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               children: [
                 const SizedBox(height: AppSpacing.giant),
                 // 타이틀
-                const Text(
+                Text(
                   '시작해 볼게요',
                   style: TextStyle(
                     fontSize: 32,
@@ -56,7 +56,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                const Text(
+                Text(
                   '내 프로필을 설정해 주세요\n별도 가입 없이 바로 시작됩니다',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
@@ -86,7 +86,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                               : null,
                         ),
                         child: _photoPath == null
-                            ? const Icon(Icons.person, size: 48, color: AppColors.textTertiary)
+                            ? Icon(Icons.person, size: 48, color: AppColors.textTertiary)
                             : null,
                       ),
                       Positioned(
@@ -114,11 +114,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   ),
                   child: TextField(
                     controller: _nameController,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 16,
                     ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       border: InputBorder.none,
                       hintText: '이름을 입력하세요',
                       hintStyle: TextStyle(color: AppColors.textTertiary),
@@ -140,7 +140,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                const Text(
+                Text(
                   '데이터는 내 기기에만 저장됩니다',
                   style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
                 ),
@@ -174,7 +174,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           );
       await ref.read(settingsRepositoryProvider).setOnboardingDone();
       if (!mounted) return;
-      context.go(AppRoutes.canvas);
+      context.go(AppRoutes.firstFamily);
     } finally {
       if (mounted) setState(() => _saving = false);
     }

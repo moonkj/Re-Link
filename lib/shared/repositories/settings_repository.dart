@@ -90,4 +90,36 @@ class SettingsRepository {
 
   Future<void> setPrivacyEnabled(bool enabled) =>
       set(SettingsKey.privacyEnabled, enabled.toString());
+
+  // ── 테마 모드 ───────────────────────────────────────────────────────────
+
+  Future<String> getThemeMode() async =>
+      (await get(SettingsKey.themeMode)) ?? 'system';
+
+  Future<void> setThemeMode(String mode) =>
+      set(SettingsKey.themeMode, mode);
+
+  // ── 햅틱 ────────────────────────────────────────────────────────────────
+
+  Future<bool> isHapticEnabled() =>
+      getBool(SettingsKey.hapticEnabled, defaultValue: true);
+
+  Future<void> setHapticEnabled(bool enabled) =>
+      set(SettingsKey.hapticEnabled, enabled.toString());
+
+  // ── 애니메이션 줄이기 ───────────────────────────────────────────────────
+
+  Future<bool> isReduceMotion() =>
+      getBool(SettingsKey.reduceMotion, defaultValue: false);
+
+  Future<void> setReduceMotion(bool enabled) =>
+      set(SettingsKey.reduceMotion, enabled.toString());
+
+  // ── 부부 자석 스냅 ────────────────────────────────────────────────────────
+
+  Future<bool> isSpouseSnapEnabled() =>
+      getBool(SettingsKey.spouseSnap, defaultValue: true);
+
+  Future<void> setSpouseSnap(bool enabled) =>
+      set(SettingsKey.spouseSnap, enabled.toString());
 }

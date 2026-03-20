@@ -64,6 +64,7 @@ dependencies:
 
   # ── 아이콘 ────────────────────────────────────────────────────────────────
   cupertino_icons: ^1.0.8
+  google_fonts: ^8.0.2
 
 dev_dependencies:
   flutter_test:
@@ -108,4 +109,10 @@ flutter:
         - asset: assets/fonts/Pretendard-SemiBold.otf
           weight: 600
         - asset: assets/fonts/Pretendard-Bold.otf
+          weight: 700
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/JetBrainsMono-Bold.ttf
           weight: 700

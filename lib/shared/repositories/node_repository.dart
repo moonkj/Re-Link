@@ -119,12 +119,55 @@ class NodeRepository {
     return rows.map(_edgeRowToModel).toList();
   }
 
+  /// 두 노드 사이의 기존 엣지 조회 (방향 무관, 관계 타입 무관)
+  Future<NodeEdge?> findEdge({
+    required String fromNodeId,
+    required String toNodeId,
+  }) async {
+    final row = await _db.findEdgeBetween(fromNodeId, toNodeId);
+    return row == null ? null : _edgeRowToModel(row);
+  }
+
+  /// 두 노드 사이에 이미 동일 관계가 존재하는지 확인
+  Future<bool> hasDuplicateEdge({
+    required String fromNodeId,
+    required String toNodeId,
+    required RelationType relation,
+  }) async {
+    final edges = await getEdgesForNode(fromNodeId);
+    return edges.any((e) =>
+        e.relation == relation &&
+        ((e.fromNodeId == fromNodeId && e.toNodeId == toNodeId) ||
+         (e.fromNodeId == toNodeId && e.toNodeId == fromNodeId)));
+  }
+
   Future<NodeEdge> addEdge({
     required String fromNodeId,
     required String toNodeId,
     required RelationType relation,
     String? label,
   }) async {
+    // 두 노드 사이에 이미 엣지가 존재하면 관계 타입 업데이트
+    final existing = await findEdge(
+      fromNodeId: fromNodeId,
+      toNodeId: toNodeId,
+    );
+    if (existing != null) {
+      if (existing.relation == relation) {
+        throw Exception('이미 동일한 관계가 존재합니다.');
+      }
+      // 기존 엣지의 관계 타입만 업데이트
+      await updateEdgeRelation(existing.id, relation);
+      return NodeEdge(
+        id: existing.id,
+        fromNodeId: existing.fromNodeId,
+        toNodeId: existing.toNodeId,
+        relation: relation,
+        label: existing.label,
+        createdAt: existing.createdAt,
+      );
+    }
+
     final id = _uuid.v4();
     final now = DateTime.now();
     await _db.upsertEdge(NodeEdgesTableCompanion.insert(
@@ -144,6 +187,11 @@ class NodeRepository {
       createdAt: now,
     );
   }
+
+  /// 엣지의 관계 타입 업데이트
+  Future<void> updateEdgeRelation(
+      String edgeId, RelationType newRelation) =>
+      _db.updateEdgeRelation(edgeId, newRelation.name);
 
   Future<void> deleteEdge(String id) => _db.deleteEdge(id);
 

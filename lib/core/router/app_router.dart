@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
+import '../../features/onboarding/presentation/first_family_screen.dart';
 import '../../features/profile_setup/presentation/profile_setup_screen.dart';
 import '../../features/canvas/presentation/canvas_screen.dart';
 import '../../features/story/presentation/story_feed_screen.dart';
@@ -12,6 +14,7 @@ import '../../features/search/presentation/search_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/subscription/presentation/subscription_screen.dart';
 import '../../features/settings/presentation/privacy_policy_screen.dart';
+import '../../features/settings/presentation/terms_screen.dart';
 import '../../features/family/presentation/merge_preview_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
 import '../../shared/widgets/ad_banner_widget.dart';
@@ -30,6 +33,8 @@ abstract final class AppRoutes {
   static const String search = '/search';
   static const String subscription = '/subscription';
   static const String privacyPolicy = '/privacy-policy';
+  static const String terms = '/terms';
+  static const String firstFamily = '/first-family';
   static const String mergePreview = '/merge-preview';
 
   static String memoryPath(String nodeId) => '/memory/$nodeId';
@@ -38,16 +43,6 @@ abstract final class AppRoutes {
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: AppRoutes.splash,
-    redirect: (context, state) async {
-      final settingsRepo = ref.read(settingsRepositoryProvider);
-      final onboardingDone = await settingsRepo.isOnboardingDone();
-
-      if (state.matchedLocation == AppRoutes.splash) {
-        if (!onboardingDone) return AppRoutes.onboarding;
-        return AppRoutes.canvas;
-      }
-      return null;
-    },
     routes: [
       GoRoute(
         path: AppRoutes.splash,
@@ -60,6 +55,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.profileSetup,
         builder: (_, s) => const ProfileSetupScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.firstFamily,
+        builder: (_, s) => const FirstFamilyScreen(),
       ),
       // ── 5탭 ShellRoute ────────────────────────────────────────────────────
       ShellRoute(
@@ -108,6 +107,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, s) => const PrivacyPolicyScreen(),
       ),
       GoRoute(
+        path: AppRoutes.terms,
+        builder: (_, s) => const TermsScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.mergePreview,
         builder: (_, s) => MergePreviewScreen(
           rlinkPath: s.uri.queryParameters['path'] ?? '',
@@ -122,70 +125,162 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
 // ── Splash ────────────────────────────────────────────────────────────────────
 
-class _SplashScreen extends StatefulWidget {
+class _SplashScreen extends ConsumerStatefulWidget {
   const _SplashScreen();
 
   @override
-  State<_SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<_SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<_SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  late Animation<double> _fadeAnim;
+class _SplashScreenState extends ConsumerState<_SplashScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _logoCtrl;
+  late Animation<double> _logoScale;
+  late AnimationController _taglineCtrl;
+  Timer? _navTimer;
+
+  // 태그라인 단어 목록
+  static const _taglineWords = ['단절된', '선을', '잇고,', '잊혀진', '온기를', '기록하다.'];
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(
+
+    // 로고 scale 0.8→1.0 (springSnappy 400ms)
+    _logoCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
-    _fadeAnim = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
-    _ctrl.forward();
-    // GoRouter redirect가 자동 처리
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.go(AppRoutes.splash);
+    _logoScale = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _logoCtrl, curve: Curves.elasticOut),
+    );
+
+    // 태그라인 stagger (총 6단어 × 80ms = 480ms + 200ms 초기 딜레이)
+    _taglineCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 680),
+    );
+
+    // 시퀀스: 로고 → 200ms 대기 → 태그라인
+    _logoCtrl.forward();
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (mounted) _taglineCtrl.forward();
     });
+
+    _navTimer = Timer(const Duration(milliseconds: 1800), _doNavigate);
+  }
+
+  void _doNavigate() {
+    if (!mounted) return;
+    final settingsRepo = ref.read(settingsRepositoryProvider);
+    settingsRepo
+        .isOnboardingDone()
+        .timeout(const Duration(seconds: 3))
+        .then((done) {
+          if (mounted) {
+            context.go(done ? AppRoutes.canvas : AppRoutes.onboarding);
+          }
+        })
+        .catchError((_) {
+          if (mounted) context.go(AppRoutes.onboarding);
+        });
   }
 
   @override
   void dispose() {
-    _ctrl.dispose();
+    _navTimer?.cancel();
+    _logoCtrl.dispose();
+    _taglineCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final brightness = MediaQuery.platformBrightnessOf(context);
+    final isLight = brightness == Brightness.light;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
-      body: FadeTransition(
-        opacity: _fadeAnim,
-        child: const Center(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isLight
+                ? const [Color(0xFF6EC6CA), Color(0xFF4A9EBF)]
+                : const [Color(0xFF0D1117), Color(0xFF1E2840)],
+          ),
+        ),
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                'Re-Link',
-                style: TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF6C63FF),
-                  letterSpacing: -1,
+              // 로고 scale 애니메이션
+              ScaleTransition(
+                scale: _logoScale,
+                child: Column(
+                  children: [
+                    // Bezier 곡선 마크
+                    CustomPaint(
+                      size: const Size(60, 30),
+                      painter: _BezierMarkPainter(
+                        color: isLight ? Colors.white : const Color(0xFF6EC6CA),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Re-Link',
+                      style: TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.w700,
+                        color: isLight ? Colors.white : const Color(0xFF6EC6CA),
+                        letterSpacing: -1,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: 8),
-              Text(
-                '가족의 기억을 잇다',
-                style: TextStyle(fontSize: 16, color: Colors.white54),
+              const SizedBox(height: 16),
+
+              // 태그라인 단어별 stagger fade-in
+              AnimatedBuilder(
+                animation: _taglineCtrl,
+                builder: (context, _) {
+                  return Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 4,
+                    children: List.generate(_taglineWords.length, (i) {
+                      // 각 단어의 진입 시점: i * 80ms / 680ms
+                      final start = (i * 80) / 680;
+                      final end = ((i * 80) + 200) / 680;
+                      final opacity = Interval(
+                        start.clamp(0.0, 1.0),
+                        end.clamp(0.0, 1.0),
+                        curve: Curves.easeOut,
+                      ).transform(_taglineCtrl.value);
+                      return Opacity(
+                        opacity: opacity,
+                        child: Text(
+                          _taglineWords[i],
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w400,
+                            color: isLight
+                                ? Colors.white.withAlpha((opacity * 200).toInt())
+                                : Colors.white.withAlpha((opacity * 140).toInt()),
+                          ),
+                        ),
+                      );
+                    }),
+                  );
+                },
               ),
-              SizedBox(height: 48),
+              const SizedBox(height: 48),
               SizedBox(
                 width: 24,
                 height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Color(0xFF6C63FF),
+                  color: isLight ? Colors.white70 : const Color(0xFF6EC6CA),
                 ),
               ),
             ],
@@ -194,6 +289,51 @@ class _SplashScreenState extends State<_SplashScreen>
       ),
     );
   }
+}
+
+/// Bezier 곡선 마크 (두 점을 잇는 곡선 — Re-Link 브랜드)
+class _BezierMarkPainter extends CustomPainter {
+  const _BezierMarkPainter({required this.color});
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    // 끊어진 선 두 개 + 중앙 연결 곡선
+    final path = Path()
+      ..moveTo(0, size.height * 0.7)
+      ..lineTo(size.width * 0.2, size.height * 0.7)
+      ..moveTo(size.width * 0.2, size.height * 0.7)
+      ..cubicTo(
+        size.width * 0.4, size.height * 0.7,
+        size.width * 0.45, size.height * 0.1,
+        size.width * 0.55, size.height * 0.3,
+      )
+      ..cubicTo(
+        size.width * 0.65, size.height * 0.5,
+        size.width * 0.6, size.height * 0.7,
+        size.width * 0.8, size.height * 0.7,
+      )
+      ..moveTo(size.width * 0.8, size.height * 0.7)
+      ..lineTo(size.width, size.height * 0.7);
+
+    canvas.drawPath(path, paint);
+
+    // 양쪽 끝 점 (노드 표현)
+    final dotPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(0, size.height * 0.7), 4, dotPaint);
+    canvas.drawCircle(Offset(size.width, size.height * 0.7), 4, dotPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _BezierMarkPainter old) => old.color != color;
 }
 
 // ── Main Shell (5탭 하단 네비게이션) ───────────────────────────────────────────
@@ -256,11 +396,17 @@ class _CustomBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: 72,
-      decoration: const BoxDecoration(
-        color: Color(0xFF0D0D1F),
-        border: Border(top: BorderSide(color: Color(0x33FFFFFF), width: 0.5)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0D0D1F) : const Color(0xFFF5F7FA),
+        border: Border(
+          top: BorderSide(
+            color: isDark ? const Color(0x33FFFFFF) : const Color(0x20000000),
+            width: 0.5,
+          ),
+        ),
       ),
       child: Row(
         children: [
@@ -287,13 +433,13 @@ class _CustomBottomNav extends StatelessWidget {
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
-                      colors: [Color(0xFF6C63FF), Color(0xFF9C94FF)],
+                      colors: [Color(0xFF6EC6CA), Color(0xFF4A9EBF)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Color(0x4D6C63FF),
+                        color: Color(0x4D6EC6CA),
                         blurRadius: 16,
                         offset: Offset(0, 3),
                       ),
@@ -337,7 +483,12 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isSelected ? const Color(0xFF6C63FF) : const Color(0x80FFFFFF);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isSelected
+        ? const Color(0xFF6EC6CA)
+        : isDark
+            ? const Color(0x80FFFFFF)
+            : const Color(0x99000000);
     return Expanded(
       child: GestureDetector(
         onTap: onTap,

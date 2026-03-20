@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../shared/models/node_model.dart';
 import '../../../design/tokens/app_colors.dart';
@@ -10,6 +11,8 @@ class EdgePainter extends CustomPainter {
     required this.edges,
     this.connectingNodeId,
     this.pointerPosition,
+    this.draggingNodeId,
+    this.draggingPosition,
   });
 
   final List<NodeModel> nodes;
@@ -21,9 +24,57 @@ class EdgePainter extends CustomPainter {
   /// 연결 모드에서 포인터 위치 (임시 선)
   final Offset? pointerPosition;
 
+  /// 드래그 중인 노드 ID와 실시간 좌표 (엣지 실시간 추적)
+  final String? draggingNodeId;
+  final Offset? draggingPosition;
+
   @override
   void paint(Canvas canvas, Size size) {
+    // 부부 엣지 수집: couple midpoint -> child 통합 선 그리기
+    final spouseEdges =
+        edges.where((e) => e.relation == RelationType.spouse).toList();
+    final childEdges =
+        edges.where((e) => e.relation == RelationType.child).toList();
+    final drawnChildEdgeIds = <String>{};
+
+    // 각 부부 쌍에 대해 통합 자녀 선 처리
+    for (final se in spouseEdges) {
+      final p1 = _centerOf(se.fromNodeId);
+      final p2 = _centerOf(se.toNodeId);
+      if (p1 == null || p2 == null) continue;
+
+      // 부부 선 그리기
+      _drawEdge(canvas, p1, p2, RelationType.spouse);
+
+      // 부부 중앙점
+      final coupleMid = Offset((p1.dx + p2.dx) / 2, (p1.dy + p2.dy) / 2);
+
+      // 이 부부의 자녀 찾기 (양쪽 부모 중 하나가 child 관계인 엣지)
+      final coupleIds = {se.fromNodeId, se.toNodeId};
+      final coupleChildren =
+          childEdges.where((ce) => coupleIds.contains(ce.fromNodeId)).toList();
+
+      if (coupleChildren.isEmpty) continue;
+
+      // 자녀 위치 수집
+      final childPositions = <_ChildEdgeInfo>[];
+      for (final ce in coupleChildren) {
+        final childPos = _centerOf(ce.toNodeId);
+        if (childPos == null) continue;
+        drawnChildEdgeIds.add(ce.id);
+        childPositions.add(_ChildEdgeInfo(pos: childPos, edgeId: ce.id));
+      }
+
+      if (childPositions.isEmpty) continue;
+
+      // T-shape 통합 관계선 그리기
+      _drawCoupleChildrenLine(canvas, coupleMid, childPositions);
+    }
+
+    // 나머지 엣지 (통합 선으로 그려지지 않은 것들)
     for (final edge in edges) {
+      if (edge.relation == RelationType.spouse) continue; // 이미 그림
+      if (drawnChildEdgeIds.contains(edge.id)) continue; // 통합 선으로 그림
       final from = _centerOf(edge.fromNodeId);
       final to = _centerOf(edge.toNodeId);
       if (from == null || to == null) continue;
@@ -39,16 +90,90 @@ class EdgePainter extends CustomPainter {
     }
   }
 
+  /// 부부 중점에서 자녀들로 T-shape 통합선 그리기
+  ///
+  /// 구조:
+  /// ```
+  ///   [부모A] ---- coupleMid ---- [부모B]
+  ///                    |
+  ///                    | (수직 하강선)
+  ///                    |
+  ///          +---------+---------+  (수평 분기선)
+  ///          |         |         |
+  ///       [자녀1]   [자녀2]   [자녀3]
+  /// ```
+  void _drawCoupleChildrenLine(
+    Canvas canvas,
+    Offset coupleMid,
+    List<_ChildEdgeInfo> children,
+  ) {
+    final color = _edgeColor(RelationType.child);
+    final paint = Paint()
+      ..color = color.withAlpha(180)
+      ..strokeWidth = 1.8
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    if (children.length == 1) {
+      // 자녀가 1명: 중점에서 자녀까지 직선(부드러운 커브)
+      final childPos = children.first.pos;
+      final path = _curvePath(coupleMid, childPos);
+      canvas.drawPath(path, paint);
+      final mid = _midPoint(coupleMid, childPos);
+      _drawLabel(canvas, mid, RelationType.child.label);
+      return;
+    }
+
+    // 자녀가 2명 이상: T-shape 구조
+    // 자녀 중 가장 위에 있는 Y 좌표 (수평 분기선 높이)
+    final childMinY = children.map((c) => c.pos.dy).reduce(math.min);
+
+    // 수직 하강 높이: 부부 중점과 자녀 사이의 중간 지점
+    final branchY = coupleMid.dy + (childMinY - coupleMid.dy) * 0.6;
+
+    // 1) 부부 중점에서 수직 하강
+    canvas.drawLine(coupleMid, Offset(coupleMid.dx, branchY), paint);
+
+    // 2) 수평 분기선 (가장 좌측 자녀 ~ 가장 우측 자녀 x범위)
+    final childXs = children.map((c) => c.pos.dx).toList()..sort();
+    final leftX = childXs.first;
+    final rightX = childXs.last;
+    canvas.drawLine(Offset(leftX, branchY), Offset(rightX, branchY), paint);
+
+    // 3) 수평 분기선에서 각 자녀로 수직 하강
+    for (final child in children) {
+      canvas.drawLine(
+        Offset(child.pos.dx, branchY),
+        child.pos,
+        paint,
+      );
+    }
+
+    // 레이블: 수직선 중간에 한 번만
+    final labelPos = Offset(coupleMid.dx, (coupleMid.dy + branchY) / 2);
+    _drawLabel(canvas, labelPos, RelationType.child.label);
+  }
+
   Offset? _centerOf(String nodeId) {
     final node = nodes.where((n) => n.id == nodeId).firstOrNull;
     if (node == null) return null;
+
+    // 드래그 중인 노드는 실시간 좌표 사용
+    if (nodeId == draggingNodeId && draggingPosition != null) {
+      return Offset(
+        draggingPosition!.dx + kNodeCardWidth / 2,
+        draggingPosition!.dy + kNodeCardHeight / 2,
+      );
+    }
+
     return Offset(
       node.positionX + kNodeCardWidth / 2,
       node.positionY + kNodeCardHeight / 2,
     );
   }
 
-  void _drawEdge(Canvas canvas, Offset from, Offset to, RelationType relation) {
+  void _drawEdge(
+      Canvas canvas, Offset from, Offset to, RelationType relation) {
     final color = _edgeColor(relation);
     final paint = Paint()
       ..color = color.withAlpha(180)
@@ -97,9 +222,9 @@ class EdgePainter extends CustomPainter {
     final tp = TextPainter(
       text: TextSpan(
         text: label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 10,
-          color: Colors.white60,
+          color: AppColors.isDark ? Colors.white60 : Colors.black54,
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -114,7 +239,9 @@ class EdgePainter extends CustomPainter {
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(bgRect, const Radius.circular(4)),
-      Paint()..color = const Color(0xCC0A0A1A),
+      Paint()
+        ..color =
+            AppColors.isDark ? const Color(0xCC0D1117) : const Color(0xCCFFFFFF),
     );
 
     tp.paint(canvas, pos - Offset(tp.width / 2, tp.height / 2));
@@ -128,7 +255,8 @@ class EdgePainter extends CustomPainter {
         RelationType.child => AppColors.secondary,
         RelationType.spouse => AppColors.accent,
         RelationType.sibling => AppColors.primary,
-        RelationType.other => Colors.white38,
+        RelationType.other =>
+          AppColors.isDark ? Colors.white38 : Colors.black38,
       };
 
   @override
@@ -136,5 +264,14 @@ class EdgePainter extends CustomPainter {
       oldDelegate.nodes != nodes ||
       oldDelegate.edges != edges ||
       oldDelegate.connectingNodeId != connectingNodeId ||
-      oldDelegate.pointerPosition != pointerPosition;
+      oldDelegate.pointerPosition != pointerPosition ||
+      oldDelegate.draggingNodeId != draggingNodeId ||
+      oldDelegate.draggingPosition != draggingPosition;
+}
+
+/// 자녀 엣지 정보 (통합선 렌더링용)
+class _ChildEdgeInfo {
+  const _ChildEdgeInfo({required this.pos, required this.edgeId});
+  final Offset pos;
+  final String edgeId;
 }

@@ -62,7 +62,7 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
                 Expanded(
                   child: Text(
                     widget.memory.title ?? widget.memory.type.label,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                   ),
                 ),
                 GestureDetector(
@@ -72,7 +72,7 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
                 const SizedBox(width: AppSpacing.sm),
                 GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
-                  child: const Icon(Icons.close, color: AppColors.textSecondary, size: 22),
+                  child: Icon(Icons.close, color: AppColors.textSecondary, size: 22),
                 ),
               ],
             ),
@@ -99,11 +99,11 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
               padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
               child: Row(
                 children: [
-                  const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textTertiary),
+                  Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textTertiary),
                   const SizedBox(width: 6),
                   Text(
                     _formatDate(widget.memory.dateTaken!),
-                    style: const TextStyle(fontSize: 12, color: AppColors.textTertiary),
+                    style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
                   ),
                 ],
               ),
@@ -128,8 +128,8 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.bgElevated,
-        title: const Text('기억 삭제', style: TextStyle(color: AppColors.textPrimary)),
-        content: const Text('이 기억을 삭제합니다.', style: TextStyle(color: AppColors.textSecondary)),
+        title: Text('기억 삭제', style: TextStyle(color: AppColors.textPrimary)),
+        content: Text('이 기억을 삭제합니다.', style: TextStyle(color: AppColors.textSecondary)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
           TextButton(
@@ -159,7 +159,7 @@ class _PhotoContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (memory.filePath == null) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(AppSpacing.lg),
         child: Icon(Icons.broken_image_outlined, color: AppColors.textTertiary, size: 48),
       );
@@ -168,13 +168,16 @@ class _PhotoContent extends StatelessWidget {
       onTap: () => _openFullscreen(context),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.file(
-            File(memory.filePath!),
-            height: 260,
-            width: double.infinity,
-            fit: BoxFit.cover,
+        child: Hero(
+          tag: 'photo_${memory.id}',
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.file(
+              File(memory.filePath!),
+              height: 260,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
           ),
         ),
       ),
@@ -227,7 +230,7 @@ class _VoiceContent extends StatelessWidget {
                 playerController: playerCtrl!,
                 size: Size(MediaQuery.of(context).size.width - 96, 60),
                 waveformType: WaveformType.fitWidth,
-                playerWaveStyle: const PlayerWaveStyle(
+                playerWaveStyle: PlayerWaveStyle(
                   fixedWaveColor: AppColors.glassBorder,
                   liveWaveColor: AppColors.primary,
                   waveCap: StrokeCap.round,
@@ -266,7 +269,7 @@ class _VoiceContent extends StatelessWidget {
                 const SizedBox(width: AppSpacing.lg),
                 Text(
                   memory.formattedDuration ?? '--:--',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w300, color: AppColors.textPrimary),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300, color: AppColors.textPrimary),
                 ),
               ],
             ),
@@ -293,7 +296,7 @@ class _NoteContent extends StatelessWidget {
           width: double.infinity,
           child: Text(
             memory.description ?? '',
-            style: const TextStyle(fontSize: 15, color: AppColors.textPrimary, height: 1.6),
+            style: TextStyle(fontSize: 15, color: AppColors.textPrimary, height: 1.6),
           ),
         ),
       ),

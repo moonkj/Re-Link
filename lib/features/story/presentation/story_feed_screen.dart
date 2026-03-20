@@ -26,7 +26,7 @@ class StoryFeedScreen extends ConsumerWidget {
           SliverAppBar(
             backgroundColor: AppColors.bgBase,
             floating: true,
-            title: const Text(
+            title: Text(
               '이야기',
               style: TextStyle(
                 color: AppColors.textPrimary,
@@ -121,7 +121,7 @@ class _StoryCard extends StatelessWidget {
                     children: [
                       Text(
                         item.nodeName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
@@ -129,7 +129,7 @@ class _StoryCard extends StatelessWidget {
                       ),
                       Text(
                         dateStr,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           color: AppColors.textTertiary,
                         ),
@@ -203,7 +203,7 @@ class _PhotoContent extends StatelessWidget {
             memory.description!,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
         ],
       ],
@@ -235,7 +235,7 @@ class _VoiceContent extends StatelessWidget {
             children: [
               Text(
                 memory.title ?? '음성 기억',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: AppColors.textPrimary,
@@ -244,7 +244,7 @@ class _VoiceContent extends StatelessWidget {
               if (memory.formattedDuration != null)
                 Text(
                   memory.formattedDuration!,
-                  style: const TextStyle(fontSize: 12, color: AppColors.textTertiary),
+                  style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
                 ),
             ],
           ),
@@ -264,7 +264,7 @@ class _NoteContent extends StatelessWidget {
       memory.description ?? memory.title ?? '',
       maxLines: 4,
       overflow: TextOverflow.ellipsis,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 14,
         color: AppColors.textSecondary,
         height: 1.5,

@@ -1,26 +1,29 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'node_notifier.dart';
+part of 'spouse_snap_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$nodeNotifierHash() => r'c93c0e1c82b39f2dd11d14f8d80053520c3f2fe4';
+String _$spouseSnapNotifierHash() =>
+    r'a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4';
 
-/// See also [NodeNotifier].
-@ProviderFor(NodeNotifier)
-final nodeNotifierProvider =
-    AutoDisposeNotifierProvider<NodeNotifier, AsyncValue<void>>.internal(
-      NodeNotifier.new,
-      name: r'nodeNotifierProvider',
+/// 부부 자석 스냅 On/Off 상태
+///
+/// Copied from [SpouseSnapNotifier].
+@ProviderFor(SpouseSnapNotifier)
+final spouseSnapNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<SpouseSnapNotifier, bool>.internal(
+      SpouseSnapNotifier.new,
+      name: r'spouseSnapNotifierProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
           ? null
-          : _$nodeNotifierHash,
+          : _$spouseSnapNotifierHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
-typedef _$NodeNotifier = AutoDisposeNotifier<AsyncValue<void>>;
+typedef _$SpouseSnapNotifier = AutoDisposeAsyncNotifier<bool>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
