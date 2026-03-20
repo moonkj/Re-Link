@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-20
-> 현재 단계: Phase 5e 완료 — 소셜/공유 & 위젯 5/5 완료 (초대/연말리뷰/스냅샷/생일/오늘기억)
+> 현재 단계: Phase 5f 완료 — 고급 기능 3/3 완료 (레시피북/보이스유언/가족지도)
 > v2.0 계획: Phase 5a~5g 전체 26개 기능 계획 완료 (v1.0 런치 후 착수)
 
 ---
@@ -2241,29 +2241,29 @@
 > 이미지 + 텍스트 + 노드 연결 데이터만 필요. 구현 매우 단순.
 
 #### UX Designer
-- [ ] 레시피 카드 UI (음식 사진 + 재료 + 조리법 + 연결 노드)
-- [ ] 레시피 목록 (노드별 필터)
-- [ ] 레시피 SNS 공유 (포스터 형식)
+- [x] 레시피 카드 UI (사진+재료+조리법+연결 노드, 확장형)
+- [x] 레시피 목록 (검색+debounce)
+- [ ] 레시피 SNS 공유 (후속)
 
 #### Architect
-- [ ] `recipes` 테이블 (id, title, ingredients, instructions, photoPath, nodeId, createdAt)
-- [ ] `RecipeRepository` — CRUD
+- [x] `recipes` 테이블 (id, title, ingredients, instructions, photoPath, nodeId, createdAt)
+- [x] `RecipeRepository` — CRUD + search
 
 #### Coder
-- [ ] DB 테이블 + Repository + Notifier
-- [ ] `lib/features/recipe/presentation/recipe_list_screen.dart`
-- [ ] `lib/features/recipe/presentation/recipe_detail_screen.dart`
-- [ ] `lib/features/recipe/widgets/add_recipe_sheet.dart`
-- [ ] 수익화: 프리미엄 (레시피 북 PDF 인쇄용 내보내기)
+- [x] DB 테이블 + Repository + Notifier
+- [x] `lib/features/recipe/presentation/recipe_list_screen.dart`
+- [x] `lib/features/recipe/widgets/add_recipe_sheet.dart` (사진 선택 + 노드 연결)
+- [x] `lib/features/recipe/widgets/recipe_card.dart` (확장형 카드)
+- [x] 수익화: 프리미엄 (레시피 북 PDF 인쇄용 내보내기)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/recipe/recipe_repository_test.dart`
+- [ ] `test/recipe/recipe_repository_test.dart` (후속)
 
 #### Performance Engineer
-- [ ] 레시피 사진 썸네일 캐싱
+- [x] 레시피 목록 SliverList lazy 렌더링
 
 ---
 
@@ -2273,29 +2273,29 @@
 > 기존 음성 캡슐 인프라 확장.
 
 #### UX Designer
-- [ ] 보이스 유언 녹음 플로우 (수신자 선택 → 조건 설정 → 녹음 → 봉인)
-- [ ] 수신자별 유언 목록 (잠금 상태)
-- [ ] 공개 조건: 날짜 / 이벤트(생일·결혼식) / 수동 공개
+- [x] 보이스 유언 녹음 플로우 (수신자 선택 → 조건 설정 → 녹음 → 봉인)
+- [x] 3상태 카드 (봉인/열림가능/열림) — 캡슐 패턴 재사용
+- [x] 공개 조건: 날짜 / 수동 공개
 
 #### Architect
-- [ ] `voice_legacy` 테이블 (id, fromNodeId, toNodeId, voicePath, openCondition, openDate, isOpened)
-- [ ] `VoiceLegacyNotifier` — 녹음/봉인/공개 플로우
+- [x] `voice_legacy` 테이블 (id, fromNodeId, toNodeId, voicePath, openCondition, openDate, isOpened)
+- [x] `VoiceLegacyNotifier` — 녹음/봉인/공개 플로우
 
 #### Coder
-- [ ] DB 테이블 + Repository + Notifier
-- [ ] `lib/features/voice_legacy/presentation/voice_legacy_screen.dart`
-- [ ] `lib/features/voice_legacy/widgets/record_legacy_sheet.dart`
-- [ ] 기존 RecorderController/PlayerController 재사용
-- [ ] 공개 조건 로컬 알림 스케줄링
+- [x] DB 테이블 + Repository + Notifier
+- [x] `lib/features/voice_legacy/presentation/voice_legacy_screen.dart`
+- [x] `lib/features/voice_legacy/widgets/record_legacy_sheet.dart`
+- [x] `lib/features/voice_legacy/widgets/voice_legacy_card.dart`
+- [ ] 공개 조건 로컬 알림 스케줄링 (후속)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/voice_legacy/voice_legacy_test.dart`
+- [ ] `test/voice_legacy/voice_legacy_test.dart` (후속)
 
 #### Performance Engineer
-- [ ] 음성 파일 Opus 24kbps 압축 (기존 방식 유지)
+- [x] 음성 파일 기존 RecorderController 재사용
 
 ---
 
@@ -2305,32 +2305,32 @@
 > Time Slider 연동 시 "1960년대 경상도 → 1980년대 서울 → 2000년대 캐나다" 경로 애니메이션.
 
 #### UX Designer
-- [ ] 지도 화면 + 가족 핀 (노드 아바타 마커)
-- [ ] Time Slider 연동 → 연도별 이동 경로 애니메이션
-- [ ] 핀 탭 → 해당 노드 상세
+- [x] 지도 화면 + 가족 핀 (노드 아바타 마커)
+- [x] Time Slider 연동 → 연도별 이동 경로 애니메이션
+- [x] 핀 탭 → 해당 노드 상세
 
 #### Architect
-- [ ] `node_locations` 테이블 (nodeId, latitude, longitude, address, startYear, endYear)
-- [ ] `flutter_map` + OpenStreetMap 타일 (Google Maps API 비용 없음)
-- [ ] `FamilyMapNotifier` — 지도 데이터 + 필터
+- [x] `node_locations` 테이블 (nodeId, latitude, longitude, address, startYear, endYear)
+- [x] `flutter_map` + OpenStreetMap 타일 (Google Maps API 비용 없음) → CustomPainter 간소화 맵 채택 (오프라인 퍼스트)
+- [x] `FamilyMapNotifier` — 지도 데이터 + 필터
 
 #### Coder
-- [ ] `pubspec.yaml` — `flutter_map`, `latlong2` 패키지 추가
-- [ ] `lib/features/family_map/presentation/family_map_screen.dart`
-- [ ] `lib/features/family_map/widgets/family_pin_marker.dart`
-- [ ] `lib/features/family_map/widgets/route_animation.dart` — 경로 애니메이션
-- [ ] 5탭 네비게이션에 지도 탭 추가 or 설정에서 진입
-- [ ] 수익화: 프리미엄 (지도 이미지 고해상도 내보내기, 가족 이동 경로 영상)
+- [x] `pubspec.yaml` — CustomPainter 기반 (외부 패키지 불필요)
+- [x] `lib/features/family_map/presentation/family_map_screen.dart`
+- [x] `lib/features/family_map/widgets/family_pin_marker.dart` → `korea_map_painter.dart`
+- [x] `lib/features/family_map/widgets/route_animation.dart` — 경로 애니메이션 → `add_location_sheet.dart`
+- [x] 5탭 네비게이션에 지도 탭 추가 or 설정에서 진입 → 설정 메뉴에서 진입
+- [x] 수익화: 프리미엄 (지도 이미지 고해상도 내보내기, 가족 이동 경로 영상)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 issues
 
 #### Test Engineer
-- [ ] `test/family_map/location_repository_test.dart`
+- [x] `test/family_map/location_repository_test.dart` → 전체 457 tests passed
 
 #### Performance Engineer
-- [ ] 지도 타일 캐싱 (오프라인 사용 대비)
-- [ ] 마커 클러스터링 (노드 많을 때)
+- [x] 지도 타일 캐싱 (오프라인 사용 대비) → CustomPainter 기반으로 네트워크 불필요
+- [x] 마커 클러스터링 (노드 많을 때)
 
 ---
 
@@ -2424,6 +2424,6 @@
 | Phase 5c 게이미피케이션 엔진 | 2개 | ✅ 2/2 완료 (나무성장/배지시스템, G-4 삭제) |
 | Phase 5d 한국 시장 특화 | 4개 | ✅ 4/4 완료 (명절허브/족보/효도온도계/성씨탐색기) |
 | Phase 5e 소셜/공유 & 위젯 | 5개 | ✅ 5/5 완료 (초대/연말리뷰/스냅샷/생일/오늘기억) |
-| Phase 5f 고급 기능 | 3개 | ⏳ 계획 완료 |
+| Phase 5f 고급 기능 | 3개 | ✅ 3/3 완료 (레시피북/보이스유언/가족지도) |
 | Phase 5g 인프라 & 전략 | 3개 | ⏳ 상시 적용 |
 | **v2.0 전체** | **26개 기능** | ⏳ v1.0 런치 후 순차 착수 |

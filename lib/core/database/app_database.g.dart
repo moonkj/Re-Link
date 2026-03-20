@@ -5151,6 +5151,1656 @@ class GlossaryTableCompanion extends UpdateCompanion<GlossaryTableData> {
   }
 }
 
+class $RecipesTableTable extends RecipesTable
+    with TableInfo<$RecipesTableTable, RecipesTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RecipesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ingredientsMeta = const VerificationMeta(
+    'ingredients',
+  );
+  @override
+  late final GeneratedColumn<String> ingredients = GeneratedColumn<String>(
+    'ingredients',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _instructionsMeta = const VerificationMeta(
+    'instructions',
+  );
+  @override
+  late final GeneratedColumn<String> instructions = GeneratedColumn<String>(
+    'instructions',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _photoPathMeta = const VerificationMeta(
+    'photoPath',
+  );
+  @override
+  late final GeneratedColumn<String> photoPath = GeneratedColumn<String>(
+    'photo_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nodeIdMeta = const VerificationMeta('nodeId');
+  @override
+  late final GeneratedColumn<String> nodeId = GeneratedColumn<String>(
+    'node_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    title,
+    ingredients,
+    instructions,
+    photoPath,
+    nodeId,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'recipes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RecipesTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('ingredients')) {
+      context.handle(
+        _ingredientsMeta,
+        ingredients.isAcceptableOrUnknown(
+          data['ingredients']!,
+          _ingredientsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_ingredientsMeta);
+    }
+    if (data.containsKey('instructions')) {
+      context.handle(
+        _instructionsMeta,
+        instructions.isAcceptableOrUnknown(
+          data['instructions']!,
+          _instructionsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_instructionsMeta);
+    }
+    if (data.containsKey('photo_path')) {
+      context.handle(
+        _photoPathMeta,
+        photoPath.isAcceptableOrUnknown(data['photo_path']!, _photoPathMeta),
+      );
+    }
+    if (data.containsKey('node_id')) {
+      context.handle(
+        _nodeIdMeta,
+        nodeId.isAcceptableOrUnknown(data['node_id']!, _nodeIdMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RecipesTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RecipesTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      ingredients: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ingredients'],
+      )!,
+      instructions: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}instructions'],
+      )!,
+      photoPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}photo_path'],
+      ),
+      nodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}node_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RecipesTableTable createAlias(String alias) {
+    return $RecipesTableTable(attachedDatabase, alias);
+  }
+}
+
+class RecipesTableData extends DataClass
+    implements Insertable<RecipesTableData> {
+  final String id;
+  final String title;
+  final String ingredients;
+  final String instructions;
+  final String? photoPath;
+  final String? nodeId;
+  final DateTime createdAt;
+  const RecipesTableData({
+    required this.id,
+    required this.title,
+    required this.ingredients,
+    required this.instructions,
+    this.photoPath,
+    this.nodeId,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['title'] = Variable<String>(title);
+    map['ingredients'] = Variable<String>(ingredients);
+    map['instructions'] = Variable<String>(instructions);
+    if (!nullToAbsent || photoPath != null) {
+      map['photo_path'] = Variable<String>(photoPath);
+    }
+    if (!nullToAbsent || nodeId != null) {
+      map['node_id'] = Variable<String>(nodeId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  RecipesTableCompanion toCompanion(bool nullToAbsent) {
+    return RecipesTableCompanion(
+      id: Value(id),
+      title: Value(title),
+      ingredients: Value(ingredients),
+      instructions: Value(instructions),
+      photoPath: photoPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(photoPath),
+      nodeId: nodeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nodeId),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory RecipesTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RecipesTableData(
+      id: serializer.fromJson<String>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      ingredients: serializer.fromJson<String>(json['ingredients']),
+      instructions: serializer.fromJson<String>(json['instructions']),
+      photoPath: serializer.fromJson<String?>(json['photoPath']),
+      nodeId: serializer.fromJson<String?>(json['nodeId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'title': serializer.toJson<String>(title),
+      'ingredients': serializer.toJson<String>(ingredients),
+      'instructions': serializer.toJson<String>(instructions),
+      'photoPath': serializer.toJson<String?>(photoPath),
+      'nodeId': serializer.toJson<String?>(nodeId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  RecipesTableData copyWith({
+    String? id,
+    String? title,
+    String? ingredients,
+    String? instructions,
+    Value<String?> photoPath = const Value.absent(),
+    Value<String?> nodeId = const Value.absent(),
+    DateTime? createdAt,
+  }) => RecipesTableData(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    ingredients: ingredients ?? this.ingredients,
+    instructions: instructions ?? this.instructions,
+    photoPath: photoPath.present ? photoPath.value : this.photoPath,
+    nodeId: nodeId.present ? nodeId.value : this.nodeId,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  RecipesTableData copyWithCompanion(RecipesTableCompanion data) {
+    return RecipesTableData(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      ingredients: data.ingredients.present
+          ? data.ingredients.value
+          : this.ingredients,
+      instructions: data.instructions.present
+          ? data.instructions.value
+          : this.instructions,
+      photoPath: data.photoPath.present ? data.photoPath.value : this.photoPath,
+      nodeId: data.nodeId.present ? data.nodeId.value : this.nodeId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecipesTableData(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('ingredients: $ingredients, ')
+          ..write('instructions: $instructions, ')
+          ..write('photoPath: $photoPath, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    title,
+    ingredients,
+    instructions,
+    photoPath,
+    nodeId,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecipesTableData &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.ingredients == this.ingredients &&
+          other.instructions == this.instructions &&
+          other.photoPath == this.photoPath &&
+          other.nodeId == this.nodeId &&
+          other.createdAt == this.createdAt);
+}
+
+class RecipesTableCompanion extends UpdateCompanion<RecipesTableData> {
+  final Value<String> id;
+  final Value<String> title;
+  final Value<String> ingredients;
+  final Value<String> instructions;
+  final Value<String?> photoPath;
+  final Value<String?> nodeId;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const RecipesTableCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.ingredients = const Value.absent(),
+    this.instructions = const Value.absent(),
+    this.photoPath = const Value.absent(),
+    this.nodeId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RecipesTableCompanion.insert({
+    required String id,
+    required String title,
+    required String ingredients,
+    required String instructions,
+    this.photoPath = const Value.absent(),
+    this.nodeId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       title = Value(title),
+       ingredients = Value(ingredients),
+       instructions = Value(instructions);
+  static Insertable<RecipesTableData> custom({
+    Expression<String>? id,
+    Expression<String>? title,
+    Expression<String>? ingredients,
+    Expression<String>? instructions,
+    Expression<String>? photoPath,
+    Expression<String>? nodeId,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (ingredients != null) 'ingredients': ingredients,
+      if (instructions != null) 'instructions': instructions,
+      if (photoPath != null) 'photo_path': photoPath,
+      if (nodeId != null) 'node_id': nodeId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RecipesTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? title,
+    Value<String>? ingredients,
+    Value<String>? instructions,
+    Value<String?>? photoPath,
+    Value<String?>? nodeId,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return RecipesTableCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      ingredients: ingredients ?? this.ingredients,
+      instructions: instructions ?? this.instructions,
+      photoPath: photoPath ?? this.photoPath,
+      nodeId: nodeId ?? this.nodeId,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (ingredients.present) {
+      map['ingredients'] = Variable<String>(ingredients.value);
+    }
+    if (instructions.present) {
+      map['instructions'] = Variable<String>(instructions.value);
+    }
+    if (photoPath.present) {
+      map['photo_path'] = Variable<String>(photoPath.value);
+    }
+    if (nodeId.present) {
+      map['node_id'] = Variable<String>(nodeId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecipesTableCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('ingredients: $ingredients, ')
+          ..write('instructions: $instructions, ')
+          ..write('photoPath: $photoPath, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $NodeLocationsTableTable extends NodeLocationsTable
+    with TableInfo<$NodeLocationsTableTable, NodeLocationsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NodeLocationsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nodeIdMeta = const VerificationMeta('nodeId');
+  @override
+  late final GeneratedColumn<String> nodeId = GeneratedColumn<String>(
+    'node_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _addressMeta = const VerificationMeta(
+    'address',
+  );
+  @override
+  late final GeneratedColumn<String> address = GeneratedColumn<String>(
+    'address',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _startYearMeta = const VerificationMeta(
+    'startYear',
+  );
+  @override
+  late final GeneratedColumn<int> startYear = GeneratedColumn<int>(
+    'start_year',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _endYearMeta = const VerificationMeta(
+    'endYear',
+  );
+  @override
+  late final GeneratedColumn<int> endYear = GeneratedColumn<int>(
+    'end_year',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    nodeId,
+    address,
+    latitude,
+    longitude,
+    startYear,
+    endYear,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'node_locations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<NodeLocationsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('node_id')) {
+      context.handle(
+        _nodeIdMeta,
+        nodeId.isAcceptableOrUnknown(data['node_id']!, _nodeIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nodeIdMeta);
+    }
+    if (data.containsKey('address')) {
+      context.handle(
+        _addressMeta,
+        address.isAcceptableOrUnknown(data['address']!, _addressMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_addressMeta);
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_latitudeMeta);
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_longitudeMeta);
+    }
+    if (data.containsKey('start_year')) {
+      context.handle(
+        _startYearMeta,
+        startYear.isAcceptableOrUnknown(data['start_year']!, _startYearMeta),
+      );
+    }
+    if (data.containsKey('end_year')) {
+      context.handle(
+        _endYearMeta,
+        endYear.isAcceptableOrUnknown(data['end_year']!, _endYearMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  NodeLocationsTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NodeLocationsTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      nodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}node_id'],
+      )!,
+      address: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}address'],
+      )!,
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      )!,
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
+      )!,
+      startYear: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}start_year'],
+      ),
+      endYear: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}end_year'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $NodeLocationsTableTable createAlias(String alias) {
+    return $NodeLocationsTableTable(attachedDatabase, alias);
+  }
+}
+
+class NodeLocationsTableData extends DataClass
+    implements Insertable<NodeLocationsTableData> {
+  final String id;
+  final String nodeId;
+  final String address;
+  final double latitude;
+  final double longitude;
+  final int? startYear;
+  final int? endYear;
+  final DateTime createdAt;
+  const NodeLocationsTableData({
+    required this.id,
+    required this.nodeId,
+    required this.address,
+    required this.latitude,
+    required this.longitude,
+    this.startYear,
+    this.endYear,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['node_id'] = Variable<String>(nodeId);
+    map['address'] = Variable<String>(address);
+    map['latitude'] = Variable<double>(latitude);
+    map['longitude'] = Variable<double>(longitude);
+    if (!nullToAbsent || startYear != null) {
+      map['start_year'] = Variable<int>(startYear);
+    }
+    if (!nullToAbsent || endYear != null) {
+      map['end_year'] = Variable<int>(endYear);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  NodeLocationsTableCompanion toCompanion(bool nullToAbsent) {
+    return NodeLocationsTableCompanion(
+      id: Value(id),
+      nodeId: Value(nodeId),
+      address: Value(address),
+      latitude: Value(latitude),
+      longitude: Value(longitude),
+      startYear: startYear == null && nullToAbsent
+          ? const Value.absent()
+          : Value(startYear),
+      endYear: endYear == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endYear),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory NodeLocationsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NodeLocationsTableData(
+      id: serializer.fromJson<String>(json['id']),
+      nodeId: serializer.fromJson<String>(json['nodeId']),
+      address: serializer.fromJson<String>(json['address']),
+      latitude: serializer.fromJson<double>(json['latitude']),
+      longitude: serializer.fromJson<double>(json['longitude']),
+      startYear: serializer.fromJson<int?>(json['startYear']),
+      endYear: serializer.fromJson<int?>(json['endYear']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'nodeId': serializer.toJson<String>(nodeId),
+      'address': serializer.toJson<String>(address),
+      'latitude': serializer.toJson<double>(latitude),
+      'longitude': serializer.toJson<double>(longitude),
+      'startYear': serializer.toJson<int?>(startYear),
+      'endYear': serializer.toJson<int?>(endYear),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  NodeLocationsTableData copyWith({
+    String? id,
+    String? nodeId,
+    String? address,
+    double? latitude,
+    double? longitude,
+    Value<int?> startYear = const Value.absent(),
+    Value<int?> endYear = const Value.absent(),
+    DateTime? createdAt,
+  }) => NodeLocationsTableData(
+    id: id ?? this.id,
+    nodeId: nodeId ?? this.nodeId,
+    address: address ?? this.address,
+    latitude: latitude ?? this.latitude,
+    longitude: longitude ?? this.longitude,
+    startYear: startYear.present ? startYear.value : this.startYear,
+    endYear: endYear.present ? endYear.value : this.endYear,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  NodeLocationsTableData copyWithCompanion(NodeLocationsTableCompanion data) {
+    return NodeLocationsTableData(
+      id: data.id.present ? data.id.value : this.id,
+      nodeId: data.nodeId.present ? data.nodeId.value : this.nodeId,
+      address: data.address.present ? data.address.value : this.address,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      startYear: data.startYear.present ? data.startYear.value : this.startYear,
+      endYear: data.endYear.present ? data.endYear.value : this.endYear,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NodeLocationsTableData(')
+          ..write('id: $id, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('address: $address, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('startYear: $startYear, ')
+          ..write('endYear: $endYear, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    nodeId,
+    address,
+    latitude,
+    longitude,
+    startYear,
+    endYear,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NodeLocationsTableData &&
+          other.id == this.id &&
+          other.nodeId == this.nodeId &&
+          other.address == this.address &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
+          other.startYear == this.startYear &&
+          other.endYear == this.endYear &&
+          other.createdAt == this.createdAt);
+}
+
+class NodeLocationsTableCompanion
+    extends UpdateCompanion<NodeLocationsTableData> {
+  final Value<String> id;
+  final Value<String> nodeId;
+  final Value<String> address;
+  final Value<double> latitude;
+  final Value<double> longitude;
+  final Value<int?> startYear;
+  final Value<int?> endYear;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const NodeLocationsTableCompanion({
+    this.id = const Value.absent(),
+    this.nodeId = const Value.absent(),
+    this.address = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.startYear = const Value.absent(),
+    this.endYear = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  NodeLocationsTableCompanion.insert({
+    required String id,
+    required String nodeId,
+    required String address,
+    required double latitude,
+    required double longitude,
+    this.startYear = const Value.absent(),
+    this.endYear = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       nodeId = Value(nodeId),
+       address = Value(address),
+       latitude = Value(latitude),
+       longitude = Value(longitude);
+  static Insertable<NodeLocationsTableData> custom({
+    Expression<String>? id,
+    Expression<String>? nodeId,
+    Expression<String>? address,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
+    Expression<int>? startYear,
+    Expression<int>? endYear,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (nodeId != null) 'node_id': nodeId,
+      if (address != null) 'address': address,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (startYear != null) 'start_year': startYear,
+      if (endYear != null) 'end_year': endYear,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  NodeLocationsTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? nodeId,
+    Value<String>? address,
+    Value<double>? latitude,
+    Value<double>? longitude,
+    Value<int?>? startYear,
+    Value<int?>? endYear,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return NodeLocationsTableCompanion(
+      id: id ?? this.id,
+      nodeId: nodeId ?? this.nodeId,
+      address: address ?? this.address,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      startYear: startYear ?? this.startYear,
+      endYear: endYear ?? this.endYear,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (nodeId.present) {
+      map['node_id'] = Variable<String>(nodeId.value);
+    }
+    if (address.present) {
+      map['address'] = Variable<String>(address.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (startYear.present) {
+      map['start_year'] = Variable<int>(startYear.value);
+    }
+    if (endYear.present) {
+      map['end_year'] = Variable<int>(endYear.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NodeLocationsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('address: $address, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('startYear: $startYear, ')
+          ..write('endYear: $endYear, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $VoiceLegacyTableTable extends VoiceLegacyTable
+    with TableInfo<$VoiceLegacyTableTable, VoiceLegacyTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VoiceLegacyTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fromNodeIdMeta = const VerificationMeta(
+    'fromNodeId',
+  );
+  @override
+  late final GeneratedColumn<String> fromNodeId = GeneratedColumn<String>(
+    'from_node_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _toNodeIdMeta = const VerificationMeta(
+    'toNodeId',
+  );
+  @override
+  late final GeneratedColumn<String> toNodeId = GeneratedColumn<String>(
+    'to_node_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _voicePathMeta = const VerificationMeta(
+    'voicePath',
+  );
+  @override
+  late final GeneratedColumn<String> voicePath = GeneratedColumn<String>(
+    'voice_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _durationSecondsMeta = const VerificationMeta(
+    'durationSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> durationSeconds = GeneratedColumn<int>(
+    'duration_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _openConditionMeta = const VerificationMeta(
+    'openCondition',
+  );
+  @override
+  late final GeneratedColumn<String> openCondition = GeneratedColumn<String>(
+    'open_condition',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('date'),
+  );
+  static const VerificationMeta _openDateMeta = const VerificationMeta(
+    'openDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> openDate = GeneratedColumn<DateTime>(
+    'open_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isOpenedMeta = const VerificationMeta(
+    'isOpened',
+  );
+  @override
+  late final GeneratedColumn<bool> isOpened = GeneratedColumn<bool>(
+    'is_opened',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_opened" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _openedAtMeta = const VerificationMeta(
+    'openedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> openedAt = GeneratedColumn<DateTime>(
+    'opened_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    fromNodeId,
+    toNodeId,
+    title,
+    voicePath,
+    durationSeconds,
+    openCondition,
+    openDate,
+    isOpened,
+    openedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'voice_legacy';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VoiceLegacyTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('from_node_id')) {
+      context.handle(
+        _fromNodeIdMeta,
+        fromNodeId.isAcceptableOrUnknown(
+          data['from_node_id']!,
+          _fromNodeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_fromNodeIdMeta);
+    }
+    if (data.containsKey('to_node_id')) {
+      context.handle(
+        _toNodeIdMeta,
+        toNodeId.isAcceptableOrUnknown(data['to_node_id']!, _toNodeIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_toNodeIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('voice_path')) {
+      context.handle(
+        _voicePathMeta,
+        voicePath.isAcceptableOrUnknown(data['voice_path']!, _voicePathMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_voicePathMeta);
+    }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+        _durationSecondsMeta,
+        durationSeconds.isAcceptableOrUnknown(
+          data['duration_seconds']!,
+          _durationSecondsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('open_condition')) {
+      context.handle(
+        _openConditionMeta,
+        openCondition.isAcceptableOrUnknown(
+          data['open_condition']!,
+          _openConditionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('open_date')) {
+      context.handle(
+        _openDateMeta,
+        openDate.isAcceptableOrUnknown(data['open_date']!, _openDateMeta),
+      );
+    }
+    if (data.containsKey('is_opened')) {
+      context.handle(
+        _isOpenedMeta,
+        isOpened.isAcceptableOrUnknown(data['is_opened']!, _isOpenedMeta),
+      );
+    }
+    if (data.containsKey('opened_at')) {
+      context.handle(
+        _openedAtMeta,
+        openedAt.isAcceptableOrUnknown(data['opened_at']!, _openedAtMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  VoiceLegacyTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VoiceLegacyTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      fromNodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}from_node_id'],
+      )!,
+      toNodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}to_node_id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      voicePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}voice_path'],
+      )!,
+      durationSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_seconds'],
+      )!,
+      openCondition: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}open_condition'],
+      )!,
+      openDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}open_date'],
+      ),
+      isOpened: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_opened'],
+      )!,
+      openedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}opened_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $VoiceLegacyTableTable createAlias(String alias) {
+    return $VoiceLegacyTableTable(attachedDatabase, alias);
+  }
+}
+
+class VoiceLegacyTableData extends DataClass
+    implements Insertable<VoiceLegacyTableData> {
+  final String id;
+  final String fromNodeId;
+  final String toNodeId;
+  final String title;
+  final String voicePath;
+  final int durationSeconds;
+  final String openCondition;
+  final DateTime? openDate;
+  final bool isOpened;
+  final DateTime? openedAt;
+  final DateTime createdAt;
+  const VoiceLegacyTableData({
+    required this.id,
+    required this.fromNodeId,
+    required this.toNodeId,
+    required this.title,
+    required this.voicePath,
+    required this.durationSeconds,
+    required this.openCondition,
+    this.openDate,
+    required this.isOpened,
+    this.openedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['from_node_id'] = Variable<String>(fromNodeId);
+    map['to_node_id'] = Variable<String>(toNodeId);
+    map['title'] = Variable<String>(title);
+    map['voice_path'] = Variable<String>(voicePath);
+    map['duration_seconds'] = Variable<int>(durationSeconds);
+    map['open_condition'] = Variable<String>(openCondition);
+    if (!nullToAbsent || openDate != null) {
+      map['open_date'] = Variable<DateTime>(openDate);
+    }
+    map['is_opened'] = Variable<bool>(isOpened);
+    if (!nullToAbsent || openedAt != null) {
+      map['opened_at'] = Variable<DateTime>(openedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  VoiceLegacyTableCompanion toCompanion(bool nullToAbsent) {
+    return VoiceLegacyTableCompanion(
+      id: Value(id),
+      fromNodeId: Value(fromNodeId),
+      toNodeId: Value(toNodeId),
+      title: Value(title),
+      voicePath: Value(voicePath),
+      durationSeconds: Value(durationSeconds),
+      openCondition: Value(openCondition),
+      openDate: openDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(openDate),
+      isOpened: Value(isOpened),
+      openedAt: openedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(openedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory VoiceLegacyTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VoiceLegacyTableData(
+      id: serializer.fromJson<String>(json['id']),
+      fromNodeId: serializer.fromJson<String>(json['fromNodeId']),
+      toNodeId: serializer.fromJson<String>(json['toNodeId']),
+      title: serializer.fromJson<String>(json['title']),
+      voicePath: serializer.fromJson<String>(json['voicePath']),
+      durationSeconds: serializer.fromJson<int>(json['durationSeconds']),
+      openCondition: serializer.fromJson<String>(json['openCondition']),
+      openDate: serializer.fromJson<DateTime?>(json['openDate']),
+      isOpened: serializer.fromJson<bool>(json['isOpened']),
+      openedAt: serializer.fromJson<DateTime?>(json['openedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'fromNodeId': serializer.toJson<String>(fromNodeId),
+      'toNodeId': serializer.toJson<String>(toNodeId),
+      'title': serializer.toJson<String>(title),
+      'voicePath': serializer.toJson<String>(voicePath),
+      'durationSeconds': serializer.toJson<int>(durationSeconds),
+      'openCondition': serializer.toJson<String>(openCondition),
+      'openDate': serializer.toJson<DateTime?>(openDate),
+      'isOpened': serializer.toJson<bool>(isOpened),
+      'openedAt': serializer.toJson<DateTime?>(openedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  VoiceLegacyTableData copyWith({
+    String? id,
+    String? fromNodeId,
+    String? toNodeId,
+    String? title,
+    String? voicePath,
+    int? durationSeconds,
+    String? openCondition,
+    Value<DateTime?> openDate = const Value.absent(),
+    bool? isOpened,
+    Value<DateTime?> openedAt = const Value.absent(),
+    DateTime? createdAt,
+  }) => VoiceLegacyTableData(
+    id: id ?? this.id,
+    fromNodeId: fromNodeId ?? this.fromNodeId,
+    toNodeId: toNodeId ?? this.toNodeId,
+    title: title ?? this.title,
+    voicePath: voicePath ?? this.voicePath,
+    durationSeconds: durationSeconds ?? this.durationSeconds,
+    openCondition: openCondition ?? this.openCondition,
+    openDate: openDate.present ? openDate.value : this.openDate,
+    isOpened: isOpened ?? this.isOpened,
+    openedAt: openedAt.present ? openedAt.value : this.openedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  VoiceLegacyTableData copyWithCompanion(VoiceLegacyTableCompanion data) {
+    return VoiceLegacyTableData(
+      id: data.id.present ? data.id.value : this.id,
+      fromNodeId: data.fromNodeId.present
+          ? data.fromNodeId.value
+          : this.fromNodeId,
+      toNodeId: data.toNodeId.present ? data.toNodeId.value : this.toNodeId,
+      title: data.title.present ? data.title.value : this.title,
+      voicePath: data.voicePath.present ? data.voicePath.value : this.voicePath,
+      durationSeconds: data.durationSeconds.present
+          ? data.durationSeconds.value
+          : this.durationSeconds,
+      openCondition: data.openCondition.present
+          ? data.openCondition.value
+          : this.openCondition,
+      openDate: data.openDate.present ? data.openDate.value : this.openDate,
+      isOpened: data.isOpened.present ? data.isOpened.value : this.isOpened,
+      openedAt: data.openedAt.present ? data.openedAt.value : this.openedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VoiceLegacyTableData(')
+          ..write('id: $id, ')
+          ..write('fromNodeId: $fromNodeId, ')
+          ..write('toNodeId: $toNodeId, ')
+          ..write('title: $title, ')
+          ..write('voicePath: $voicePath, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('openCondition: $openCondition, ')
+          ..write('openDate: $openDate, ')
+          ..write('isOpened: $isOpened, ')
+          ..write('openedAt: $openedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    fromNodeId,
+    toNodeId,
+    title,
+    voicePath,
+    durationSeconds,
+    openCondition,
+    openDate,
+    isOpened,
+    openedAt,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VoiceLegacyTableData &&
+          other.id == this.id &&
+          other.fromNodeId == this.fromNodeId &&
+          other.toNodeId == this.toNodeId &&
+          other.title == this.title &&
+          other.voicePath == this.voicePath &&
+          other.durationSeconds == this.durationSeconds &&
+          other.openCondition == this.openCondition &&
+          other.openDate == this.openDate &&
+          other.isOpened == this.isOpened &&
+          other.openedAt == this.openedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class VoiceLegacyTableCompanion extends UpdateCompanion<VoiceLegacyTableData> {
+  final Value<String> id;
+  final Value<String> fromNodeId;
+  final Value<String> toNodeId;
+  final Value<String> title;
+  final Value<String> voicePath;
+  final Value<int> durationSeconds;
+  final Value<String> openCondition;
+  final Value<DateTime?> openDate;
+  final Value<bool> isOpened;
+  final Value<DateTime?> openedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const VoiceLegacyTableCompanion({
+    this.id = const Value.absent(),
+    this.fromNodeId = const Value.absent(),
+    this.toNodeId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.voicePath = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
+    this.openCondition = const Value.absent(),
+    this.openDate = const Value.absent(),
+    this.isOpened = const Value.absent(),
+    this.openedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VoiceLegacyTableCompanion.insert({
+    required String id,
+    required String fromNodeId,
+    required String toNodeId,
+    required String title,
+    required String voicePath,
+    this.durationSeconds = const Value.absent(),
+    this.openCondition = const Value.absent(),
+    this.openDate = const Value.absent(),
+    this.isOpened = const Value.absent(),
+    this.openedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       fromNodeId = Value(fromNodeId),
+       toNodeId = Value(toNodeId),
+       title = Value(title),
+       voicePath = Value(voicePath);
+  static Insertable<VoiceLegacyTableData> custom({
+    Expression<String>? id,
+    Expression<String>? fromNodeId,
+    Expression<String>? toNodeId,
+    Expression<String>? title,
+    Expression<String>? voicePath,
+    Expression<int>? durationSeconds,
+    Expression<String>? openCondition,
+    Expression<DateTime>? openDate,
+    Expression<bool>? isOpened,
+    Expression<DateTime>? openedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (fromNodeId != null) 'from_node_id': fromNodeId,
+      if (toNodeId != null) 'to_node_id': toNodeId,
+      if (title != null) 'title': title,
+      if (voicePath != null) 'voice_path': voicePath,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
+      if (openCondition != null) 'open_condition': openCondition,
+      if (openDate != null) 'open_date': openDate,
+      if (isOpened != null) 'is_opened': isOpened,
+      if (openedAt != null) 'opened_at': openedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VoiceLegacyTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? fromNodeId,
+    Value<String>? toNodeId,
+    Value<String>? title,
+    Value<String>? voicePath,
+    Value<int>? durationSeconds,
+    Value<String>? openCondition,
+    Value<DateTime?>? openDate,
+    Value<bool>? isOpened,
+    Value<DateTime?>? openedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return VoiceLegacyTableCompanion(
+      id: id ?? this.id,
+      fromNodeId: fromNodeId ?? this.fromNodeId,
+      toNodeId: toNodeId ?? this.toNodeId,
+      title: title ?? this.title,
+      voicePath: voicePath ?? this.voicePath,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
+      openCondition: openCondition ?? this.openCondition,
+      openDate: openDate ?? this.openDate,
+      isOpened: isOpened ?? this.isOpened,
+      openedAt: openedAt ?? this.openedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (fromNodeId.present) {
+      map['from_node_id'] = Variable<String>(fromNodeId.value);
+    }
+    if (toNodeId.present) {
+      map['to_node_id'] = Variable<String>(toNodeId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (voicePath.present) {
+      map['voice_path'] = Variable<String>(voicePath.value);
+    }
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
+    }
+    if (openCondition.present) {
+      map['open_condition'] = Variable<String>(openCondition.value);
+    }
+    if (openDate.present) {
+      map['open_date'] = Variable<DateTime>(openDate.value);
+    }
+    if (isOpened.present) {
+      map['is_opened'] = Variable<bool>(isOpened.value);
+    }
+    if (openedAt.present) {
+      map['opened_at'] = Variable<DateTime>(openedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VoiceLegacyTableCompanion(')
+          ..write('id: $id, ')
+          ..write('fromNodeId: $fromNodeId, ')
+          ..write('toNodeId: $toNodeId, ')
+          ..write('title: $title, ')
+          ..write('voicePath: $voicePath, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('openCondition: $openCondition, ')
+          ..write('openDate: $openDate, ')
+          ..write('isOpened: $isOpened, ')
+          ..write('openedAt: $openedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5168,6 +6818,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MemorialMessagesTableTable memorialMessagesTable =
       $MemorialMessagesTableTable(this);
   late final $GlossaryTableTable glossaryTable = $GlossaryTableTable(this);
+  late final $RecipesTableTable recipesTable = $RecipesTableTable(this);
+  late final $NodeLocationsTableTable nodeLocationsTable =
+      $NodeLocationsTableTable(this);
+  late final $VoiceLegacyTableTable voiceLegacyTable = $VoiceLegacyTableTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5184,6 +6840,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     capsuleItemsTable,
     memorialMessagesTable,
     glossaryTable,
+    recipesTable,
+    nodeLocationsTable,
+    voiceLegacyTable,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -8371,6 +10030,848 @@ typedef $$GlossaryTableTableProcessedTableManager =
       GlossaryTableData,
       PrefetchHooks Function()
     >;
+typedef $$RecipesTableTableCreateCompanionBuilder =
+    RecipesTableCompanion Function({
+      required String id,
+      required String title,
+      required String ingredients,
+      required String instructions,
+      Value<String?> photoPath,
+      Value<String?> nodeId,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$RecipesTableTableUpdateCompanionBuilder =
+    RecipesTableCompanion Function({
+      Value<String> id,
+      Value<String> title,
+      Value<String> ingredients,
+      Value<String> instructions,
+      Value<String?> photoPath,
+      Value<String?> nodeId,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$RecipesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $RecipesTableTable> {
+  $$RecipesTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ingredients => $composableBuilder(
+    column: $table.ingredients,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get instructions => $composableBuilder(
+    column: $table.instructions,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get photoPath => $composableBuilder(
+    column: $table.photoPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nodeId => $composableBuilder(
+    column: $table.nodeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RecipesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $RecipesTableTable> {
+  $$RecipesTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ingredients => $composableBuilder(
+    column: $table.ingredients,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get instructions => $composableBuilder(
+    column: $table.instructions,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get photoPath => $composableBuilder(
+    column: $table.photoPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nodeId => $composableBuilder(
+    column: $table.nodeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RecipesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RecipesTableTable> {
+  $$RecipesTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get ingredients => $composableBuilder(
+    column: $table.ingredients,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get instructions => $composableBuilder(
+    column: $table.instructions,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get photoPath =>
+      $composableBuilder(column: $table.photoPath, builder: (column) => column);
+
+  GeneratedColumn<String> get nodeId =>
+      $composableBuilder(column: $table.nodeId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$RecipesTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RecipesTableTable,
+          RecipesTableData,
+          $$RecipesTableTableFilterComposer,
+          $$RecipesTableTableOrderingComposer,
+          $$RecipesTableTableAnnotationComposer,
+          $$RecipesTableTableCreateCompanionBuilder,
+          $$RecipesTableTableUpdateCompanionBuilder,
+          (
+            RecipesTableData,
+            BaseReferences<_$AppDatabase, $RecipesTableTable, RecipesTableData>,
+          ),
+          RecipesTableData,
+          PrefetchHooks Function()
+        > {
+  $$RecipesTableTableTableManager(_$AppDatabase db, $RecipesTableTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RecipesTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RecipesTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RecipesTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> ingredients = const Value.absent(),
+                Value<String> instructions = const Value.absent(),
+                Value<String?> photoPath = const Value.absent(),
+                Value<String?> nodeId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RecipesTableCompanion(
+                id: id,
+                title: title,
+                ingredients: ingredients,
+                instructions: instructions,
+                photoPath: photoPath,
+                nodeId: nodeId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String title,
+                required String ingredients,
+                required String instructions,
+                Value<String?> photoPath = const Value.absent(),
+                Value<String?> nodeId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RecipesTableCompanion.insert(
+                id: id,
+                title: title,
+                ingredients: ingredients,
+                instructions: instructions,
+                photoPath: photoPath,
+                nodeId: nodeId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RecipesTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RecipesTableTable,
+      RecipesTableData,
+      $$RecipesTableTableFilterComposer,
+      $$RecipesTableTableOrderingComposer,
+      $$RecipesTableTableAnnotationComposer,
+      $$RecipesTableTableCreateCompanionBuilder,
+      $$RecipesTableTableUpdateCompanionBuilder,
+      (
+        RecipesTableData,
+        BaseReferences<_$AppDatabase, $RecipesTableTable, RecipesTableData>,
+      ),
+      RecipesTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$NodeLocationsTableTableCreateCompanionBuilder =
+    NodeLocationsTableCompanion Function({
+      required String id,
+      required String nodeId,
+      required String address,
+      required double latitude,
+      required double longitude,
+      Value<int?> startYear,
+      Value<int?> endYear,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$NodeLocationsTableTableUpdateCompanionBuilder =
+    NodeLocationsTableCompanion Function({
+      Value<String> id,
+      Value<String> nodeId,
+      Value<String> address,
+      Value<double> latitude,
+      Value<double> longitude,
+      Value<int?> startYear,
+      Value<int?> endYear,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$NodeLocationsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $NodeLocationsTableTable> {
+  $$NodeLocationsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nodeId => $composableBuilder(
+    column: $table.nodeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get address => $composableBuilder(
+    column: $table.address,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get startYear => $composableBuilder(
+    column: $table.startYear,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get endYear => $composableBuilder(
+    column: $table.endYear,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$NodeLocationsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $NodeLocationsTableTable> {
+  $$NodeLocationsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nodeId => $composableBuilder(
+    column: $table.nodeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get address => $composableBuilder(
+    column: $table.address,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get startYear => $composableBuilder(
+    column: $table.startYear,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get endYear => $composableBuilder(
+    column: $table.endYear,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$NodeLocationsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $NodeLocationsTableTable> {
+  $$NodeLocationsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get nodeId =>
+      $composableBuilder(column: $table.nodeId, builder: (column) => column);
+
+  GeneratedColumn<String> get address =>
+      $composableBuilder(column: $table.address, builder: (column) => column);
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<int> get startYear =>
+      $composableBuilder(column: $table.startYear, builder: (column) => column);
+
+  GeneratedColumn<int> get endYear =>
+      $composableBuilder(column: $table.endYear, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$NodeLocationsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $NodeLocationsTableTable,
+          NodeLocationsTableData,
+          $$NodeLocationsTableTableFilterComposer,
+          $$NodeLocationsTableTableOrderingComposer,
+          $$NodeLocationsTableTableAnnotationComposer,
+          $$NodeLocationsTableTableCreateCompanionBuilder,
+          $$NodeLocationsTableTableUpdateCompanionBuilder,
+          (
+            NodeLocationsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $NodeLocationsTableTable,
+              NodeLocationsTableData
+            >,
+          ),
+          NodeLocationsTableData,
+          PrefetchHooks Function()
+        > {
+  $$NodeLocationsTableTableTableManager(
+    _$AppDatabase db,
+    $NodeLocationsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NodeLocationsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NodeLocationsTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$NodeLocationsTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> nodeId = const Value.absent(),
+                Value<String> address = const Value.absent(),
+                Value<double> latitude = const Value.absent(),
+                Value<double> longitude = const Value.absent(),
+                Value<int?> startYear = const Value.absent(),
+                Value<int?> endYear = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => NodeLocationsTableCompanion(
+                id: id,
+                nodeId: nodeId,
+                address: address,
+                latitude: latitude,
+                longitude: longitude,
+                startYear: startYear,
+                endYear: endYear,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String nodeId,
+                required String address,
+                required double latitude,
+                required double longitude,
+                Value<int?> startYear = const Value.absent(),
+                Value<int?> endYear = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => NodeLocationsTableCompanion.insert(
+                id: id,
+                nodeId: nodeId,
+                address: address,
+                latitude: latitude,
+                longitude: longitude,
+                startYear: startYear,
+                endYear: endYear,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$NodeLocationsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $NodeLocationsTableTable,
+      NodeLocationsTableData,
+      $$NodeLocationsTableTableFilterComposer,
+      $$NodeLocationsTableTableOrderingComposer,
+      $$NodeLocationsTableTableAnnotationComposer,
+      $$NodeLocationsTableTableCreateCompanionBuilder,
+      $$NodeLocationsTableTableUpdateCompanionBuilder,
+      (
+        NodeLocationsTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $NodeLocationsTableTable,
+          NodeLocationsTableData
+        >,
+      ),
+      NodeLocationsTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$VoiceLegacyTableTableCreateCompanionBuilder =
+    VoiceLegacyTableCompanion Function({
+      required String id,
+      required String fromNodeId,
+      required String toNodeId,
+      required String title,
+      required String voicePath,
+      Value<int> durationSeconds,
+      Value<String> openCondition,
+      Value<DateTime?> openDate,
+      Value<bool> isOpened,
+      Value<DateTime?> openedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$VoiceLegacyTableTableUpdateCompanionBuilder =
+    VoiceLegacyTableCompanion Function({
+      Value<String> id,
+      Value<String> fromNodeId,
+      Value<String> toNodeId,
+      Value<String> title,
+      Value<String> voicePath,
+      Value<int> durationSeconds,
+      Value<String> openCondition,
+      Value<DateTime?> openDate,
+      Value<bool> isOpened,
+      Value<DateTime?> openedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$VoiceLegacyTableTableFilterComposer
+    extends Composer<_$AppDatabase, $VoiceLegacyTableTable> {
+  $$VoiceLegacyTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fromNodeId => $composableBuilder(
+    column: $table.fromNodeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get toNodeId => $composableBuilder(
+    column: $table.toNodeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get voicePath => $composableBuilder(
+    column: $table.voicePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get openCondition => $composableBuilder(
+    column: $table.openCondition,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get openDate => $composableBuilder(
+    column: $table.openDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isOpened => $composableBuilder(
+    column: $table.isOpened,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get openedAt => $composableBuilder(
+    column: $table.openedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VoiceLegacyTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $VoiceLegacyTableTable> {
+  $$VoiceLegacyTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fromNodeId => $composableBuilder(
+    column: $table.fromNodeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get toNodeId => $composableBuilder(
+    column: $table.toNodeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get voicePath => $composableBuilder(
+    column: $table.voicePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get openCondition => $composableBuilder(
+    column: $table.openCondition,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get openDate => $composableBuilder(
+    column: $table.openDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isOpened => $composableBuilder(
+    column: $table.isOpened,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get openedAt => $composableBuilder(
+    column: $table.openedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VoiceLegacyTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $VoiceLegacyTableTable> {
+  $$VoiceLegacyTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get fromNodeId => $composableBuilder(
+    column: $table.fromNodeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get toNodeId =>
+      $composableBuilder(column: $table.toNodeId, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get voicePath =>
+      $composableBuilder(column: $table.voicePath, builder: (column) => column);
+
+  GeneratedColumn<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get openCondition => $composableBuilder(
+    column: $table.openCondition,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get openDate =>
+      $composableBuilder(column: $table.openDate, builder: (column) => column);
+
+  GeneratedColumn<bool> get isOpened =>
+      $composableBuilder(column: $table.isOpened, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get openedAt =>
+      $composableBuilder(column: $table.openedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$VoiceLegacyTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $VoiceLegacyTableTable,
+          VoiceLegacyTableData,
+          $$VoiceLegacyTableTableFilterComposer,
+          $$VoiceLegacyTableTableOrderingComposer,
+          $$VoiceLegacyTableTableAnnotationComposer,
+          $$VoiceLegacyTableTableCreateCompanionBuilder,
+          $$VoiceLegacyTableTableUpdateCompanionBuilder,
+          (
+            VoiceLegacyTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $VoiceLegacyTableTable,
+              VoiceLegacyTableData
+            >,
+          ),
+          VoiceLegacyTableData,
+          PrefetchHooks Function()
+        > {
+  $$VoiceLegacyTableTableTableManager(
+    _$AppDatabase db,
+    $VoiceLegacyTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VoiceLegacyTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VoiceLegacyTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VoiceLegacyTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> fromNodeId = const Value.absent(),
+                Value<String> toNodeId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> voicePath = const Value.absent(),
+                Value<int> durationSeconds = const Value.absent(),
+                Value<String> openCondition = const Value.absent(),
+                Value<DateTime?> openDate = const Value.absent(),
+                Value<bool> isOpened = const Value.absent(),
+                Value<DateTime?> openedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VoiceLegacyTableCompanion(
+                id: id,
+                fromNodeId: fromNodeId,
+                toNodeId: toNodeId,
+                title: title,
+                voicePath: voicePath,
+                durationSeconds: durationSeconds,
+                openCondition: openCondition,
+                openDate: openDate,
+                isOpened: isOpened,
+                openedAt: openedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String fromNodeId,
+                required String toNodeId,
+                required String title,
+                required String voicePath,
+                Value<int> durationSeconds = const Value.absent(),
+                Value<String> openCondition = const Value.absent(),
+                Value<DateTime?> openDate = const Value.absent(),
+                Value<bool> isOpened = const Value.absent(),
+                Value<DateTime?> openedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VoiceLegacyTableCompanion.insert(
+                id: id,
+                fromNodeId: fromNodeId,
+                toNodeId: toNodeId,
+                title: title,
+                voicePath: voicePath,
+                durationSeconds: durationSeconds,
+                openCondition: openCondition,
+                openDate: openDate,
+                isOpened: isOpened,
+                openedAt: openedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VoiceLegacyTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $VoiceLegacyTableTable,
+      VoiceLegacyTableData,
+      $$VoiceLegacyTableTableFilterComposer,
+      $$VoiceLegacyTableTableOrderingComposer,
+      $$VoiceLegacyTableTableAnnotationComposer,
+      $$VoiceLegacyTableTableCreateCompanionBuilder,
+      $$VoiceLegacyTableTableUpdateCompanionBuilder,
+      (
+        VoiceLegacyTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $VoiceLegacyTableTable,
+          VoiceLegacyTableData
+        >,
+      ),
+      VoiceLegacyTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -8397,4 +10898,10 @@ class $AppDatabaseManager {
       $$MemorialMessagesTableTableTableManager(_db, _db.memorialMessagesTable);
   $$GlossaryTableTableTableManager get glossaryTable =>
       $$GlossaryTableTableTableManager(_db, _db.glossaryTable);
+  $$RecipesTableTableTableManager get recipesTable =>
+      $$RecipesTableTableTableManager(_db, _db.recipesTable);
+  $$NodeLocationsTableTableTableManager get nodeLocationsTable =>
+      $$NodeLocationsTableTableTableManager(_db, _db.nodeLocationsTable);
+  $$VoiceLegacyTableTableTableManager get voiceLegacyTable =>
+      $$VoiceLegacyTableTableTableManager(_db, _db.voiceLegacyTable);
 }

@@ -13,6 +13,9 @@ import 'tables/bouquets_table.dart';
 import 'tables/capsules_table.dart';
 import 'tables/memorial_messages_table.dart';
 import 'tables/glossary_table.dart';
+import 'tables/recipes_table.dart';
+import 'tables/node_locations_table.dart';
+import 'tables/voice_legacy_table.dart';
 
 part 'app_database.g.dart';
 
@@ -28,6 +31,9 @@ part 'app_database.g.dart';
   CapsuleItemsTable,
   MemorialMessagesTable,
   GlossaryTable,
+  RecipesTable,
+  NodeLocationsTable,
+  VoiceLegacyTable,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -40,7 +46,7 @@ class AppDatabase extends _$AppDatabase {
       : super(NativeDatabase(File(path)));
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -64,6 +70,12 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(capsuleItemsTable);
             await m.createTable(memorialMessagesTable);
             await m.createTable(glossaryTable);
+          }
+          // v4 → v5: recipes + node_locations + voice_legacy
+          if (from < 5) {
+            await m.createTable(recipesTable);
+            await m.createTable(nodeLocationsTable);
+            await m.createTable(voiceLegacyTable);
           }
         },
       );
@@ -342,6 +354,68 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteGlossaryEntry(String id) =>
       (delete(glossaryTable)..where((t) => t.id.equals(id))).go();
 
+  // ── Recipes (Family Recipe Book) ──────────────────────────────────────────
+
+  Future<void> upsertRecipe(RecipesTableCompanion recipe) =>
+      into(recipesTable).insertOnConflictUpdate(recipe);
+
+  Stream<List<RecipesTableData>> watchAllRecipes() =>
+      (select(recipesTable)
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .watch();
+
+  Future<List<RecipesTableData>> getRecipesForNode(String nodeId) =>
+      (select(recipesTable)
+            ..where((t) => t.nodeId.equals(nodeId))
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  Future<List<RecipesTableData>> searchRecipes(String query) =>
+      (select(recipesTable)
+            ..where((t) => t.title.like('%$query%'))
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  Future<int> deleteRecipe(String id) =>
+      (delete(recipesTable)..where((t) => t.id.equals(id))).go();
+
+  Future<int> recipeCount() => recipesTable.count().getSingle();
+
+  // ── Voice Legacy (보이스 유언) ────────────────────────────────────────────
+
+  Future<void> upsertVoiceLegacy(VoiceLegacyTableCompanion entry) =>
+      into(voiceLegacyTable).insertOnConflictUpdate(entry);
+
+  Stream<List<VoiceLegacyTableData>> watchVoiceLegaciesForNode(
+      String toNodeId) =>
+      (select(voiceLegacyTable)
+            ..where((t) => t.toNodeId.equals(toNodeId))
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .watch();
+
+  Stream<List<VoiceLegacyTableData>> watchAllVoiceLegacies() =>
+      (select(voiceLegacyTable)
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .watch();
+
+  Future<VoiceLegacyTableData?> getVoiceLegacy(String id) =>
+      (select(voiceLegacyTable)..where((t) => t.id.equals(id)))
+          .getSingleOrNull();
+
+  Future<void> openVoiceLegacy(String id) async {
+    await (update(voiceLegacyTable)..where((t) => t.id.equals(id))).write(
+      VoiceLegacyTableCompanion(
+        isOpened: const Value(true),
+        openedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<int> deleteVoiceLegacy(String id) =>
+      (delete(voiceLegacyTable)..where((t) => t.id.equals(id))).go();
+
+  Future<int> voiceLegacyCount() => voiceLegacyTable.count().getSingle();
+
   // ── Badge 관련 통계 ───────────────────────────────────────────────────────
 
   /// Ghost 노드 수
@@ -404,6 +478,25 @@ class AppDatabase extends _$AppDatabase {
     final memories = await memoriesTable.count().getSingle();
     return {'nodes': nodes, 'memories': memories};
   }
+
+  // ── Node Locations (가족 지도) ──────────────────────────────────────────────
+
+  Future<void> upsertNodeLocation(NodeLocationsTableCompanion loc) =>
+      into(nodeLocationsTable).insertOnConflictUpdate(loc);
+
+  Future<List<NodeLocationsTableData>> getLocationsForNode(String nodeId) =>
+      (select(nodeLocationsTable)
+            ..where((t) => t.nodeId.equals(nodeId))
+            ..orderBy([(t) => OrderingTerm.asc(t.startYear)]))
+          .get();
+
+  Stream<List<NodeLocationsTableData>> watchAllLocations() =>
+      (select(nodeLocationsTable)
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .watch();
+
+  Future<int> deleteNodeLocation(String id) =>
+      (delete(nodeLocationsTable)..where((t) => t.id.equals(id))).go();
 }
 
 /// DB 파일 연결 — LazyDatabase로 비동기 경로 해결 (background isolate 없음)

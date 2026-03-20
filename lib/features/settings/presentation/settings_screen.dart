@@ -870,6 +870,20 @@ class _FamilyRecordSection extends StatelessWidget {
               ),
               Divider(color: AppColors.glassBorder, height: 1),
               ListTile(
+                leading: const Icon(Icons.mic_outlined,
+                    color: AppColors.secondary),
+                title: Text('보이스 유언',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: Text('가족에게 남기는 봉인된 음성 메시지',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                trailing:
+                    Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                onTap: () => context.push(AppRoutes.voiceLegacy),
+              ),
+              Divider(color: AppColors.glassBorder, height: 1),
+              ListTile(
                 leading: const Icon(Icons.emoji_events_outlined,
                     color: AppColors.primary),
                 title: Text('배지 컬렉션',
@@ -895,6 +909,34 @@ class _FamilyRecordSection extends StatelessWidget {
                 trailing:
                     Icon(Icons.chevron_right, color: AppColors.textTertiary),
                 onTap: () => context.push(AppRoutes.clan),
+              ),
+              Divider(color: AppColors.glassBorder, height: 1),
+              ListTile(
+                leading: const Icon(Icons.restaurant_menu_outlined,
+                    color: AppColors.accent),
+                title: Text('가족 레시피',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: Text('가족의 특별한 레시피 모음',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                trailing:
+                    Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                onTap: () => context.push(AppRoutes.recipes),
+              ),
+              Divider(color: AppColors.glassBorder, height: 1),
+              ListTile(
+                leading: const Icon(Icons.map_outlined,
+                    color: AppColors.secondary),
+                title: Text('가족 지도',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: Text('가족이 살았던 곳을 지도에 기록',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                trailing:
+                    Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                onTap: () => context.push(AppRoutes.familyMap),
               ),
               Divider(color: AppColors.glassBorder, height: 1),
               ListTile(

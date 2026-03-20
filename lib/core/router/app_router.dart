@@ -28,6 +28,9 @@ import '../../features/birthday/presentation/birthday_screen.dart';
 import '../../features/invite/presentation/invite_screen.dart';
 import '../../features/snapshot/presentation/snapshot_share_screen.dart';
 import '../../features/wrapped/presentation/wrapped_screen.dart';
+import '../../features/recipe/presentation/recipe_list_screen.dart';
+import '../../features/family_map/presentation/family_map_screen.dart';
+import '../../features/voice_legacy/presentation/voice_legacy_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
 import '../../shared/widgets/ad_banner_widget.dart';
 
@@ -60,6 +63,9 @@ abstract final class AppRoutes {
   static const String snapshot = '/snapshot/:memoryId';
   static const String wrapped = '/wrapped';
   static const String birthday = '/birthday';
+  static const String recipes = '/recipes';
+  static const String familyMap = '/family-map';
+  static const String voiceLegacy = '/voice-legacy';
 
   static String memoryPath(String nodeId) => '/memory/$nodeId';
   static String temperatureDiaryPath(String nodeId) =>
@@ -210,6 +216,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.birthday,
         builder: (_, s) => const BirthdayScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.recipes,
+        builder: (_, s) => const RecipeListScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.familyMap,
+        builder: (_, s) => const FamilyMapScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.voiceLegacy,
+        builder: (_, s) => const VoiceLegacyScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
