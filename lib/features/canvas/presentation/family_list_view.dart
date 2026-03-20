@@ -6,14 +6,38 @@ import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../design/tokens/app_radius.dart';
 import '../../../shared/models/node_model.dart';
+import '../../../shared/widgets/section_label.dart';
 import '../providers/canvas_notifier.dart';
 import '../providers/my_node_provider.dart';
-import '../utils/generation_utils.dart';
 import '../widgets/node_detail_sheet.dart';
 
-/// 가족 목록 (카드 그리드 뷰) — 캔버스의 대체 보기 모드
+/// 가족 목록 (섹션별 리스트 뷰) — 캔버스의 대체 보기 모드
+///
+/// "나" 노드를 기준으로 관계별 섹션(배우자/부모/자녀/형제/조부모/손주/기타/미확인)
+/// 으로 그룹화하여 표시한다.
 class FamilyListView extends ConsumerWidget {
   const FamilyListView({super.key});
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ── 섹션 정의 ────────────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// 섹션 순서 및 한국어 라벨
+  static const List<_SectionKind> _sectionOrder = [
+    _SectionKind.me,
+    _SectionKind.spouse,
+    _SectionKind.parent,
+    _SectionKind.child,
+    _SectionKind.sibling,
+    _SectionKind.grandparent,
+    _SectionKind.grandchild,
+    _SectionKind.other,
+    _SectionKind.unknown,
+  ];
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ── build ────────────────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,40 +46,13 @@ class FamilyListView extends ConsumerWidget {
     final edges = canvasState.edges;
     final myNodeId = ref.watch(myNodeNotifierProvider).valueOrNull;
 
-    // 세대 깊이 계산
-    final generations = computeGenerations(nodes: nodes, edges: edges);
-
-    // 정렬: 세대(generation) 오름차순, 같은 세대 내 이름순, Ghost는 마지막
-    final sorted = List<NodeModel>.from(nodes)
-      ..sort((a, b) {
-        // Ghost 노드는 항상 마지막
-        if (a.isGhost != b.isGhost) return a.isGhost ? 1 : -1;
-        // 세대 오름차순
-        final genA = generations[a.id] ?? 0;
-        final genB = generations[b.id] ?? 0;
-        if (genA != genB) return genA.compareTo(genB);
-        // 이름 알파벳순
-        return a.name.compareTo(b.name);
-      });
-
-    // "나" 노드와의 관계 라벨 매핑
-    final relationLabels = _buildRelationLabels(
-      nodes: nodes,
-      edges: edges,
-      myNodeId: myNodeId,
-    );
-
-    // 반응형 그리드 열 수 (폰: 2, 태블릿: 3)
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final crossAxisCount = screenWidth >= 600 ? 3 : 2;
-
     return SafeArea(
       child: Column(
         children: [
           // 상단 여백 (AppBar 영역 확보)
           const SizedBox(height: 72),
 
-          // ── 헤더: 가족 N명 ──────────────────────────────────────────
+          // ── 헤더: 가족 N명 ──────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.lg,
@@ -86,7 +83,7 @@ class FamilyListView extends ConsumerWidget {
             ),
           ),
 
-          // ── 빈 상태 ────────────────────────────────────────────────
+          // ── 빈 상태 ──────────────────────────────────────────────────────
           if (nodes.isEmpty)
             Expanded(
               child: Center(
@@ -120,40 +117,244 @@ class FamilyListView extends ConsumerWidget {
               ),
             ),
 
-          // ── 카드 그리드 ────────────────────────────────────────────
+          // ── 섹션별 리스트 ────────────────────────────────────────────────
           if (nodes.isNotEmpty)
             Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg,
-                  AppSpacing.sm,
-                  AppSpacing.lg,
-                  AppSpacing.bottomNavHeight + AppSpacing.xxl,
-                ),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: AppSpacing.md,
-                  mainAxisSpacing: AppSpacing.md,
-                  childAspectRatio: 0.85,
-                ),
-                itemCount: sorted.length,
-                itemBuilder: (context, index) {
-                  final node = sorted[index];
-                  final isMe = myNodeId == node.id;
-                  final relationLabel = relationLabels[node.id];
-                  return _FamilyMemberCard(
-                    node: node,
-                    isMe: isMe,
-                    relationLabel: relationLabel,
-                    onTap: () => _showNodeDetail(context, node.id),
-                  );
-                },
+              child: _buildSectionedList(
+                context: context,
+                nodes: nodes,
+                edges: edges,
+                myNodeId: myNodeId,
               ),
             ),
         ],
       ),
     );
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ── 섹션별 리스트 빌드 ──────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildSectionedList({
+    required BuildContext context,
+    required List<NodeModel> nodes,
+    required List<NodeEdge> edges,
+    required String? myNodeId,
+  }) {
+    final groups = _groupByRelation(
+      nodes: nodes,
+      edges: edges,
+      myNodeId: myNodeId,
+    );
+
+    // 관계 라벨 매핑 (각 노드에 대해 "나"와의 관계)
+    final relationLabels = _buildRelationLabels(
+      nodes: nodes,
+      edges: edges,
+      myNodeId: myNodeId,
+    );
+
+    // 비어있지 않은 섹션만 필터
+    final activeSections = _sectionOrder
+        .where((kind) => (groups[kind] ?? []).isNotEmpty)
+        .toList();
+
+    // 위젯 목록: 섹션 헤더 + 멤버 타일을 번갈아 추가
+    final items = <Widget>[];
+    for (final kind in activeSections) {
+      final members = groups[kind]!;
+      // 섹션 헤더
+      items.add(Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.sm,
+        ),
+        child: SectionLabel(label: '${kind.label} (${members.length})'),
+      ));
+      // 멤버 타일
+      for (final node in members) {
+        final isMe = myNodeId == node.id;
+        final relationLabel = relationLabels[node.id];
+        items.add(Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.xs,
+          ),
+          child: _FamilyMemberTile(
+            node: node,
+            isMe: isMe,
+            relationLabel: relationLabel,
+            onTap: () => _showNodeDetail(context, node.id),
+          ),
+        ));
+      }
+    }
+
+    return ListView(
+      padding: EdgeInsets.only(
+        bottom: AppSpacing.bottomNavHeight + AppSpacing.xxl,
+      ),
+      children: items,
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ── 관계별 그룹화 알고리즘 ──────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// "나" 노드(myNodeId) 기준으로 모든 노드를 관계 섹션으로 분류한다.
+  ///
+  /// myNodeId가 null이면 전체 목록을 "기타 가족"에 넣어 이름순 정렬한다.
+  static Map<_SectionKind, List<NodeModel>> _groupByRelation({
+    required List<NodeModel> nodes,
+    required List<NodeEdge> edges,
+    required String? myNodeId,
+  }) {
+    final groups = <_SectionKind, List<NodeModel>>{
+      for (final kind in _sectionOrder) kind: [],
+    };
+
+    if (myNodeId == null) {
+      // "나" 미설정 — 전체를 "기타 가족"에 이름순
+      final sorted = List<NodeModel>.from(nodes)
+        ..sort((a, b) => a.name.compareTo(b.name));
+      groups[_SectionKind.other] = sorted;
+      return groups;
+    }
+
+    // 에지에 연결된 노드 ID 집합 (미확인 판별용)
+    final connectedNodeIds = <String>{};
+    for (final e in edges) {
+      connectedNodeIds.add(e.fromNodeId);
+      connectedNodeIds.add(e.toNodeId);
+    }
+
+    // ── 1) "나" 직접 관계 (1촌) ─────────────────────────────────────────
+    final mySpouses = <String>{};
+    final myParents = <String>{};
+    final myChildren = <String>{};
+    final mySiblings = <String>{};
+
+    for (final edge in edges) {
+      final String targetId;
+      final RelationType effectiveRelation;
+
+      if (edge.fromNodeId == myNodeId) {
+        targetId = edge.toNodeId;
+        effectiveRelation = edge.relation;
+      } else if (edge.toNodeId == myNodeId) {
+        targetId = edge.fromNodeId;
+        effectiveRelation = _reverseRelation(edge.relation);
+      } else {
+        continue;
+      }
+
+      switch (effectiveRelation) {
+        case RelationType.spouse:
+          mySpouses.add(targetId);
+        case RelationType.parent:
+          myParents.add(targetId);
+        case RelationType.child:
+          myChildren.add(targetId);
+        case RelationType.sibling:
+          mySiblings.add(targetId);
+        case RelationType.other:
+          break; // "기타"는 나중에 처리
+      }
+    }
+
+    // ── 2) 조부모 (2촌 직계존속): 부모의 부모 ──────────────────────────────
+    final grandparents = <String>{};
+    for (final parentId in myParents) {
+      for (final edge in edges) {
+        final String targetId;
+        final RelationType effectiveRelation;
+
+        if (edge.fromNodeId == parentId) {
+          targetId = edge.toNodeId;
+          effectiveRelation = edge.relation;
+        } else if (edge.toNodeId == parentId) {
+          targetId = edge.fromNodeId;
+          effectiveRelation = _reverseRelation(edge.relation);
+        } else {
+          continue;
+        }
+
+        if (effectiveRelation == RelationType.parent && targetId != myNodeId) {
+          grandparents.add(targetId);
+        }
+      }
+    }
+
+    // ── 3) 손주 (2촌 직계비속): 자녀의 자녀 ──────────────────────────────
+    final grandchildren = <String>{};
+    for (final childId in myChildren) {
+      for (final edge in edges) {
+        final String targetId;
+        final RelationType effectiveRelation;
+
+        if (edge.fromNodeId == childId) {
+          targetId = edge.toNodeId;
+          effectiveRelation = edge.relation;
+        } else if (edge.toNodeId == childId) {
+          targetId = edge.fromNodeId;
+          effectiveRelation = _reverseRelation(edge.relation);
+        } else {
+          continue;
+        }
+
+        if (effectiveRelation == RelationType.child && targetId != myNodeId) {
+          grandchildren.add(targetId);
+        }
+      }
+    }
+
+    // ── 4) 분류 ────────────────────────────────────────────────────────────
+    final assigned = <String>{myNodeId};
+    assigned.addAll(mySpouses);
+    assigned.addAll(myParents);
+    assigned.addAll(myChildren);
+    assigned.addAll(mySiblings);
+    assigned.addAll(grandparents);
+    assigned.addAll(grandchildren);
+
+    for (final node in nodes) {
+      if (node.id == myNodeId) {
+        groups[_SectionKind.me]!.add(node);
+      } else if (mySpouses.contains(node.id)) {
+        groups[_SectionKind.spouse]!.add(node);
+      } else if (myParents.contains(node.id)) {
+        groups[_SectionKind.parent]!.add(node);
+      } else if (myChildren.contains(node.id)) {
+        groups[_SectionKind.child]!.add(node);
+      } else if (mySiblings.contains(node.id)) {
+        groups[_SectionKind.sibling]!.add(node);
+      } else if (grandparents.contains(node.id)) {
+        groups[_SectionKind.grandparent]!.add(node);
+      } else if (grandchildren.contains(node.id)) {
+        groups[_SectionKind.grandchild]!.add(node);
+      } else if (node.isGhost && !connectedNodeIds.contains(node.id)) {
+        groups[_SectionKind.unknown]!.add(node);
+      } else {
+        groups[_SectionKind.other]!.add(node);
+      }
+    }
+
+    // 각 섹션 내 이름순 정렬 ("나" 섹션 제외)
+    for (final kind in _sectionOrder) {
+      if (kind == _SectionKind.me) continue;
+      groups[kind]!.sort((a, b) => a.name.compareTo(b.name));
+    }
+
+    return groups;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ── 관계 라벨 매핑 ──────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
 
   /// "나" 노드 기준으로 각 노드의 관계 라벨 생성
   static Map<String, String> _buildRelationLabels({
@@ -173,14 +374,14 @@ class FamilyListView extends ConsumerWidget {
         effectiveRelation = edge.relation;
       } else if (edge.toNodeId == myNodeId) {
         targetId = edge.fromNodeId;
-        // 역방향 관계 변환
         effectiveRelation = _reverseRelation(edge.relation);
       } else {
         continue;
       }
 
+      // 커스텀 라벨이 있으면 우선 사용
       if (!labels.containsKey(targetId)) {
-        labels[targetId] = effectiveRelation.label;
+        labels[targetId] = edge.label ?? effectiveRelation.label;
       }
     }
 
@@ -208,9 +409,31 @@ class FamilyListView extends ConsumerWidget {
   }
 }
 
-/// 개별 가족 멤버 카드
-class _FamilyMemberCard extends StatelessWidget {
-  const _FamilyMemberCard({
+// ═════════════════════════════════════════════════════════════════════════════
+// ── 섹션 종류 enum ──────────────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+
+enum _SectionKind {
+  me('나'),
+  spouse('배우자'),
+  parent('부모'),
+  child('자녀'),
+  sibling('형제/자매'),
+  grandparent('조부모'),
+  grandchild('손주'),
+  other('기타 가족'),
+  unknown('미확인');
+
+  const _SectionKind(this.label);
+  final String label;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ── 가족 멤버 타일 (가로 카드) ──────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+
+class _FamilyMemberTile extends StatelessWidget {
+  const _FamilyMemberTile({
     required this.node,
     required this.isMe,
     required this.relationLabel,
@@ -222,7 +445,7 @@ class _FamilyMemberCard extends StatelessWidget {
   final String? relationLabel;
   final VoidCallback onTap;
 
-  static const double _avatarSize = 64.0;
+  static const double _avatarSize = 48.0;
 
   @override
   Widget build(BuildContext context) {
@@ -233,117 +456,33 @@ class _FamilyMemberCard extends StatelessWidget {
       duration: const Duration(milliseconds: 200),
       child: GlassCard(
         onTap: onTap,
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Container(
-          decoration: isGhost
-              ? BoxDecoration(
-                  borderRadius: AppRadius.glassCard,
-                  border: Border.all(
-                    color: AppColors.nodeBorderGhost,
-                    width: 1.5,
-                    strokeAlign: BorderSide.strokeAlignOutside,
-                  ),
-                )
-              : null,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // ── 아바타 ──────────────────────────────────────────
-              _buildAvatar(),
-              const SizedBox(height: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
+        ),
+        child: Row(
+          children: [
+            // ── 아바타 ──────────────────────────────────────────────
+            _buildAvatar(),
+            const SizedBox(width: AppSpacing.md),
 
-              // ── 이름 + "나" 배지 ──────────────────────────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      node.displayName,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: isGhost
-                            ? AppColors.textTertiary
-                            : AppColors.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (isMe) ...[
-                    const SizedBox(width: AppSpacing.xs),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(30),
-                        borderRadius: AppRadius.chipRadius,
-                      ),
-                      child: const Text(
-                        '나',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primaryMint,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+            // ── 이름 + 관계 + 생년월일 ──────────────────────────────
+            Expanded(child: _buildInfo()),
 
-              // ── 관계 라벨 ──────────────────────────────────────
-              if (relationLabel != null && !isMe) ...[
-                const SizedBox(height: 2),
-                Text(
-                  relationLabel!,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.primary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-
-              // ── Ghost 라벨 ─────────────────────────────────────
-              if (isGhost && relationLabel == null) ...[
-                const SizedBox(height: 2),
-                Text(
-                  '미확인 인물',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic,
-                    color: AppColors.textTertiary,
-                  ),
-                ),
-              ],
-
-              // ── 생년월일 ──────────────────────────────────────
-              if (node.birthDate != null) ...[
-                const SizedBox(height: 2),
-                Text(
-                  _formatBirthDate(node.birthDate!, node.deathDate),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textTertiary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ],
-          ),
+            // ── 셰브론 ──────────────────────────────────────────────
+            Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: AppColors.textTertiary,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  /// 아바타: 사진이 있으면 원형 사진, 없으면 이니셜 배경
+  // ── 아바타 ──────────────────────────────────────────────────────────────
+
   Widget _buildAvatar() {
     final tempColor = AppColors.tempColor(node.temperature);
     final isGhost = node.isGhost;
@@ -359,13 +498,12 @@ class _FamilyMemberCard extends StatelessWidget {
           border: Border.all(
             color: AppColors.nodeBorderGhost,
             width: 1.5,
-            style: BorderStyle.solid,
           ),
         ),
         child: Icon(
           Icons.help_outline_rounded,
           color: AppColors.textTertiary,
-          size: 28,
+          size: 22,
         ),
       );
     }
@@ -385,8 +523,7 @@ class _FamilyMemberCard extends StatelessWidget {
             width: _avatarSize,
             height: _avatarSize,
             fit: BoxFit.cover,
-            // ignore: unnecessary_underscores
-            errorBuilder: (_, __, ___) => _initialAvatar(tempColor),
+            errorBuilder: (context, error, stack) => _initialAvatar(tempColor),
           ),
         ),
       );
@@ -396,7 +533,6 @@ class _FamilyMemberCard extends StatelessWidget {
     return _initialAvatar(tempColor);
   }
 
-  /// 이니셜 기반 아바타
   Widget _initialAvatar(Color borderColor) {
     final initial = node.name.isNotEmpty ? node.name.characters.first : '?';
     return Container(
@@ -411,7 +547,7 @@ class _FamilyMemberCard extends StatelessWidget {
         child: Text(
           initial,
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
             color: borderColor,
           ),
@@ -420,7 +556,103 @@ class _FamilyMemberCard extends StatelessWidget {
     );
   }
 
-  /// 생년월일 포맷 (사망일이 있으면 함께 표시)
+  // ── 정보 영역 ──────────────────────────────────────────────────────────
+
+  Widget _buildInfo() {
+    final isGhost = node.isGhost;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // ── 이름 + "나" 배지 ──────────────────────────────────────
+        Row(
+          children: [
+            Flexible(
+              child: Text(
+                node.displayName,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: isGhost
+                      ? AppColors.textTertiary
+                      : AppColors.textPrimary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (isMe) ...[
+              const SizedBox(width: AppSpacing.xs),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 6,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withAlpha(30),
+                  borderRadius: AppRadius.chipRadius,
+                ),
+                child: const Text(
+                  '나',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryMint,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+
+        // ── 관계 라벨 ──────────────────────────────────────────────
+        if (relationLabel != null && !isMe) ...[
+          const SizedBox(height: 2),
+          Text(
+            relationLabel!,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.primary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+
+        // ── Ghost 라벨 ────────────────────────────────────────────
+        if (isGhost && relationLabel == null) ...[
+          const SizedBox(height: 2),
+          Text(
+            '미확인 인물',
+            style: TextStyle(
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+              color: AppColors.textTertiary,
+            ),
+          ),
+        ],
+
+        // ── 생년월일 ──────────────────────────────────────────────
+        if (node.birthDate != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            _formatBirthDate(node.birthDate!, node.deathDate),
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textTertiary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ],
+    );
+  }
+
+  // ── 생년월일 포맷 ──────────────────────────────────────────────────────
+
   static String _formatBirthDate(DateTime birth, DateTime? death) {
     final birthStr =
         '${birth.year}.${birth.month.toString().padLeft(2, '0')}.${birth.day.toString().padLeft(2, '0')}';
