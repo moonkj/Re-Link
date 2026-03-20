@@ -862,8 +862,8 @@
 ### 앱 아이콘 & 스플래시
 
 #### UX Designer
-- [x] 앱 아이콘 디자인 (1024×1024 PNG — iOS, 512×512 — Android)
-- [ ] 다크/라이트 아이콘 버전
+- [x] 앱 아이콘 디자인 (1024×1024 PNG — 스플래시 Bezier 곡선 마크 기반)
+- [x] 다크 아이콘 버전 (스플래시 통일 — 민트 곡선 + 다크 그라디언트 배경)
 
 #### Coder
 - [x] `flutter_launcher_icons` 패키지 적용
@@ -2706,9 +2706,16 @@
 
 - [x] `flutter analyze` → 0 errors (52 info/warning 기존)
 
+### 앱 아이콘 리디자인 ✅ (2026-03-21)
+- [x] 스플래시 Bezier 곡선 마크 기반 아이콘 디자인 결정
+- [x] `scripts/generate_icon.py` — Python/Pillow 아이콘 생성기 (v2, 연속 경로 샘플링)
+- [x] `assets/app_icon_1024.png` — 1024×1024 고해상도 아이콘 생성
+- [x] `flutter_launcher_icons` 실행 → iOS/Android 전체 사이즈 자동 생성
+- [x] pubspec.yaml `image_path` 업데이트
+
 ### 실기기 배포 ✅ (2026-03-21)
-- [x] iPhone Air — release 빌드 + 설치 완료
-- [x] iPad Pro 12.9" (6th gen) — release 빌드 + 설치 완료
+- [x] iPhone Air — debug 빌드 + 설치 완료 (새 아이콘 반영)
+- [x] iPad Pro 12.9" (6th gen) — debug 빌드 + 설치 완료 (새 아이콘 반영)
 
 ---
 
