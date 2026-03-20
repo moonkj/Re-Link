@@ -2,7 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../design/tokens/app_colors.dart';
 
-/// 효도 온도 반원형 게이지 위젯
+/// 가족 온도 반원형 게이지 위젯
 ///
 /// [score] 0.0~100.0 범위의 점수
 /// [level] 레벨 텍스트 (냉담/쌀쌀/보통/따뜻/뜨거움/열정)

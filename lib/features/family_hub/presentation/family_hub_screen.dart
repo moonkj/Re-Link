@@ -50,7 +50,7 @@ class FamilyHubScreen extends StatelessWidget {
                 FeatureTile(
                   icon: Icons.thermostat_outlined,
                   iconColor: AppColors.accent,
-                  title: '효도 온도계',
+                  title: '온도계',
                   subtitle: '가족에게 얼마나 관심을 기울이고 있는지',
                   onTap: () => context.push(AppRoutes.hyodo),
                 ),

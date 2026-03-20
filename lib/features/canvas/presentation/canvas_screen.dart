@@ -130,38 +130,56 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     );
   }
 
-  /// 겹치는 노드들을 격자 패턴으로 자동 분산
+  /// 겹치는 노드들을 쌍별(pair-wise) 감지 후 자동 분산
   void _spreadOverlappingNodes(List<NodeModel> nodes) {
     if (nodes.length <= 1) return;
 
-    // 모든 노드가 좁은 영역(200×200) 안에 있는지 확인
-    double minX = nodes[0].positionX, maxX = minX;
-    double minY = nodes[0].positionY, maxY = minY;
-    for (final node in nodes) {
-      if (node.positionX < minX) minX = node.positionX;
-      if (node.positionX > maxX) maxX = node.positionX;
-      if (node.positionY < minY) minY = node.positionY;
-      if (node.positionY > maxY) maxY = node.positionY;
+    // 카드 크기 + 최소 간격
+    const minDx = 140.0; // kNodeCardWidth(110) + 30
+    const minDy = 160.0; // kNodeCardHeight(130) + 30
+
+    // 위치 복사
+    final pos = {for (final n in nodes) n.id: Offset(n.positionX, n.positionY)};
+
+    // 최대 15라운드 반복하며 겹침 해소
+    bool changed = false;
+    for (int round = 0; round < 15; round++) {
+      bool roundMoved = false;
+      for (int i = 0; i < nodes.length; i++) {
+        for (int j = i + 1; j < nodes.length; j++) {
+          final a = pos[nodes[i].id]!;
+          final b = pos[nodes[j].id]!;
+          final dx = a.dx - b.dx;
+          final dy = a.dy - b.dy;
+
+          if (dx.abs() < minDx && dy.abs() < minDy) {
+            // 겹침 — 수평 방향으로 밀어내기
+            final pushX = (minDx - dx.abs()) / 2 + 5;
+            final signX = dx >= 0 ? 1.0 : -1.0;
+            pos[nodes[i].id] = Offset(
+              (a.dx + signX * pushX).clamp(100.0, 3800.0),
+              a.dy,
+            );
+            pos[nodes[j].id] = Offset(
+              (b.dx - signX * pushX).clamp(100.0, 3800.0),
+              b.dy,
+            );
+            roundMoved = true;
+            changed = true;
+          }
+        }
+      }
+      if (!roundMoved) break;
     }
 
-    // 이미 분산된 상태면 건너뜀
-    if (maxX - minX > 200 || maxY - minY > 200) return;
-
-    final centerX = (minX + maxX) / 2;
-    final centerY = (minY + maxY) / 2;
-    const spacing = 160.0;
-    final cols = nodes.length.clamp(1, 5);
+    if (!changed) return;
 
     final notifier = ref.read(canvasNotifierProvider.notifier);
-    for (int i = 0; i < nodes.length; i++) {
-      final col = i % cols;
-      final row = i ~/ cols;
-      final newX = (centerX - (cols - 1) * spacing / 2 + col * spacing)
-          .clamp(100.0, 3800.0);
-      final newY = (centerY - ((nodes.length - 1) ~/ cols) * spacing / 2 +
-              row * spacing)
-          .clamp(100.0, 3800.0);
-      notifier.saveNodePosition(nodes[i].id, newX, newY);
+    for (final n in nodes) {
+      final p = pos[n.id]!;
+      if ((p.dx - n.positionX).abs() > 1 || (p.dy - n.positionY).abs() > 1) {
+        notifier.saveNodePosition(n.id, p.dx, p.dy);
+      }
     }
   }
 

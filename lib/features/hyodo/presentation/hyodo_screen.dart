@@ -10,7 +10,7 @@ import '../../../core/utils/haptic_service.dart';
 import '../providers/hyodo_notifier.dart';
 import '../widgets/hyodo_gauge.dart';
 
-/// 효도 온도계 대시보드 화면
+/// 가족 온도계 대시보드 화면
 class HyodoScreen extends ConsumerWidget {
   const HyodoScreen({super.key});
 
@@ -22,7 +22,7 @@ class HyodoScreen extends ConsumerWidget {
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
         title: Text(
-          '효도 온도계',
+          '온도계',
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 18,
@@ -79,8 +79,8 @@ class HyodoScreen extends ConsumerWidget {
           if (state.entries.isEmpty) {
             return const EmptyStateWidget(
               icon: Icons.thermostat_outlined,
-              title: '효도 온도를 측정할 대상이 없어요',
-              subtitle: '가족을 추가하고 기억을 기록하면\n효도 온도가 올라갑니다',
+              title: '온도를 측정할 대상이 없어요',
+              subtitle: '가족을 추가하고 기억을 기록하면\n가족 온도가 올라갑니다',
             );
           }
 
@@ -148,7 +148,7 @@ class _OverallGaugeSection extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            '전체 효도 온도',
+            '전체 가족 온도',
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
@@ -192,7 +192,7 @@ class _OverallGaugeSection extends StatelessWidget {
     if (score < 51) return '꾸준히 기록하고 계시네요!\n조금만 더 힘내볼까요?';
     if (score < 71) return '따뜻한 마음이 느껴집니다\n이 온기를 이어가세요!';
     if (score < 86) return '대단해요! 가족과 활발히 소통하고 계시네요';
-    return '최고의 효도 온도! 가족의 행복이 가득합니다';
+    return '최고 온도! 가족의 행복이 가득합니다';
   }
 }
 
@@ -333,7 +333,7 @@ class _AllEntriesSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '가족별 효도 온도',
+          '가족별 온도',
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,

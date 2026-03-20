@@ -8,7 +8,7 @@ part 'hyodo_notifier.g.dart';
 
 // ── 모델 ──────────────────────────────────────────────────────────────────────
 
-/// 개별 노드의 효도 점수 항목
+/// 개별 노드의 관심 점수 항목
 class HyodoEntry {
   const HyodoEntry({
     required this.nodeId,
@@ -47,7 +47,7 @@ class HyodoEntry {
   }
 }
 
-/// 효도 온도계 전체 상태
+/// 가족 온도계 전체 상태
 class HyodoState {
   const HyodoState({
     required this.entries,
@@ -55,7 +55,7 @@ class HyodoState {
     required this.needsAttention,
   });
 
-  /// 모든 대상 노드의 효도 점수
+  /// 모든 대상 노드의 관심 점수
   final List<HyodoEntry> entries;
 
   /// 전체 평균 점수
@@ -312,7 +312,7 @@ class HyodoNotifier extends _$HyodoNotifier {
         payload: 'hyodo_nudge',
       );
     } catch (e) {
-      debugPrint('[HyodoNotifier] 효도 넛지 알림 스케줄 실패: $e');
+      debugPrint('[HyodoNotifier] 온도 넛지 알림 스케줄 실패: $e');
     }
   }
 }

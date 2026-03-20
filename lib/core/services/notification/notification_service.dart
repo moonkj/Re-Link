@@ -60,7 +60,7 @@ class _Channels {
   static const nudge = AndroidNotificationChannel(
     're_link_nudge',
     '넛지 알림',
-    description: '효도 온도계 리마인더',
+    description: '가족 온도 리마인더',
     importance: Importance.low,
   );
 }
