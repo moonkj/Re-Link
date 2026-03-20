@@ -762,6 +762,34 @@ class _FamilyRecordSection extends StatelessWidget {
           child: Column(
             children: [
               ListTile(
+                leading: const Icon(Icons.account_tree_outlined,
+                    color: AppColors.secondary),
+                title: Text('족보 가져오기',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: Text('세대별 가족 일괄 입력',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                trailing:
+                    Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                onTap: () => context.push(AppRoutes.jokbo),
+              ),
+              Divider(color: AppColors.glassBorder, height: 1),
+              ListTile(
+                leading: const Icon(Icons.thermostat_outlined,
+                    color: AppColors.accent),
+                title: Text('효도 온도계',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: Text('가족에게 얼마나 관심을 기울이고 있는지',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                trailing:
+                    Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                onTap: () => context.push(AppRoutes.hyodo),
+              ),
+              Divider(color: AppColors.glassBorder, height: 1),
+              ListTile(
                 leading: const Icon(Icons.menu_book_outlined,
                     color: AppColors.primary),
                 title: Text('가족 단어장',
@@ -804,6 +832,20 @@ class _FamilyRecordSection extends StatelessWidget {
                 trailing:
                     Icon(Icons.chevron_right, color: AppColors.textTertiary),
                 onTap: () => context.push(AppRoutes.badges),
+              ),
+              Divider(color: AppColors.glassBorder, height: 1),
+              ListTile(
+                leading: const Icon(Icons.family_restroom,
+                    color: AppColors.secondary),
+                title: Text('성씨 탐색기',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: Text('한국 성씨 · 본관 · 역사 탐색',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                trailing:
+                    Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                onTap: () => context.push(AppRoutes.clan),
               ),
             ],
           ),

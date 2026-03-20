@@ -52,4 +52,7 @@ abstract final class SettingsKey {
 
   // ── 가족 나무 성장 ──────────────────────────────────────────────────────
   static const String treeGrowthStage = 'tree_growth_stage'; // sprout / sapling / smallTree / bigTree / grandTree
+
+  // ── 명절 배너 ──────────────────────────────────────────────────────────
+  static const String holidayBannerDismissed = 'holiday_banner_dismissed'; // holiday_id:YYYY-MM-DD
 }

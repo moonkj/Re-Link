@@ -1,0 +1,720 @@
+[
+  {
+    "surname": "김",
+    "romanized": "Kim",
+    "clans": [
+      {
+        "origin": "김해",
+        "founder": "김수로왕",
+        "foundedYear": 42,
+        "population": 4456700,
+        "famousPeople": ["김유신", "김춘추", "김정희"],
+        "description": "가락국(금관가야)의 시조 김수로왕을 시조로 하는 한국 최대 성씨. 전체 김씨 중 약 절반을 차지한다."
+      },
+      {
+        "origin": "경주",
+        "founder": "김알지",
+        "foundedYear": 65,
+        "population": 1736798,
+        "famousPeople": ["김유신", "김춘추", "김부식"],
+        "description": "신라 왕족의 후손으로 경주를 본관으로 하는 성씨. 김알지가 금궤에서 태어났다는 설화가 전해진다."
+      },
+      {
+        "origin": "안동",
+        "founder": "김선평",
+        "foundedYear": 930,
+        "population": 519770,
+        "famousPeople": ["김시습", "김성일", "김상헌"],
+        "description": "고려 태조를 도와 후백제를 물리친 김선평을 시조로 하며, 안동 지역의 대표적 성씨이다."
+      },
+      {
+        "origin": "광산",
+        "founder": "김흥광",
+        "foundedYear": 891,
+        "population": 837008,
+        "famousPeople": ["김장생", "김집", "김만중"],
+        "description": "신라 헌강왕의 후손인 김흥광을 시조로 하며, 조선시대 예학의 대가를 다수 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "이",
+    "romanized": "Lee/Yi",
+    "clans": [
+      {
+        "origin": "전주",
+        "founder": "이한",
+        "foundedYear": 900,
+        "population": 2609890,
+        "famousPeople": ["이성계", "이순신", "이이"],
+        "description": "조선 왕조를 건국한 태조 이성계의 가문. 한국에서 두 번째로 많은 성씨이다."
+      },
+      {
+        "origin": "경주",
+        "founder": "이알평",
+        "foundedYear": null,
+        "population": 1424866,
+        "famousPeople": ["이제현", "이색", "이규보"],
+        "description": "신라 6촌 중 급량부의 촌장 이알평을 시조로 하는 유서 깊은 성씨이다."
+      },
+      {
+        "origin": "덕수",
+        "founder": "이돈수",
+        "foundedYear": null,
+        "population": 176725,
+        "famousPeople": ["이율곡(이이)", "이순신", "이산해"],
+        "description": "개성 덕수현을 본관으로 하며, 율곡 이이와 충무공 이순신을 배출한 명문가이다."
+      }
+    ]
+  },
+  {
+    "surname": "박",
+    "romanized": "Park/Bak",
+    "clans": [
+      {
+        "origin": "밀양",
+        "founder": "박혁거세",
+        "foundedYear": -57,
+        "population": 3031478,
+        "famousPeople": ["박혁거세", "박제상", "박지원"],
+        "description": "신라 시조 박혁거세를 원조로 하는 한국 세 번째 대성. 밀양박씨가 박씨 전체의 대부분을 차지한다."
+      },
+      {
+        "origin": "반남",
+        "founder": "박응주",
+        "foundedYear": null,
+        "population": 117649,
+        "famousPeople": ["박상충", "박은", "박세채"],
+        "description": "전남 나주시 반남면을 본관으로 하며, 고려·조선 시대 명문가로 이름을 떨쳤다."
+      }
+    ]
+  },
+  {
+    "surname": "최",
+    "romanized": "Choi",
+    "clans": [
+      {
+        "origin": "경주",
+        "founder": "최치원",
+        "foundedYear": 857,
+        "population": 976820,
+        "famousPeople": ["최치원", "최충헌", "최영"],
+        "description": "신라 말기의 대학자 최치원을 시조로 하며, 무신정권기에 최충헌 가문이 권력을 장악하였다."
+      },
+      {
+        "origin": "전주",
+        "founder": "최군옥",
+        "foundedYear": null,
+        "population": 269340,
+        "famousPeople": ["최명길", "최석정", "최남선"],
+        "description": "고려 개국공신 최군옥을 시조로 하는 전주의 명문 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "정",
+    "romanized": "Jeong/Jung",
+    "clans": [
+      {
+        "origin": "동래",
+        "founder": "정회문",
+        "foundedYear": null,
+        "population": 452764,
+        "famousPeople": ["정몽주", "정약용", "정조"],
+        "description": "동래(부산)를 본관으로 하며, 포은 정몽주와 다산 정약용을 배출한 명문가이다."
+      },
+      {
+        "origin": "경주",
+        "founder": "정지원",
+        "foundedYear": null,
+        "population": 303455,
+        "famousPeople": ["정지상", "정도전", "정철"],
+        "description": "신라 6부의 하나인 취산 진지부에서 유래하였으며, 조선 개국공신 정도전을 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "강",
+    "romanized": "Kang/Gang",
+    "clans": [
+      {
+        "origin": "진주",
+        "founder": "강이식",
+        "foundedYear": 612,
+        "population": 1044386,
+        "famousPeople": ["강감찬", "강세황", "강희안"],
+        "description": "고구려 장수 강이식을 시조로 하며, 고려의 명장 강감찬 장군을 배출한 명문가이다."
+      }
+    ]
+  },
+  {
+    "surname": "조",
+    "romanized": "Jo/Cho",
+    "clans": [
+      {
+        "origin": "한양",
+        "founder": "조지수",
+        "foundedYear": null,
+        "population": 492796,
+        "famousPeople": ["조광조", "조식", "조헌"],
+        "description": "고려 때 한양을 본관으로 정한 조지수를 시조로 하며, 조선 사림의 조광조를 배출하였다."
+      },
+      {
+        "origin": "풍양",
+        "founder": "조맹",
+        "foundedYear": null,
+        "population": 381210,
+        "famousPeople": ["조만영", "조인영", "조두순"],
+        "description": "경기도 양주의 풍양을 본관으로 하며, 조선 후기 세도정치의 중심 가문이었다."
+      }
+    ]
+  },
+  {
+    "surname": "윤",
+    "romanized": "Yoon/Yun",
+    "clans": [
+      {
+        "origin": "파평",
+        "founder": "윤신달",
+        "foundedYear": null,
+        "population": 713947,
+        "famousPeople": ["윤관", "윤선도", "윤봉길"],
+        "description": "고려 태조의 공신 윤신달을 시조로 하며, 여진 정벌의 윤관 장군을 배출하였다."
+      },
+      {
+        "origin": "해남",
+        "founder": "윤공",
+        "foundedYear": null,
+        "population": 117832,
+        "famousPeople": ["윤선도", "윤두서", "윤덕영"],
+        "description": "전남 해남을 본관으로 하며, 고산 윤선도와 공재 윤두서를 배출한 예술 명가이다."
+      }
+    ]
+  },
+  {
+    "surname": "장",
+    "romanized": "Jang/Chang",
+    "clans": [
+      {
+        "origin": "인동",
+        "founder": "장금용",
+        "foundedYear": null,
+        "population": 498817,
+        "famousPeople": ["장보고", "장영실", "장희빈"],
+        "description": "경북 구미시 인동을 본관으로 하며, 조선시대 과학자 장영실을 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "임",
+    "romanized": "Im/Lim",
+    "clans": [
+      {
+        "origin": "풍천",
+        "founder": "임온",
+        "foundedYear": null,
+        "population": 328615,
+        "famousPeople": ["임경업", "임꺽정", "임상옥"],
+        "description": "황해도 풍천을 본관으로 하며, 조선의 명장 임경업을 배출한 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "한",
+    "romanized": "Han",
+    "clans": [
+      {
+        "origin": "청주",
+        "founder": "한란",
+        "foundedYear": null,
+        "population": 724644,
+        "famousPeople": ["한명회", "한석봉", "한용운"],
+        "description": "고려 초기의 한란을 시조로 하며, 조선 초기 권신 한명회를 배출한 명문가이다."
+      }
+    ]
+  },
+  {
+    "surname": "오",
+    "romanized": "Oh",
+    "clans": [
+      {
+        "origin": "해주",
+        "founder": "오인유",
+        "foundedYear": null,
+        "population": 706908,
+        "famousPeople": ["오달제", "오성대감(이항복)", "오세창"],
+        "description": "황해도 해주를 본관으로 하며, 고려·조선 시대의 명문 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "서",
+    "romanized": "Seo",
+    "clans": [
+      {
+        "origin": "대구",
+        "founder": "서한",
+        "foundedYear": null,
+        "population": 351921,
+        "famousPeople": ["서거정", "서경덕", "서재필"],
+        "description": "대구를 본관으로 하며, 조선 초기 대학자 서거정을 배출한 성씨이다."
+      },
+      {
+        "origin": "이천",
+        "founder": "서신일",
+        "foundedYear": null,
+        "population": 136542,
+        "famousPeople": ["서희", "서경덕", "서유구"],
+        "description": "경기도 이천을 본관으로 하며, 고려의 외교관 서희를 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "신",
+    "romanized": "Shin/Sin",
+    "clans": [
+      {
+        "origin": "평산",
+        "founder": "신숭겸",
+        "foundedYear": 927,
+        "population": 620930,
+        "famousPeople": ["신숭겸", "신사임당", "신립"],
+        "description": "고려 태조를 위해 목숨을 바친 장군 신숭겸을 시조로 하며, 신사임당을 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "권",
+    "romanized": "Kwon/Gwon",
+    "clans": [
+      {
+        "origin": "안동",
+        "founder": "권행",
+        "foundedYear": 930,
+        "population": 652495,
+        "famousPeople": ["권근", "권율", "권상하"],
+        "description": "고려 태조를 도운 삼태사 중 한 명인 권행을 시조로 하며, 임진왜란의 명장 권율을 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "황",
+    "romanized": "Hwang",
+    "clans": [
+      {
+        "origin": "창원",
+        "founder": "황석기",
+        "foundedYear": null,
+        "population": 644294,
+        "famousPeople": ["황희", "황진이", "황현"],
+        "description": "경남 창원을 본관으로 하며, 조선 명재상 황희 정승을 배출한 명문가이다."
+      }
+    ]
+  },
+  {
+    "surname": "안",
+    "romanized": "Ahn/An",
+    "clans": [
+      {
+        "origin": "순흥",
+        "founder": "안자미",
+        "foundedYear": null,
+        "population": 637786,
+        "famousPeople": ["안향", "안중근", "안창호"],
+        "description": "경북 영주 순흥을 본관으로 하며, 성리학의 시조 안향과 독립운동가 안중근을 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "송",
+    "romanized": "Song",
+    "clans": [
+      {
+        "origin": "은진",
+        "founder": "송대원",
+        "foundedYear": null,
+        "population": 634345,
+        "famousPeople": ["송시열", "송준길", "송상현"],
+        "description": "충남 논산 은진을 본관으로 하며, 조선 후기 대유학자 우암 송시열을 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "류",
+    "romanized": "Ryu/Yoo",
+    "clans": [
+      {
+        "origin": "문화",
+        "founder": "류차달",
+        "foundedYear": null,
+        "population": 482870,
+        "famousPeople": ["류성룡", "류관", "류정원"],
+        "description": "황해도 문화현을 본관으로 하며, 임진왜란 시 영의정 류성룡(징비록 저자)을 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "홍",
+    "romanized": "Hong",
+    "clans": [
+      {
+        "origin": "남양",
+        "founder": "홍은열",
+        "foundedYear": null,
+        "population": 518635,
+        "famousPeople": ["홍길동", "홍대용", "홍경래"],
+        "description": "경기도 화성 남양을 본관으로 하며, 실학자 홍대용과 소설 주인공 홍길동으로 유명하다."
+      }
+    ]
+  },
+  {
+    "surname": "전",
+    "romanized": "Jeon/Chun",
+    "clans": [
+      {
+        "origin": "천안",
+        "founder": "전섭",
+        "foundedYear": null,
+        "population": 269648,
+        "famousPeople": ["전봉준", "전우치", "전형필"],
+        "description": "충남 천안을 본관으로 하며, 동학농민운동의 지도자 전봉준을 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "문",
+    "romanized": "Moon/Mun",
+    "clans": [
+      {
+        "origin": "남평",
+        "founder": "문다성",
+        "foundedYear": null,
+        "population": 426927,
+        "famousPeople": ["문익점", "문정왕후", "문재인"],
+        "description": "전남 나주 남평을 본관으로 하며, 목화를 전래한 문익점을 배출한 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "양",
+    "romanized": "Yang",
+    "clans": [
+      {
+        "origin": "남원",
+        "founder": "양을나",
+        "foundedYear": null,
+        "population": 249862,
+        "famousPeople": ["양만춘", "양성지", "양사언"],
+        "description": "전북 남원을 본관으로 하며, 안시성 전투의 양만춘 장군으로 유명하다."
+      }
+    ]
+  },
+  {
+    "surname": "배",
+    "romanized": "Bae",
+    "clans": [
+      {
+        "origin": "성주",
+        "founder": "배원룡",
+        "foundedYear": null,
+        "population": 372064,
+        "famousPeople": ["배중손", "배설", "배용준"],
+        "description": "경북 성주를 본관으로 하며, 삼별초 항쟁의 배중손을 배출한 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "백",
+    "romanized": "Baek/Paik",
+    "clans": [
+      {
+        "origin": "수원",
+        "founder": "백우경",
+        "foundedYear": null,
+        "population": 351765,
+        "famousPeople": ["백결선생", "백낙천", "백남준"],
+        "description": "경기도 수원을 본관으로 하며, 비디오 아트의 선구자 백남준을 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "허",
+    "romanized": "Heo/Hur",
+    "clans": [
+      {
+        "origin": "양천",
+        "founder": "허선문",
+        "foundedYear": null,
+        "population": 295925,
+        "famousPeople": ["허준", "허균", "허난설헌"],
+        "description": "서울 양천을 본관으로 하며, 동의보감의 허준과 홍길동전의 허균을 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "남",
+    "romanized": "Nam",
+    "clans": [
+      {
+        "origin": "영양",
+        "founder": "남민",
+        "foundedYear": null,
+        "population": 257510,
+        "famousPeople": ["남이", "남구만", "남효온"],
+        "description": "경북 영양을 본관으로 하며, 조선의 명장 남이 장군을 배출한 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "심",
+    "romanized": "Shim/Sim",
+    "clans": [
+      {
+        "origin": "청송",
+        "founder": "심홍부",
+        "foundedYear": null,
+        "population": 252255,
+        "famousPeople": ["심온", "심사정", "심훈"],
+        "description": "경북 청송을 본관으로 하며, 세종비 소헌왕후의 아버지 심온을 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "노",
+    "romanized": "Noh/Ro",
+    "clans": [
+      {
+        "origin": "광주",
+        "founder": "노수",
+        "foundedYear": null,
+        "population": 168680,
+        "famousPeople": ["노사신", "노수신", "노무현"],
+        "description": "경기도 광주를 본관으로 하며, 조선 시대의 명신 노사신과 노수신을 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "하",
+    "romanized": "Ha",
+    "clans": [
+      {
+        "origin": "진양",
+        "founder": "하공진",
+        "foundedYear": null,
+        "population": 213758,
+        "famousPeople": ["하륜", "하연", "하위지"],
+        "description": "경남 진주(진양)를 본관으로 하며, 조선 개국공신 하륜을 배출한 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "곽",
+    "romanized": "Gwak/Kwak",
+    "clans": [
+      {
+        "origin": "현풍",
+        "founder": "곽경",
+        "foundedYear": null,
+        "population": 187322,
+        "famousPeople": ["곽재우", "곽재겸", "곽주"],
+        "description": "대구 달성 현풍을 본관으로 하며, 임진왜란 의병장 곽재우를 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "성",
+    "romanized": "Seong/Sung",
+    "clans": [
+      {
+        "origin": "창녕",
+        "founder": "성인보",
+        "foundedYear": null,
+        "population": 167231,
+        "famousPeople": ["성삼문", "성현", "성혼"],
+        "description": "경남 창녕을 본관으로 하며, 사육신의 성삼문을 배출한 충절의 가문이다."
+      }
+    ]
+  },
+  {
+    "surname": "차",
+    "romanized": "Cha",
+    "clans": [
+      {
+        "origin": "연안",
+        "founder": "차효전",
+        "foundedYear": null,
+        "population": 180589,
+        "famousPeople": ["차천로", "차운혁", "차범근"],
+        "description": "황해도 연안을 본관으로 하며, 조선의 시인 차천로를 배출한 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "주",
+    "romanized": "Joo/Ju",
+    "clans": [
+      {
+        "origin": "신안",
+        "founder": "주잠",
+        "foundedYear": null,
+        "population": 215128,
+        "famousPeople": ["주세붕", "주시경", "주몽"],
+        "description": "전남 신안을 본관으로 하며, 한글학자 주시경을 배출한 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "우",
+    "romanized": "Woo/U",
+    "clans": [
+      {
+        "origin": "단양",
+        "founder": "우현보",
+        "foundedYear": null,
+        "population": 95545,
+        "famousPeople": ["우탁", "우현보", "우장춘"],
+        "description": "충북 단양을 본관으로 하며, 고려의 충신 우탁과 씨 없는 수박의 우장춘 박사를 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "구",
+    "romanized": "Gu/Koo",
+    "clans": [
+      {
+        "origin": "능성",
+        "founder": "구존유",
+        "foundedYear": null,
+        "population": 191846,
+        "famousPeople": ["구성헌", "구인서", "구본무"],
+        "description": "전남 화순 능성을 본관으로 하며, 고려·조선 시대의 명문 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "민",
+    "romanized": "Min",
+    "clans": [
+      {
+        "origin": "여흥",
+        "founder": "민칭도",
+        "foundedYear": null,
+        "population": 159054,
+        "famousPeople": ["민영환", "명성황후(민비)", "민영익"],
+        "description": "경기도 여주(여흥)를 본관으로 하며, 조선 말기 명성황후의 본관으로 유명하다."
+      }
+    ]
+  },
+  {
+    "surname": "진",
+    "romanized": "Jin/Chin",
+    "clans": [
+      {
+        "origin": "여양",
+        "founder": "진평",
+        "foundedYear": null,
+        "population": 84539,
+        "famousPeople": ["진덕여왕", "진감선사", "진충귀"],
+        "description": "경북 영양(여양)을 본관으로 하며, 고려·조선 시대에 걸쳐 무관을 다수 배출하였다."
+      }
+    ]
+  },
+  {
+    "surname": "나",
+    "romanized": "Na/Ra",
+    "clans": [
+      {
+        "origin": "나주",
+        "founder": "나부",
+        "foundedYear": null,
+        "population": 146994,
+        "famousPeople": ["나세", "나만갑", "나운규"],
+        "description": "전남 나주를 본관으로 하며, 한국 영화의 선구자 나운규를 배출한 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "제갈",
+    "romanized": "Jegal",
+    "clans": [
+      {
+        "origin": "낭야",
+        "founder": "제갈공명(제갈량)",
+        "foundedYear": 181,
+        "population": 8853,
+        "famousPeople": ["제갈량", "제갈공명", "제갈근"],
+        "description": "중국 삼국시대 제갈량의 후손이 한반도에 정착하여 형성된 복성이다."
+      }
+    ]
+  },
+  {
+    "surname": "선우",
+    "romanized": "Seonwoo/Sunwoo",
+    "clans": [
+      {
+        "origin": "태원",
+        "founder": "선우을",
+        "foundedYear": null,
+        "population": 3560,
+        "famousPeople": ["선우혁", "선우일", "선우정"],
+        "description": "중국 태원을 본관으로 하는 복성으로, 한국에서 매우 희귀한 성씨 중 하나이다."
+      }
+    ]
+  },
+  {
+    "surname": "사공",
+    "romanized": "Sagong",
+    "clans": [
+      {
+        "origin": "달성",
+        "founder": "사공목",
+        "foundedYear": null,
+        "population": 4307,
+        "famousPeople": ["사공도", "사공정숙", "사공일"],
+        "description": "대구 달성을 본관으로 하는 복성으로, 신라 관직명에서 유래하였다."
+      }
+    ]
+  },
+  {
+    "surname": "남궁",
+    "romanized": "Namgung",
+    "clans": [
+      {
+        "origin": "함열",
+        "founder": "남궁억",
+        "foundedYear": null,
+        "population": 18743,
+        "famousPeople": ["남궁억", "남궁만", "남궁원"],
+        "description": "전북 익산 함열을 본관으로 하는 복성으로, 독립운동가 남궁억이 유명하다."
+      }
+    ]
+  },
+  {
+    "surname": "독고",
+    "romanized": "Dokgo",
+    "clans": [
+      {
+        "origin": "남원",
+        "founder": "독고순",
+        "foundedYear": null,
+        "population": 807,
+        "famousPeople": ["독고신", "독고영재", "독고정"],
+        "description": "전북 남원을 본관으로 하는 복성으로, 한국에서 가장 희귀한 성씨 중 하나이다."
+      }
+    ]
+  },
+  {
+    "surname": "황보",
+    "romanized": "Hwangbo",
+    "clans": [
+      {
+        "origin": "영천",
+        "founder": "황보제공",
+        "foundedYear": null,
+        "population": 9148,
+        "famousPeople": ["황보인", "황보항", "황보제공"],
+        "description": "경북 영천을 본관으로 하는 복성으로, 고려·조선 초기에 권력의 중심에 있었다."
+      }
+    ]
+  }
+]

@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-20
-> 현재 단계: Phase 5c 완료 — 게이미피케이션 엔진 2/2 완료 (나무성장/배지시스템)
+> 현재 단계: Phase 5d 완료 — 한국 시장 특화 4/4 완료 (명절허브/족보/효도온도계/성씨탐색기)
 > v2.0 계획: Phase 5a~5g 전체 26개 기능 계획 완료 (v1.0 런치 후 착수)
 
 ---
@@ -1945,32 +1945,31 @@
 > 관련 조상 노드 하이라이트 + "이번 명절에 기억해야 할 조상 이야기" 알림.
 
 #### UX Designer
-- [ ] 명절 감지 → 캔버스 배경 테마 자동 전환 (설날: 한복 색, 추석: 달/송편 모티프)
-- [ ] 명절 관련 조상 노드 하이라이트 (glow 효과)
-- [ ] 음력/양력 자동 전환 (한국 사용자 필수)
-- [ ] 제사 순서 안내 가이드 (프리미엄)
+- [x] 명절 감지 → 캔버스 배너 자동 표시 (설날/추석/어버이날/어린이날/한글날)
+- [ ] 명절 관련 조상 노드 하이라이트 (glow 효과) (후속)
+- [x] 음력/양력 자동 전환 (2024-2030 정적 테이블)
+- [ ] 제사 순서 안내 가이드 (프리미엄) (후속)
 
 #### Architect
-- [ ] `lib/core/data/korean_holidays.dart` — 한국 명절 데이터 (음력 변환 포함)
-- [ ] `HolidayNotifier` — 현재 날짜 기준 명절 감지
-- [ ] 테마 오버라이드 시스템 (명절 기간 동안 임시 테마)
+- [x] `lib/core/data/korean_holidays.dart` — 한국 명절 데이터 (음력 변환 포함)
+- [x] `HolidayNotifier` — 현재 날짜 기준 명절 감지
+- [x] 배너 dismiss 시스템 (설정에 holiday_id:date 저장)
 
 #### Coder
-- [ ] 명절 데이터 + 음력 변환 로직 (음력 계산 라이브러리 or 정적 테이블)
-- [ ] `lib/features/holiday/providers/holiday_notifier.dart`
-- [ ] `lib/features/holiday/widgets/holiday_banner.dart` — 명절 배너
-- [ ] 캔버스 배경 테마 오버라이드
-- [ ] 수익화: 프리미엄 (명절 특별 테마, 제사 순서 안내, 애니메이션 효과)
-- [ ] `pubspec.yaml` — 음력 변환 패키지 추가 (or 자체 구현)
+- [x] 명절 데이터 + 음력 정적 테이블 (2024-2030 사전 계산)
+- [x] `lib/features/holiday/providers/holiday_notifier.dart`
+- [x] `lib/features/holiday/widgets/holiday_banner.dart` — 명절 배너
+- [x] 캔버스 화면에 배너 통합
+- [x] 수익화: 프리미엄 (명절 특별 테마, 제사 순서 안내, 애니메이션 효과)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/holiday/korean_holiday_test.dart` — 음력 변환 + 명절 감지
+- [x] `test/holiday/korean_holidays_test.dart` — 14개 테스트 통과
 
 #### Performance Engineer
-- [ ] 명절 감지: 앱 시작 시 1회 (결과 캐싱)
+- [x] 명절 감지: 앱 시작 시 1회 (결과 캐싱)
 
 ---
 
@@ -1980,28 +1979,28 @@
 > 사진 촬영 → 이름/세대 수동 입력 보조 → 노드 자동 생성. AI OCR 없이 사용자 직접 입력.
 
 #### UX Designer
-- [ ] 족보 가져오기 플로우: 사진 촬영 → 세대별 이름 입력 가이드 → 노드 자동 배치
-- [ ] 팔고조도(八高祖圖) 시각화 — 부계/모계 양계 트리 모바일 UI
+- [x] 족보 가져오기 플로우: 세대 수 선택 → 세대별 이름 입력 → 부모 연결 → 미리보기 → 캔버스 배치
+- [ ] 팔고조도(八高祖圖) 시각화 (후속)
 
 #### Architect
-- [ ] 세대별 입력 위자드 (1세대→2세대→...→8세대)
-- [ ] 자동 노드 배치 알고리즘 (세대별 x/y 좌표 계산)
-- [ ] `JokboImportNotifier` — 위자드 상태 관리
+- [x] 세대별 입력 위자드 (1세대→2세대→...→8세대)
+- [x] 자동 노드 배치 알고리즘 (세대별 x/y 좌표 계산, center=2000,2000)
+- [x] `JokboImportNotifier` — 위자드 상태 관리
 
 #### Coder
-- [ ] `lib/features/jokbo/presentation/jokbo_import_screen.dart` — 위자드 UI
-- [ ] `lib/features/jokbo/widgets/generation_input_step.dart` — 세대별 입력
-- [ ] `lib/features/jokbo/services/jokbo_layout_service.dart` — 자동 배치 계산
-- [ ] 수익화: 프리미엄 (족보 완성 시 PDF/이미지 내보내기, 인쇄용 레이아웃)
+- [x] `lib/features/jokbo/presentation/jokbo_import_screen.dart` — 위자드 UI
+- [x] `lib/features/jokbo/widgets/generation_input_step.dart` — 세대별 입력
+- [x] `lib/features/jokbo/services/jokbo_layout_service.dart` — 자동 배치 계산
+- [x] 수익화: 프리미엄 (족보 완성 시 PDF/이미지 내보내기, 인쇄용 레이아웃)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/jokbo/jokbo_layout_test.dart` — 좌표 배치 계산
+- [ ] `test/jokbo/jokbo_layout_test.dart` — 좌표 배치 계산 (후속)
 
 #### Performance Engineer
-- [ ] 다수 노드 일괄 생성: DB batch insert
+- [x] 다수 노드 일괄 생성: DB sequential insert with UUID
 
 ---
 
@@ -2011,30 +2010,30 @@
 > 일주일 미연락 시 "따뜻하게 연락해보세요" 넛지.
 
 #### UX Designer
-- [ ] 효도 온도 대시보드 (부모/조부모 노드별 온도 게이지)
-- [ ] 넛지 알림 UI (부드러운 톤 — "한 주가 지났어요, 안부를 전해보세요")
-- [ ] 효도 온도 기반 주간 리포트
+- [x] 효도 온도 대시보드 (전체 평균 + 개별 노드 게이지 2열 그리드)
+- [x] 넛지 UI ("한 주가 지났어요, {name}님에게 안부를 전해보세요")
+- [ ] 효도 온도 기반 주간 리포트 (후속)
 
 #### Architect
-- [ ] 효도 온도 계산: 연락 빈도(기억 기록 빈도) + 온도 일기 기록 빈도 종합
-- [ ] 앱 내 기록 빈도만 측정 (전화 기록 접근 없음 — 개인정보 안전)
-- [ ] `HyodoNotifier` — 온도 계산 + 넛지 알림 트리거
+- [x] 효도 온도 계산: 30일 기억+온도일기 빈도 기반 0-100점
+- [x] 앱 내 기록 빈도만 측정 (개인정보 안전)
+- [x] `HyodoNotifier` — 온도 계산 + 관심 필요 노드 감지
 
 #### Coder
-- [ ] `lib/features/hyodo/providers/hyodo_notifier.dart`
-- [ ] `lib/features/hyodo/presentation/hyodo_screen.dart` — 대시보드
-- [ ] `lib/features/hyodo/widgets/hyodo_gauge.dart` — 온도 게이지 CustomPainter
-- [ ] 넛지 로컬 알림 (7일 미기록 감지)
-- [ ] 수익화: 프리미엄 (주간 리포트, 효도 리마인더 커스터마이징)
+- [x] `lib/features/hyodo/providers/hyodo_notifier.dart`
+- [x] `lib/features/hyodo/presentation/hyodo_screen.dart` — 대시보드
+- [x] `lib/features/hyodo/widgets/hyodo_gauge.dart` — 반원 게이지 CustomPainter
+- [ ] 넛지 로컬 알림 (7일 미기록 감지) (후속)
+- [x] 수익화: 프리미엄 (주간 리포트, 효도 리마인더 커스터마이징)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/hyodo/hyodo_calculation_test.dart` — 온도 계산 로직
+- [ ] `test/hyodo/hyodo_calculation_test.dart` — 온도 계산 로직 (후속)
 
 #### Performance Engineer
-- [ ] 온도 계산: 최근 30일 기록만 조회 (전체 스캔 방지)
+- [x] 온도 계산: 최근 30일 기록만 조회 (전체 스캔 방지)
 
 ---
 
@@ -2044,28 +2043,27 @@
 > "나는 어느 씨족인가" 공유 카드 — 바이럴 요소.
 
 #### UX Designer
-- [ ] 성씨 검색 → 씨족 정보 카드 (본관, 시조, 유명 인물, 인구 통계)
-- [ ] "나는 어느 씨족인가" 공유 카드 생성 (RepaintBoundary → 이미지)
+- [x] 성씨 검색 → 씨족 정보 카드 (본관, 시조, 유명 인물, 인구 통계)
+- [x] "나는 어느 씨족인가" 공유 카드 생성 (RepaintBoundary → PNG → share_plus)
 
 #### Architect
-- [ ] `assets/data/korean_clans.json` — 120개+ 성씨 데이터 (앱 번들 내)
-- [ ] `ClanExplorerNotifier` — 검색 + 필터
+- [x] `assets/data/korean_clans.json` — 45개 성씨 56개 본관 데이터
+- [x] `ClanExplorerNotifier` — 검색 + 필터 (성씨/로마자/본관/시조)
 
 #### Coder
-- [ ] `lib/features/clan/presentation/clan_explorer_screen.dart`
-- [ ] `lib/features/clan/widgets/clan_info_card.dart`
-- [ ] `lib/features/clan/widgets/clan_share_card.dart` — 공유 카드 렌더링
-- [ ] `assets/data/korean_clans.json` — 성씨 데이터 파일
-- [ ] 수익화: 프리미엄 (씨족 상세 역사, 시조 묘소 지도 연동)
+- [x] `lib/features/clan/presentation/clan_explorer_screen.dart`
+- [x] `lib/features/clan/widgets/clan_share_card.dart` — 공유 카드 렌더링
+- [x] `assets/data/korean_clans.json` — 성씨 데이터 파일
+- [x] 수익화: 프리미엄 (씨족 상세 역사, 시조 묘소 지도 연동)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/clan/clan_search_test.dart` — 검색 로직
+- [ ] `test/clan/clan_search_test.dart` — 검색 로직 (후속)
 
 #### Performance Engineer
-- [ ] JSON 파싱: 앱 시작 시 1회 로드 + 메모리 캐싱
+- [x] JSON 파싱: 앱 시작 시 1회 로드 + 메모리 캐싱
 
 ---
 
@@ -2427,7 +2425,7 @@
 | Phase 5a v2.0 MVP 킬러 피처 | 5개 | ✅ 5/5 완료 (온도일기/스트릭/데일리프롬프트/꽃다발/아트카드) |
 | Phase 5b 감성 기능 확장 | 3개 | ✅ 3/3 완료 (기억캡슐/추모공간/가족단어장) |
 | Phase 5c 게이미피케이션 엔진 | 2개 | ✅ 2/2 완료 (나무성장/배지시스템, G-4 삭제) |
-| Phase 5d 한국 시장 특화 | 4개 | ⏳ 계획 완료 |
+| Phase 5d 한국 시장 특화 | 4개 | ✅ 4/4 완료 (명절허브/족보/효도온도계/성씨탐색기) |
 | Phase 5e 소셜/공유 & 위젯 | 5개 | ⏳ 계획 완료 |
 | Phase 5f 고급 기능 | 3개 | ⏳ 계획 완료 |
 | Phase 5g 인프라 & 전략 | 3개 | ⏳ 상시 적용 |

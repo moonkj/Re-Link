@@ -22,6 +22,7 @@ import '../../settings/providers/spouse_snap_notifier.dart';
 import '../../streak/providers/streak_notifier.dart';
 import '../../streak/widgets/streak_badge.dart';
 import '../../prompt/widgets/daily_prompt_card.dart';
+import '../../holiday/widgets/holiday_banner.dart';
 import '../../tree_growth/widgets/tree_growth_overlay.dart';
 import '../utils/quad_tree.dart';
 import '../utils/lod_utils.dart';
@@ -410,9 +411,15 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
             ),
           ),
 
-          // ── 데일리 프롬프트 카드 ────────────────────────────────────────
+          // ── 명절/기념일 배너 ─────────────────────────────────────────
           Positioned(
             top: 100, left: AppSpacing.lg, right: AppSpacing.lg,
+            child: const HolidayBanner(),
+          ),
+
+          // ── 데일리 프롬프트 카드 ────────────────────────────────────────
+          Positioned(
+            top: 160, left: AppSpacing.lg, right: AppSpacing.lg,
             child: const DailyPromptCard(),
           ),
 
