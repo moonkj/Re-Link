@@ -132,7 +132,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
 
   /// 겹치는 노드들을 쌍별(pair-wise) 감지 후 자동 분산
   /// 노드 추가/삭제 시마다 재실행됨
-  void _spreadOverlappingNodes(List<NodeModel> nodes) {
+  Future<void> _spreadOverlappingNodes(List<NodeModel> nodes) async {
     if (nodes.length <= 1) return;
 
     // 카드 크기 + 최소 간격
@@ -154,9 +154,9 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
           final dy = a.dy - b.dy;
 
           if (dx.abs() < minDx && dy.abs() < minDy) {
-            // 수평 분리
-            final pushX = (minDx - dx.abs()) / 2 + 5;
-            final signX = dx.abs() < 1 ? 1.0 : (dx >= 0 ? 1.0 : -1.0);
+            // 수평 분리 (비례 마진)
+            final pushX = (minDx - dx.abs()) / 2 * 1.15;
+            final signX = dx.abs() < 1 ? (i.isEven ? 1.0 : -1.0) : (dx >= 0 ? 1.0 : -1.0);
             pos[nodes[i].id] = Offset(
               (a.dx + signX * pushX).clamp(100.0, 3800.0),
               a.dy,
@@ -168,7 +168,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
 
             // 수직으로도 너무 가까우면 Y축도 분리
             if (dy.abs() < minDy / 2) {
-              final pushY = (minDy - dy.abs()) / 4 + 5;
+              final pushY = (minDy - dy.abs()) / 4 * 1.15;
               final signY = dy.abs() < 1 ? 1.0 : (dy >= 0 ? 1.0 : -1.0);
               pos[nodes[i].id] = Offset(
                 pos[nodes[i].id]!.dx,
@@ -190,11 +190,12 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
 
     if (!changed) return;
 
+    // 순차 저장 — 레이스컨디션 방지
     final notifier = ref.read(canvasNotifierProvider.notifier);
     for (final n in nodes) {
       final p = pos[n.id]!;
       if ((p.dx - n.positionX).abs() > 1 || (p.dy - n.positionY).abs() > 1) {
-        notifier.saveNodePosition(n.id, p.dx, p.dy);
+        await notifier.saveNodePosition(n.id, p.dx, p.dy);
       }
     }
   }
@@ -990,8 +991,8 @@ class _DraggableNodeCardState extends State<_DraggableNodeCard> {
     final visualScale = p3d.scale * scaleMultiplier;
 
     return Positioned(
-      left: _x,
-      top: _y,
+      left: _isDragging ? _x : widget.node.positionX,
+      top: _isDragging ? _y : widget.node.positionY,
       child: Listener(
         behavior: HitTestBehavior.opaque,
         onPointerDown: _onPointerDown,
