@@ -16,6 +16,7 @@ import '../providers/node_notifier.dart';
 import '../../temperature/widgets/quick_temp_entry.dart';
 import '../../bouquet/widgets/bouquet_on_node.dart';
 import '../../bouquet/widgets/flower_picker.dart';
+import '../../art_card/presentation/art_card_screen.dart';
 import 'edit_node_sheet.dart';
 import 'node_card.dart';
 import 'vibe_meter_sheet.dart';
@@ -323,6 +324,22 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
                     child: _FlowerActionButton(
                       nodeId: node.id,
                       onTap: () => _showFlowerPicker(context, ref, node),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: _ActionButton(
+                      icon: Icons.palette_outlined,
+                      label: '아트',
+                      color: AppColors.secondary,
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const ArtCardScreen(),
+                          ),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),

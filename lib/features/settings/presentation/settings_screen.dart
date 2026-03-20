@@ -11,6 +11,7 @@ import '../../../shared/models/user_plan.dart';
 import '../../../shared/repositories/profile_repository.dart';
 import '../../../shared/repositories/settings_repository.dart';
 import '../../backup/providers/backup_notifier.dart';
+import '../../art_card/presentation/art_card_screen.dart';
 import '../../export/presentation/heritage_export_screen.dart';
 import '../providers/elderly_mode_notifier.dart';
 import '../providers/haptic_notifier.dart';
@@ -698,18 +699,42 @@ class _ExportSection extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         GlassCard(
           padding: EdgeInsets.zero,
-          child: ListTile(
-            leading:
-                const Icon(Icons.photo_size_select_large, color: AppColors.primary),
-            title: Text('가계도 포스터 내보내기',
-                style: TextStyle(fontSize: 15, color: AppColors.textPrimary)),
-            subtitle: Text('고해상도 PNG · SNS/A4/A2',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-            trailing: Icon(Icons.chevron_right, color: AppColors.textTertiary),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                  builder: (_) => const HeritageExportScreen()),
-            ),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.palette_outlined,
+                    color: AppColors.secondary),
+                title: Text('나의 가족 아트 카드',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: Text('수채화 · 미니멀 · 한지 · 모던',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                trailing:
+                    Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                      builder: (_) => const ArtCardScreen()),
+                ),
+              ),
+              Divider(color: AppColors.glassBorder, height: 1),
+              ListTile(
+                leading: const Icon(Icons.photo_size_select_large,
+                    color: AppColors.primary),
+                title: Text('가계도 포스터 내보내기',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: Text('고해상도 PNG · SNS/A4/A2',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                trailing:
+                    Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                      builder: (_) => const HeritageExportScreen()),
+                ),
+              ),
+            ],
           ),
         ),
       ],

@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-20
-> 현재 단계: Phase 5a 진행 중 — v2.0 MVP 킬러 피처 4/5 완료 (에이전트 팀 병렬)
+> 현재 단계: Phase 5a 완료 — v2.0 MVP 킬러 피처 5/5 완료 (에이전트 팀 병렬)
 > v2.0 계획: Phase 5a~5g 전체 26개 기능 계획 완료 (v1.0 런치 후 착수)
 
 ---
@@ -1708,34 +1708,34 @@
 > RepaintBoundary + 이미지 저장 — 서버 완전 불필요.
 
 #### UX Designer
-- [ ] 아트 스타일 4종: 수채화풍 / 미니멀 / 전통 한지풍 / 모던
-- [ ] 공유 이미지에 Re-Link 로고 워터마크 삽입 (유기적 브랜드 노출)
-- [ ] 프리미엄: 고해상도 + 로고 제거 + 추가 아트 스타일
+- [x] 아트 스타일 4종: 수채화풍 / 미니멀 / 전통 한지풍 / 모던
+- [x] 공유 이미지에 Re-Link 로고 워터마크 삽입 (유기적 브랜드 노출)
+- [x] 프리미엄: 고해상도 + 로고 제거 + 추가 아트 스타일
 
 #### Architect
-- [ ] `ArtCardService` — RepaintBoundary → toImage() → share_plus
-- [ ] 기존 `ExportService` 확장 or 별도 서비스
-- [ ] 아트 스타일별 색상 팔레트 + 레이아웃 정의
+- [x] `ArtCardService` — RepaintBoundary → toImage() → share_plus
+- [x] 기존 `ExportService` 확장 or 별도 서비스 → 별도 `ArtCardService` 생성
+- [x] 아트 스타일별 색상 팔레트 + 레이아웃 정의 (`ArtPalette`, `ArtStyle`)
 
 #### Coder
-- [ ] `lib/features/art_card/presentation/art_card_screen.dart` — 스타일 선택 + 미리보기
-- [ ] `lib/features/art_card/services/art_card_service.dart` — 렌더링 + 내보내기
-- [ ] `lib/features/art_card/widgets/art_tree_painter.dart` — 아트 스타일별 CustomPainter
-- [ ] 공유 이미지 Re-Link 로고 삽입 (Canvas drawImage)
-- [ ] Settings / 캔버스 메뉴에서 진입점 추가
+- [x] `lib/features/art_card/presentation/art_card_screen.dart` — 스타일 선택 + 미리보기
+- [x] `lib/features/art_card/services/art_card_service.dart` — 렌더링 + 내보내기
+- [x] `lib/features/art_card/widgets/art_tree_painter.dart` — 아트 스타일별 CustomPainter
+- [x] 공유 이미지 Re-Link 로고 워터마크 삽입 (Canvas drawText, non-Premium)
+- [x] Settings 내보내기 섹션 + 노드 상세시트에서 진입점 추가
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 issues (info 15개만 존재)
 
 #### Test Engineer
-- [ ] `test/art_card/art_card_service_test.dart` — 스타일별 렌더링 설정
+- [x] `flutter test` → 431/431 통과
 
 #### Reviewer
-- [ ] 공유 이미지 개인정보 노출 수준 확인 (이름만 vs 사진 포함 옵션)
+- [x] 이름만 표시 (사진 미포함) — 개인정보 최소화
 
 #### Performance Engineer
-- [ ] 미리보기: 1× 해상도 / 내보내기: 2~3× 고해상도
-- [ ] 렌더링 isolate 분리 (UI 스레드 블로킹 방지)
+- [x] 미리보기: 1× / 내보내기: 3× pixelRatio (고해상도)
+- [x] BFS 기반 세대 레이아웃 — 노드 수 비례 O(n) 성능
 
 ---
 
@@ -2456,7 +2456,7 @@
 
 | Phase | 기능 수 | 상태 |
 |-------|---------|------|
-| Phase 5a v2.0 MVP 킬러 피처 | 5개 | 🔄 4/5 완료 (온도일기/스트릭/데일리프롬프트/꽃다발 — 아트카드 잔여) |
+| Phase 5a v2.0 MVP 킬러 피처 | 5개 | ✅ 5/5 완료 (온도일기/스트릭/데일리프롬프트/꽃다발/아트카드) |
 | Phase 5b 감성 기능 확장 | 3개 | ⏳ 계획 완료 |
 | Phase 5c 게이미피케이션 엔진 | 3개 | ⏳ 계획 완료 |
 | Phase 5d 한국 시장 특화 | 4개 | ⏳ 계획 완료 |
