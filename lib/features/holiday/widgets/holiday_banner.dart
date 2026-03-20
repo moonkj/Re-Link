@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/data/korean_holidays.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/utils/haptic_service.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
@@ -74,6 +77,10 @@ class _HolidayBannerState extends ConsumerState<HolidayBanner>
             : '${holiday.name}까지 D-${state.daysUntil}';
         final subtitle = holiday.message;
 
+        // 제사/차례 관련 명절이면 제사 안내 링크 표시
+        final showRitualGuide = holiday.type == HolidayType.seollal ||
+            holiday.type == HolidayType.chuseok;
+
         return SlideTransition(
           position: _slideAnimation,
           child: _HolidayBannerCard(
@@ -83,6 +90,10 @@ class _HolidayBannerState extends ConsumerState<HolidayBanner>
             themeColor: holiday.themeColor,
             isToday: isToday,
             onDismiss: _dismiss,
+            showRitualGuide: showRitualGuide,
+            onRitualGuide: showRitualGuide
+                ? () => context.push(AppRoutes.ritualGuide)
+                : null,
           ),
         );
       },
@@ -99,6 +110,8 @@ class _HolidayBannerCard extends StatelessWidget {
     required this.themeColor,
     required this.isToday,
     required this.onDismiss,
+    this.showRitualGuide = false,
+    this.onRitualGuide,
   });
 
   final String emoji;
@@ -107,6 +120,8 @@ class _HolidayBannerCard extends StatelessWidget {
   final Color themeColor;
   final bool isToday;
   final VoidCallback onDismiss;
+  final bool showRitualGuide;
+  final VoidCallback? onRitualGuide;
 
   @override
   Widget build(BuildContext context) {
@@ -163,6 +178,22 @@ class _HolidayBannerCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (showRitualGuide) ...[
+                      const SizedBox(height: 4),
+                      GestureDetector(
+                        onTap: onRitualGuide,
+                        child: Text(
+                          '제사 순서 안내 보기',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: themeColor,
+                            decoration: TextDecoration.underline,
+                            decorationColor: themeColor,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

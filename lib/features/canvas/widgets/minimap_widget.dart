@@ -2,30 +2,40 @@ import 'package:flutter/material.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../shared/models/node_model.dart';
 
-const double _minimapWidth = 120.0;
-const double _minimapHeight = 80.0;
+const double _minimapShortSide = 80.0;
+const double _minimapLongSide = 120.0;
 const double _canvasSize = 4000.0;
 
-/// 캔버스 미니맵 (우하단 위치)
+/// 캔버스 미니맵 (좌하단 위치)
+///
+/// - 가로/세로 모드에 따라 미니맵 비율 자동 변경
+/// - 실제 화면 크기 기반 정확한 뷰포트 표시
 class MinimapWidget extends StatelessWidget {
   const MinimapWidget({
     super.key,
     required this.nodes,
     required this.transformationController,
+    required this.screenSize,
   });
 
   final List<NodeModel> nodes;
   final TransformationController transformationController;
+  final Size screenSize;
 
   @override
   Widget build(BuildContext context) {
+    // 화면 방향에 따라 미니맵 비율 결정
+    final isLandscape = screenSize.width > screenSize.height;
+    final minimapW = isLandscape ? _minimapLongSide : _minimapShortSide;
+    final minimapH = isLandscape ? _minimapShortSide : _minimapLongSide;
+
     return RepaintBoundary(
       child: AnimatedBuilder(
         animation: transformationController,
         builder: (context, _) {
           return Container(
-            width: _minimapWidth,
-            height: _minimapHeight,
+            width: minimapW,
+            height: minimapH,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               color: const Color(0xCC0D1117),
@@ -37,6 +47,7 @@ class MinimapWidget extends StatelessWidget {
                 painter: _MinimapPainter(
                   nodes: nodes,
                   transform: transformationController.value,
+                  screenSize: screenSize,
                 ),
               ),
             ),
@@ -48,10 +59,15 @@ class MinimapWidget extends StatelessWidget {
 }
 
 class _MinimapPainter extends CustomPainter {
-  _MinimapPainter({required this.nodes, required this.transform});
+  _MinimapPainter({
+    required this.nodes,
+    required this.transform,
+    required this.screenSize,
+  });
 
   final List<NodeModel> nodes;
   final Matrix4 transform;
+  final Size screenSize;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -69,7 +85,7 @@ class _MinimapPainter extends CustomPainter {
       canvas.drawCircle(Offset(x, y), node.isGhost ? 2.0 : 3.0, nodePaint);
     }
 
-    // 뷰포트 사각형 그리기
+    // 뷰포트 사각형 그리기 — 실제 화면 크기 사용
     final matrix = transform;
     final scale = matrix.getMaxScaleOnAxis();
     final tx = matrix.getTranslation();
@@ -78,17 +94,15 @@ class _MinimapPainter extends CustomPainter {
     final vpLeft = -tx.x / scale;
     final vpTop = -tx.y / scale;
 
-    // 뷰포트 크기 (캔버스 좌표) — 실제 화면 크기를 모르므로 추정
-    const estimatedScreenW = 390.0;
-    const estimatedScreenH = 800.0;
-    final vpW = estimatedScreenW / scale;
-    final vpH = estimatedScreenH / scale;
+    // 뷰포트 크기 (캔버스 좌표) — 실제 화면 크기 기반
+    final vpW = screenSize.width / scale;
+    final vpH = screenSize.height / scale;
 
     final vpRect = Rect.fromLTWH(
       (vpLeft * scaleX).clamp(0.0, size.width),
       (vpTop * scaleY).clamp(0.0, size.height),
-      (vpW * scaleX).clamp(0.0, size.width),
-      (vpH * scaleY).clamp(0.0, size.height),
+      (vpW * scaleX).clamp(1.0, size.width),
+      (vpH * scaleY).clamp(1.0, size.height),
     );
 
     final vpPaint = Paint()
@@ -106,5 +120,7 @@ class _MinimapPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _MinimapPainter old) =>
-      old.nodes != nodes || old.transform != transform;
+      old.nodes != nodes ||
+      old.transform != transform ||
+      old.screenSize != screenSize;
 }

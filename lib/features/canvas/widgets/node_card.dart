@@ -50,6 +50,7 @@ class NodeCard extends StatefulWidget {
     this.ghostLabel,
     this.earnedBadgeIds,
     this.showHolidayGlow = false,
+    this.isMe = false,
   });
 
   final NodeModel node;
@@ -65,6 +66,9 @@ class NodeCard extends StatefulWidget {
 
   /// 명절 기간 조상 노드 glow 여부
   final bool showHolidayGlow;
+
+  /// 이 노드가 "나"인지 여부
+  final bool isMe;
 
   @override
   State<NodeCard> createState() => _NodeCardState();
@@ -207,6 +211,27 @@ class _NodeCardState extends State<NodeCard>
                             ),
                           ),
                         ),
+                      // "나" 표시 (좌상단)
+                      if (widget.isMe)
+                        Positioned(
+                          top: 4,
+                          left: 4,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              '나',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
                       // 배지 아이콘 (첫 번째 배지만 표시)
                       if (widget.earnedBadgeIds != null &&
                           widget.earnedBadgeIds!.isNotEmpty)
@@ -255,16 +280,22 @@ class _NodeCardState extends State<NodeCard>
           ]
         : <BoxShadow>[];
 
+    // "나" 노드는 primary 테두리
+    final borderColor = widget.isSelected
+        ? AppColors.nodeSelected
+        : widget.isMe
+            ? AppColors.primary.withAlpha(200)
+            : widget.isConnectMode && !widget.isConnectSource
+                ? tempColor.withAlpha(200)
+                : tempColor.withAlpha(160);
+    final borderWidth = widget.isSelected ? 2.5 : widget.isMe ? 2.0 : 1.5;
+
     return BoxDecoration(
       borderRadius: BorderRadius.circular(16),
       color: AppColors.glassSurface,
       border: Border.all(
-        color: widget.isSelected
-            ? AppColors.nodeSelected
-            : widget.isConnectMode && !widget.isConnectSource
-                ? tempColor.withAlpha(200)
-                : tempColor.withAlpha(160),
-        width: widget.isSelected ? 2.5 : 1.5,
+        color: borderColor,
+        width: borderWidth,
       ),
       boxShadow: widget.isSelected
           ? [
@@ -481,6 +512,7 @@ class NodeCardLod extends StatelessWidget {
     this.ghostLabel,
     this.earnedBadgeIds,
     this.showHolidayGlow = false,
+    this.isMe = false,
   });
 
   final NodeModel node;
@@ -498,11 +530,14 @@ class NodeCardLod extends StatelessWidget {
   /// 명절 기간 조상 노드 glow 여부
   final bool showHolidayGlow;
 
+  /// 이 노드가 "나"인지 여부
+  final bool isMe;
+
   @override
   Widget build(BuildContext context) {
     return switch (lodLevel) {
-      LodLevel.birdEye => _BirdEyeDot(node: node),
-      LodLevel.overview => _OverviewCard(node: node),
+      LodLevel.birdEye => _BirdEyeDot(node: node, isMe: isMe),
+      LodLevel.overview => _OverviewCard(node: node, isMe: isMe),
       LodLevel.detail || LodLevel.zoom => NodeCard(
           node: node,
           isSelected: isSelected,
@@ -511,6 +546,7 @@ class NodeCardLod extends StatelessWidget {
           ghostLabel: ghostLabel,
           earnedBadgeIds: earnedBadgeIds,
           showHolidayGlow: showHolidayGlow,
+          isMe: isMe,
         ),
     };
   }
@@ -518,8 +554,9 @@ class NodeCardLod extends StatelessWidget {
 
 /// Bird's Eye (< 0.5x) — 8x8 컬러 점
 class _BirdEyeDot extends StatelessWidget {
-  const _BirdEyeDot({required this.node});
+  const _BirdEyeDot({required this.node, this.isMe = false});
   final NodeModel node;
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
@@ -528,7 +565,9 @@ class _BirdEyeDot extends StatelessWidget {
         ? Colors.white38
         : !node.isAlive
             ? const Color(0xFF8E8E93)
-            : AppColors.tempColor(node.temperature);
+            : isMe
+                ? AppColors.primary
+                : AppColors.tempColor(node.temperature);
     return SizedBox(
       width: kNodeCardWidth,
       height: kNodeCardHeight,
@@ -551,8 +590,9 @@ class _BirdEyeDot extends StatelessWidget {
 
 /// Overview (0.5x-1.0x) — 원형 아바타 + 이름
 class _OverviewCard extends StatelessWidget {
-  const _OverviewCard({required this.node});
+  const _OverviewCard({required this.node, this.isMe = false});
   final NodeModel node;
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
@@ -584,6 +624,26 @@ class _OverviewCard extends StatelessWidget {
                 ],
               ),
             ),
+            if (isMe)
+              Positioned(
+                top: 18,
+                left: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    '나',
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
             if (isDeceased)
               const Positioned(
                 top: 20,

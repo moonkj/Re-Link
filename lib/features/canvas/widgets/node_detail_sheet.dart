@@ -17,6 +17,7 @@ import '../../temperature/widgets/quick_temp_entry.dart';
 import '../../bouquet/widgets/bouquet_on_node.dart';
 import '../../bouquet/widgets/flower_picker.dart';
 import '../../art_card/presentation/art_card_screen.dart';
+import '../providers/my_node_provider.dart';
 import 'edit_node_sheet.dart';
 import 'node_card.dart';
 import 'vibe_meter_sheet.dart';
@@ -345,6 +346,89 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
                 ],
               ),
             ),
+
+            // ── "나" 설정 ─────────────────────────────────────────────
+            Builder(builder: (context) {
+              final myNodeId = ref.watch(myNodeNotifierProvider).valueOrNull;
+              final isMe = myNodeId == node.id;
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.xs,
+                ),
+                child: GlassCard(
+                  onTap: () async {
+                    if (isMe) {
+                      await ref.read(myNodeNotifierProvider.notifier).clearMyNode();
+                    } else {
+                      await ref.read(myNodeNotifierProvider.notifier).setMyNode(node.id);
+                    }
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            isMe ? '"나" 설정이 해제되었습니다' : '"나"로 설정되었습니다',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          backgroundColor: AppColors.bgSurface,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isMe ? Icons.person : Icons.person_outline,
+                        color: isMe ? AppColors.primary : AppColors.textSecondary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          isMe ? '나 설정 해제' : '나로 설정',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: isMe ? AppColors.primary : AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      if (isMe)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withAlpha(30),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '현재 나',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      if (!isMe)
+                        Icon(
+                          Icons.chevron_right,
+                          color: AppColors.textTertiary,
+                          size: 20,
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }),
 
             // ── 액션 버튼 행 ────────────────────────────────────────────
             Padding(

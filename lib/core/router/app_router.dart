@@ -23,6 +23,7 @@ import '../../features/glossary/presentation/glossary_screen.dart';
 import '../../features/badges/presentation/badge_list_screen.dart';
 import '../../features/hyodo/presentation/hyodo_screen.dart';
 import '../../features/jokbo/presentation/jokbo_import_screen.dart';
+import '../../features/jokbo/presentation/palgojodo_screen.dart';
 import '../../features/clan/presentation/clan_explorer_screen.dart';
 import '../../features/birthday/presentation/birthday_screen.dart';
 import '../../features/invite/presentation/invite_screen.dart';
@@ -34,6 +35,10 @@ import '../../features/voice_legacy/presentation/voice_legacy_screen.dart';
 import '../../features/settings/presentation/feedback_screen.dart';
 import '../../features/then_now/presentation/then_now_screen.dart';
 import '../../features/backup/presentation/restore_detect_screen.dart';
+import '../../features/bouquet/presentation/bouquet_wrapped_screen.dart';
+import '../../features/holiday/presentation/ritual_guide_screen.dart';
+import '../../features/family_hub/presentation/family_hub_screen.dart';
+import '../../features/explore_hub/presentation/explore_hub_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
 import '../../shared/widgets/ad_banner_widget.dart';
 
@@ -61,6 +66,7 @@ abstract final class AppRoutes {
   static const String badges = '/badges';
   static const String hyodo = '/hyodo';
   static const String jokbo = '/jokbo';
+  static const String palgojodo = '/palgojodo';
   static const String clan = '/clan';
   static const String invite = '/invite';
   static const String snapshot = '/snapshot/:memoryId';
@@ -72,6 +78,10 @@ abstract final class AppRoutes {
   static const String feedback = '/feedback';
   static const String thenNow = '/then-now';
   static const String restoreDetect = '/restore-detect';
+  static const String bouquetWrapped = '/bouquet-wrapped';
+  static const String ritualGuide = '/ritual-guide';
+  static const String familyHub = '/family-hub';
+  static const String exploreHub = '/explore-hub';
 
   static String memoryPath(String nodeId) => '/memory/$nodeId';
   static String temperatureDiaryPath(String nodeId) =>
@@ -100,7 +110,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.firstFamily,
         builder: (_, s) => const FirstFamilyScreen(),
       ),
-      // ── 5탭 ShellRoute ────────────────────────────────────────────────────
+      // ── 5탭 ShellRoute (홈/기억/가족/탐색/설정) ──────────────────────────
       ShellRoute(
         builder: (context, state, child) => _MainShell(child: child),
         routes: [
@@ -109,12 +119,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (_, s) => const CanvasScreen(),
           ),
           GoRoute(
-            path: AppRoutes.story,
-            builder: (_, s) => const StoryFeedScreen(),
-          ),
-          GoRoute(
             path: AppRoutes.archive,
             builder: (_, s) => const ArchiveScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.familyHub,
+            builder: (_, s) => const FamilyHubScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.exploreHub,
+            builder: (_, s) => const ExploreHubScreen(),
           ),
           GoRoute(
             path: AppRoutes.settings,
@@ -123,6 +137,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       // ── 독립 라우트 (탭 밖) ────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.story,
+        builder: (_, s) => const StoryFeedScreen(),
+      ),
       GoRoute(
         path: AppRoutes.memory,
         builder: (_, s) => MemoryScreen(
@@ -202,6 +220,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, s) => const JokboImportScreen(),
       ),
       GoRoute(
+        path: AppRoutes.palgojodo,
+        builder: (_, s) => const PalgojodoScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.clan,
         builder: (_, s) => const ClanExplorerScreen(),
       ),
@@ -253,6 +275,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.restoreDetect,
         builder: (_, s) => const RestoreDetectScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.bouquetWrapped,
+        builder: (_, s) => const BouquetWrappedScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.ritualGuide,
+        builder: (_, s) => const RitualGuideScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
@@ -475,23 +505,25 @@ class _BezierMarkPainter extends CustomPainter {
   bool shouldRepaint(covariant _BezierMarkPainter old) => old.color != color;
 }
 
-// ── Main Shell (5탭 하단 네비게이션) ───────────────────────────────────────────
+// ── Main Shell (5탭 하단 네비게이션: 홈/기억/가족/탐색/설정) ─────────────────────
 
 class _MainShell extends ConsumerWidget {
   const _MainShell({required this.child});
   final Widget child;
 
   static const _tabs = [
-    AppRoutes.canvas,
-    AppRoutes.story,
-    AppRoutes.archive,
-    AppRoutes.settings,
+    AppRoutes.canvas,     // 0: 홈
+    AppRoutes.archive,    // 1: 기억
+    AppRoutes.familyHub,  // 2: 가족
+    AppRoutes.exploreHub, // 3: 탐색
+    AppRoutes.settings,   // 4: 설정
   ];
 
   static int _indexFromLocation(String location) {
-    if (location.startsWith(AppRoutes.story)) return 1;
-    if (location.startsWith(AppRoutes.archive)) return 2;
-    if (location.startsWith(AppRoutes.settings)) return 3;
+    if (location.startsWith(AppRoutes.archive)) return 1;
+    if (location.startsWith(AppRoutes.familyHub)) return 2;
+    if (location.startsWith(AppRoutes.exploreHub)) return 3;
+    if (location.startsWith(AppRoutes.settings)) return 4;
     return 0; // canvas default
   }
 
@@ -509,11 +541,6 @@ class _MainShell extends ConsumerWidget {
           _CustomBottomNav(
             currentIndex: idx,
             onTabSelected: (i) {
-              if (i == 4) {
-                // + 버튼 — QuickAdd (캔버스 FAB와 동일 동작)
-                context.go(AppRoutes.canvas);
-                return;
-              }
               context.go(_tabs[i]);
             },
           ),
@@ -523,7 +550,7 @@ class _MainShell extends ConsumerWidget {
   }
 }
 
-/// 커스텀 5탭 바텀 네비게이션 (가운데 + 버튼 강조)
+/// 커스텀 5탭 바텀 네비게이션 (홈/기억/가족/탐색/설정)
 class _CustomBottomNav extends StatelessWidget {
   const _CustomBottomNav({
     required this.currentIndex,
@@ -556,50 +583,28 @@ class _CustomBottomNav extends StatelessWidget {
             onTap: () => onTabSelected(0),
           ),
           _NavItem(
-            icon: Icons.auto_stories_outlined,
-            label: '이야기',
+            icon: Icons.photo_library_outlined,
+            label: '기억',
             isSelected: currentIndex == 1,
             onTap: () => onTabSelected(1),
           ),
-          // + 버튼 (가운데)
-          Expanded(
-            child: GestureDetector(
-              onTap: () => onTabSelected(4),
-              child: Center(
-                child: Container(
-                  width: 52,
-                  height: 52,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF6EC6CA), Color(0xFF4A9EBF)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0x4D6EC6CA),
-                        blurRadius: 16,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(Icons.add, color: Colors.white, size: 26),
-                ),
-              ),
-            ),
-          ),
           _NavItem(
-            icon: Icons.photo_library_outlined,
-            label: '보관함',
+            icon: Icons.favorite_outline,
+            label: '가족',
             isSelected: currentIndex == 2,
             onTap: () => onTabSelected(2),
           ),
           _NavItem(
-            icon: Icons.settings_outlined,
-            label: '설정',
+            icon: Icons.explore_outlined,
+            label: '탐색',
             isSelected: currentIndex == 3,
             onTap: () => onTabSelected(3),
+          ),
+          _NavItem(
+            icon: Icons.settings_outlined,
+            label: '설정',
+            isSelected: currentIndex == 4,
+            onTap: () => onTabSelected(4),
           ),
         ],
       ),

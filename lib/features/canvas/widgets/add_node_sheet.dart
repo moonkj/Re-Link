@@ -29,7 +29,7 @@ class _AddNodeSheetState extends ConsumerState<AddNodeSheet> {
   String? _photoPath;
   DateTime? _birthDate;
   bool _isGhost = false;
-  bool _autoGhostParents = false;
+  bool _autoGhostParents = true;
   bool _saving = false;
 
   @override

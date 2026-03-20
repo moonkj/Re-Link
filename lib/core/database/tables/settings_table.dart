@@ -38,6 +38,9 @@ abstract final class SettingsKey {
   // ── 캔버스 ────────────────────────────────────────────────────────────────
   static const String spouseSnap = 'spouse_snap';         // true / false
 
+  // ── 내 노드 ──────────────────────────────────────────────────────────────
+  static const String myNodeId = 'my_node_id';             // 나로 설정한 노드 ID
+
   // ── 스트릭 ────────────────────────────────────────────────────────────────
   static const String streakCount = 'streak_count';         // int as string
   static const String streakLastDate = 'streak_last_date';  // ISO8601 date

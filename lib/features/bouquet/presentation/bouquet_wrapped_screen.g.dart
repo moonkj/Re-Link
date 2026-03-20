@@ -1,31 +1,30 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'birthday_notifier.dart';
+part of 'bouquet_wrapped_screen.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$birthdayNotifierHash() => r'13e221efeb2132f1099b17e7d8fb9693ac03688c';
+String _$yearlyBouquetsHash() => r'c0e21d01d9a8a7384f75698b2bc4889774ee8a92';
 
-/// 가족 생일 목록 프로바이더 — 다음 생일 기준 정렬
+/// 연간 꽃다발 데이터 프로바이더
 ///
-/// Copied from [BirthdayNotifier].
-@ProviderFor(BirthdayNotifier)
-final birthdayNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<
-      BirthdayNotifier,
-      List<BirthdayEntry>
-    >.internal(
-      BirthdayNotifier.new,
-      name: r'birthdayNotifierProvider',
+/// Copied from [yearlyBouquets].
+@ProviderFor(yearlyBouquets)
+final yearlyBouquetsProvider =
+    AutoDisposeFutureProvider<List<Bouquet>>.internal(
+      yearlyBouquets,
+      name: r'yearlyBouquetsProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
           ? null
-          : _$birthdayNotifierHash,
+          : _$yearlyBouquetsHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
-typedef _$BirthdayNotifier = AutoDisposeAsyncNotifier<List<BirthdayEntry>>;
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef YearlyBouquetsRef = AutoDisposeFutureProviderRef<List<Bouquet>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

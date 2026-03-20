@@ -12,6 +12,7 @@ import '../../../shared/widgets/empty_state_widget.dart';
 import '../../../shared/widgets/private_blur_overlay.dart';
 import '../../../core/router/app_router.dart';
 import '../providers/archive_notifier.dart';
+import '../../story/providers/story_feed_notifier.dart';
 
 /// 아카이브 화면 (보관함 탭)
 class ArchiveScreen extends ConsumerStatefulWidget {
@@ -25,15 +26,19 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _searchController = TextEditingController();
+  int _currentTab = 0;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return;
-      final filter = ArchiveFilter.values[_tabController.index];
-      ref.read(archiveNotifierProvider.notifier).setFilter(filter);
+      setState(() => _currentTab = _tabController.index);
+      if (_tabController.index > 0) {
+        final filter = ArchiveFilter.values[_tabController.index - 1];
+        ref.read(archiveNotifierProvider.notifier).setFilter(filter);
+      }
     });
   }
 
@@ -56,7 +61,7 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
             backgroundColor: AppColors.bgBase,
             pinned: true,
             title: Text(
-              '보관함',
+              '기억',
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w700,
@@ -123,6 +128,7 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
                     unselectedLabelColor: AppColors.textTertiary,
                     indicatorColor: AppColors.primary,
                     tabs: const [
+                      Tab(text: '이야기'),
                       Tab(text: '전체'),
                       Tab(text: '사진'),
                       Tab(text: '음성'),
@@ -134,25 +140,27 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
             ),
           ),
         ],
-        body: state.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : state.isEmpty
-                ? EmptyStateWidget(
-                    icon: Icons.photo_library_outlined,
-                    title: '보관된 기억이 없어요',
-                    subtitle: '소중한 기억을 추가하면\n여기에 모입니다',
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    itemCount: state.groups.length,
-                    itemBuilder: (_, i) {
-                      final group = state.groups[i];
-                      return _ArchiveGroup(
-                        group: group,
-                        onPrivateTap: _handlePrivateTap,
-                      );
-                    },
-                  ),
+        body: _currentTab == 0
+            ? _StoryFeedTab(onPrivateTap: _handlePrivateTap)
+            : state.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : state.isEmpty
+                    ? EmptyStateWidget(
+                        icon: Icons.photo_library_outlined,
+                        title: '보관된 기억이 없어요',
+                        subtitle: '소중한 기억을 추가하면\n여기에 모입니다',
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        itemCount: state.groups.length,
+                        itemBuilder: (_, i) {
+                          final group = state.groups[i];
+                          return _ArchiveGroup(
+                            group: group,
+                            onPrivateTap: _handlePrivateTap,
+                          );
+                        },
+                      ),
       ),
     );
   }
@@ -375,5 +383,267 @@ class _MemoryTile extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// 이야기 탭 — Story Feed 인라인 표시
+class _StoryFeedTab extends ConsumerWidget {
+  const _StoryFeedTab({required this.onPrivateTap});
+  final void Function(MemoryModel memory) onPrivateTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(storyFeedNotifierProvider);
+
+    if (state.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (state.items.isEmpty) {
+      return EmptyStateWidget(
+        icon: Icons.auto_stories_outlined,
+        title: '아직 이야기가 없어요',
+        subtitle: '가족 구성원을 추가하고\n첫 기억을 남겨보세요',
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.sm,
+      ),
+      itemCount: state.items.length,
+      itemBuilder: (_, i) {
+        final item = state.items[i];
+        final memory = item.memory;
+        final dateStr = DateFormat('yyyy년 M월 d일').format(
+          memory.dateTaken ?? memory.createdAt,
+        );
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+          child: GlassCard(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            onTap: memory.isPrivate
+                ? () => onPrivateTap(memory)
+                : () => context.push(AppRoutes.memoryPath(memory.nodeId)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── 헤더: 노드 이름 + 날짜 ─────────────────────────────
+                Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primary.withAlpha(60),
+                        image: item.nodePhotoPath != null
+                            ? DecorationImage(
+                                image: FileImage(File(item.nodePhotoPath!)),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: item.nodePhotoPath == null
+                          ? Center(
+                              child: Text(
+                                item.nodeName.isNotEmpty
+                                    ? item.nodeName[0]
+                                    : '?',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.nodeName,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            dateStr,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textTertiary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // 비공개 잠금 또는 타입 칩
+                    if (memory.isPrivate)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.accent.withAlpha(30),
+                        ),
+                        child: const Icon(Icons.lock,
+                            size: 16, color: AppColors.accent),
+                      )
+                    else
+                      _StoryTypeChip(type: memory.type),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+
+                // ── 콘텐츠 ─────────────────────────────────────────────
+                if (memory.isPrivate)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: PrivateBlurOverlay(
+                      onTap: () => onPrivateTap(memory),
+                      borderRadius: BorderRadius.circular(10),
+                      message: '비공개 기억입니다\n탭하여 인증 후 보기',
+                      blurSigma: 20,
+                      child: SizedBox(
+                        height: 120,
+                        width: double.infinity,
+                        child: Container(
+                          color: AppColors.glassSurface,
+                          child: Center(
+                            child: Icon(
+                              switch (memory.type) {
+                                MemoryType.photo => Icons.photo_outlined,
+                                MemoryType.voice => Icons.mic_outlined,
+                                MemoryType.note => Icons.note_outlined,
+                              },
+                              size: 40,
+                              color: AppColors.textTertiary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  _StoryContent(memory: memory),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// 이야기 탭 — 타입 칩
+class _StoryTypeChip extends StatelessWidget {
+  const _StoryTypeChip({required this.type});
+  final MemoryType type;
+
+  @override
+  Widget build(BuildContext context) {
+    final (icon, color) = switch (type) {
+      MemoryType.photo => (Icons.photo_outlined, AppColors.secondary),
+      MemoryType.voice => (Icons.mic_outlined, AppColors.accent),
+      MemoryType.note => (Icons.note_outlined, AppColors.primary),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: color.withAlpha(30),
+      ),
+      child: Icon(icon, size: 16, color: color),
+    );
+  }
+}
+
+/// 이야기 탭 — 콘텐츠 (사진/음성/메모)
+class _StoryContent extends StatelessWidget {
+  const _StoryContent({required this.memory});
+  final MemoryModel memory;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (memory.type) {
+      MemoryType.photo => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (memory.thumbnailPath != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.file(
+                  File(memory.thumbnailPath!),
+                  width: double.infinity,
+                  height: 180,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            if (memory.description != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                memory.description!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              ),
+            ],
+          ],
+        ),
+      MemoryType.voice => Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.accent.withAlpha(40),
+              ),
+              child: const Icon(Icons.play_arrow,
+                  color: AppColors.accent, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    memory.title ?? '음성 기억',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  if (memory.formattedDuration != null)
+                    Text(
+                      memory.formattedDuration!,
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.textTertiary),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      MemoryType.note => Text(
+          memory.description ?? memory.title ?? '',
+          maxLines: 4,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 14,
+            color: AppColors.textSecondary,
+            height: 1.5,
+          ),
+        ),
+    };
   }
 }

@@ -152,17 +152,26 @@ class _MemorialSlideshowState extends ConsumerState<MemorialSlideshow>
             height: 320,
             child: Stack(
               children: [
-                // 사진 PageView
+                // 사진 PageView (다음 2장 프리로드)
                 PageView.builder(
                   controller: _pageCtrl,
                   itemCount: _photos.length,
                   onPageChanged: (i) {
                     if (mounted) setState(() => _currentPage = i);
                   },
-                  itemBuilder: (_, i) => _SlideshowPage(
-                    key: ValueKey(_photos[i].id),
-                    memory: _photos[i],
-                  ),
+                  itemBuilder: (_, i) {
+                    // 다음 2장 이미지 프리캐시
+                    if (i + 1 < _photos.length && _photos[i + 1].filePath != null) {
+                      precacheImage(FileImage(File(_photos[i + 1].filePath!)), context);
+                    }
+                    if (i + 2 < _photos.length && _photos[i + 2].filePath != null) {
+                      precacheImage(FileImage(File(_photos[i + 2].filePath!)), context);
+                    }
+                    return _SlideshowPage(
+                      key: ValueKey(_photos[i].id),
+                      memory: _photos[i],
+                    );
+                  },
                 ),
 
                 // 하단 그라디언트 + 텍스트

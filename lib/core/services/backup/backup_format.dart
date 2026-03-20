@@ -10,6 +10,7 @@ class BackupManifest {
     required this.memoryCount,
     required this.totalBytes,
     this.checksum,
+    this.senderNodeId,
   });
 
   static const int currentVersion = 1;
@@ -22,6 +23,9 @@ class BackupManifest {
   final int totalBytes;
   final String? checksum;
 
+  /// 백업을 생성한 사용자의 노드 ID (공유 시 발신자 식별)
+  final String? senderNodeId;
+
   factory BackupManifest.fromJson(Map<String, dynamic> json) =>
       BackupManifest(
         version: json['version'] as int,
@@ -31,6 +35,7 @@ class BackupManifest {
         memoryCount: json['memory_count'] as int,
         totalBytes: json['total_bytes'] as int,
         checksum: json['checksum'] as String?,
+        senderNodeId: json['sender_node_id'] as String?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -41,6 +46,7 @@ class BackupManifest {
         'memory_count': memoryCount,
         'total_bytes': totalBytes,
         if (checksum != null) 'checksum': checksum,
+        if (senderNodeId != null) 'sender_node_id': senderNodeId,
       };
 
   String toJsonString() => jsonEncode(toJson());

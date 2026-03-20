@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
-> 마지막 업데이트: 2026-03-20
-> 현재 단계: Phase 6 완료 + 캔버스/UX 버그 수정 완료
+> 마지막 업데이트: 2026-03-21
+> 현재 단계: Phase 7 — 미구현 기능 구현 + "나 설정" + 메뉴 구조 개편 완료
 > v2.0 계획: Phase 5a~5g 전체 26개 기능 계획 완료 (v1.0 런치 후 착수)
 
 ---
@@ -261,12 +261,12 @@
 ### 온도계 시스템 (Vibe Meter) ✅
 - [x] 노드별 온도 설정 UI (6단계 슬라이더 — NodeDetailSheet)
 - [x] 온도에 따른 노드 테두리/바 색상 (NodeCard)
-- [ ] 온도 히스토리 (Phase 4로 이동 — 과도한 복잡도)
+- [x] 온도 히스토리 (TemperatureDiaryScreen 그래프 + QuickTempEntry + 일/주/월 필터)
 
 ### Ghost Node ✅
 - [x] Ghost Node 생성 (AddNodeSheet Ghost 토글)
 - [x] 실제 인물 매핑 플로우 (NodeDetailSheet "실제 인물로 연결하기" 배너 → EditNodeSheet)
-- [ ] 자동 Ghost 생성 (Phase 4로 이동)
+- [x] 자동 Ghost 생성 (createGhostParentsFor + AddNodeSheet 기본 활성화)
 
 ### 검색 ✅
 
@@ -384,7 +384,7 @@
 ### 5탭 네비게이션 (ShellRoute) 완성 ✅
 
 #### UX Designer
-- [x] 5탭 구조: 홈(캔버스) / 이야기(Story Feed) / + / 보관함 / 설정
+- [x] 5탭 구조: 홈(캔버스) / 기억(보관함+이야기) / 가족(허브) / 탐색(허브) / 설정 (Phase 7에서 개편)
 - [x] `_CustomBottomNav` — 커스텀 바텀 바, 가운데 + 글래스 원형 강조
 - [x] 선택/비선택 색상 분기 (primary / white 50%)
 
@@ -1677,7 +1677,7 @@
 #### UX Designer
 - [x] 노드 상세 → "꽃 보내기" 버튼 (꽃 종류 5개 선택)
 - [x] 캔버스 노드 위 꽃 아이콘 표시 (이번 주 받은 꽃, 최대 3개 + overflow)
-- [ ] 연말 "가족 꽃다발 리포트" — Spotify Wrapped 스타일 슬라이드쇼 (별도 구현 예정)
+- [x] 연말 "가족 꽃다발 리포트" — Spotify Wrapped 스타일 4페이지 슬라이드쇼 (bouquet_wrapped_screen.dart)
 
 #### Architect
 - [x] `bouquets` 테이블 (fromNodeId, toNodeId, flowerType, date) — DB schemaVersion 3
@@ -1817,7 +1817,7 @@
 - [x] 추모 콘텐츠 민감도 — 삭제 확인 다이얼로그 강화
 
 #### Performance Engineer
-- [ ] 슬라이드쇼 이미지 프리로드 (다음 2장) (후속)
+- [x] 슬라이드쇼 이미지 프리로드 (다음 2장 precacheImage)
 
 ---
 
@@ -1948,7 +1948,7 @@
 - [x] 명절 감지 → 캔버스 배너 자동 표시 (설날/추석/어버이날/어린이날/한글날)
 - [x] 명절 관련 조상 노드 하이라이트 (glow 효과) — computeHolidayGlowNodeIds()
 - [x] 음력/양력 자동 전환 (2024-2030 정적 테이블)
-- [ ] 제사 순서 안내 가이드 (프리미엄) (후속)
+- [x] 제사 순서 안내 가이드 (ritual_guide_screen.dart, 10단계 + 차례 비교)
 
 #### Architect
 - [x] `lib/core/data/korean_holidays.dart` — 한국 명절 데이터 (음력 변환 포함)
@@ -1980,7 +1980,7 @@
 
 #### UX Designer
 - [x] 족보 가져오기 플로우: 세대 수 선택 → 세대별 이름 입력 → 부모 연결 → 미리보기 → 캔버스 배치
-- [ ] 팔고조도(八高祖圖) 시각화 (후속)
+- [x] 팔고조도(八高祖圖) 시각화 (palgojodo_screen.dart, InteractiveViewer + CustomPainter)
 
 #### Architect
 - [x] 세대별 입력 위자드 (1세대→2세대→...→8세대)
@@ -2520,6 +2520,163 @@
 
 ---
 
+## Phase 7 — 미구현 기능 구현 + UX 수정 (2026-03-21)
+
+> 에이전트 팀 병렬 실행 (팀리더 + 4 Teammates)
+> process.md 전체 미구현 항목 스캔 → 코드 구현 가능 항목 일괄 처리
+
+---
+
+### Batch 1 — 코드 구현 (4 에이전트 병렬) ✅
+
+#### Teammate 1 — Privacy Layer (생체인증)
+- [x] `lib/core/services/privacy/privacy_service.dart` — local_auth 래퍼
+- [x] `lib/shared/widgets/private_blur_overlay.dart` — 공통 블러 위젯
+- [x] Settings Privacy 토글 → 실제 local_auth 연동
+- [x] isPrivate 기억 블러 처리 (MemoryScreen/StoryFeed/Archive)
+- [x] 기억 상세 접근 시 생체인증 게이팅 (MemoryDetailSheet)
+
+#### Teammate 2 — 로컬 알림 시스템
+- [x] `lib/core/services/notification/notification_service.dart` — 통합 알림 서비스 (382줄)
+- [x] main.dart — 알림 초기화
+- [x] Daily Prompt 매일 아침 8시 알림 연동
+- [x] 기억 캡슐 열림 날짜 알림
+- [x] 생일 카운트다운 D-Day + D-1 알림
+- [x] 효도 7일 넛지 (주간 일요일 10시)
+- [x] 보이스 유언 공개 조건 알림
+- [x] 마지막 페이지 기일 매년 반복 알림
+- [x] 온보딩 Step 3 알림 권한 요청 + 셀레브레이션 UI
+
+#### Teammate 3 — 감성 기능 UI 완성
+- [x] 기억 캡슐 봉인 애니메이션 (`seal_animation.dart`, 333줄)
+- [x] 추모 슬라이드쇼 (`memorial_slideshow.dart`, 327줄)
+- [x] 음력 기일 계산 로직 (`lunar_calendar.dart`, 2024-2035 정적 테이블)
+- [x] 가족 단어장 음성 녹음 연동 (RecorderController + PlayerController)
+- [x] 복원 감지 화면 (`restore_detect_screen.dart`)
+
+#### Teammate 4 — 캔버스/공유/게이미피케이션 완성
+- [x] 나무 성장 SNS 공유 카드 (`tree_share_card.dart`, 302줄)
+- [x] 배지 캔버스 노드 아이콘 표시 (_BadgeIcon, Detail/Zoom LOD만)
+- [x] 명절 허브 조상 노드 하이라이트 (glow, computeHolidayGlowNodeIds)
+- [x] 효도 온도계 주간 리포트 (HyodoWeeklyReport + 7일 막대 그래프)
+- [x] 레시피 SNS 공유 (share_plus 텍스트)
+- [x] 초대 딥링크 핸들링 (relink://invite/{code} + iOS/Android 설정)
+
+#### Debugger
+- [x] `flutter analyze` → 0 errors
+
+---
+
+### Batch 2 — 테스트 일괄 ✅ (352개 신규 테스트)
+
+| 파일 | 테스트 수 |
+|------|----------|
+| capsule_repository_test | 15 |
+| capsule_open_logic_test | 12 |
+| memorial_repository_test | 14 |
+| glossary_repository_test | 26 |
+| tree_growth_test | 37 |
+| badge_condition_test | 32 |
+| jokbo_layout_test | 17 |
+| hyodo_calculation_test | 45 |
+| clan_search_test | 26 |
+| invite_code_test | 24 |
+| wrapped_annual_review_test | 15 |
+| snapshot_service_test | 15 |
+| recipe_repository_test | 15 |
+| voice_legacy_test | 22 |
+| lunar_calendar_test | 37 |
+
+- [x] `flutter test` → **809/809 전체 통과**
+
+---
+
+### UX 수정 (2026-03-21)
+
+- [x] 데일리 프롬프트 배너 위치 수정 (`top: 160` → `top: 100`, 앱바 바로 아래)
+- [x] 미니맵 위치 수정 (광고 배너 위로 이동: `bottom: bottomNavHeight + 80`)
+- [x] 미니맵 가로/세로 모드별 비율 반영 (가로 120×80, 세로 80×120)
+- [x] 미니맵 뷰포트 정확도 개선 (하드코딩 390×800 → `MediaQuery.sizeOf(context)` 실제 화면 크기)
+
+---
+
+### "나 설정" (Set as Me) 기능 ✅ (2026-03-21)
+
+> 각 사용자가 가족 트리에서 자기 노드를 "나"로 설정.
+> .rlink 공유 시 발신자 식별 + 수신자가 자기 노드를 별도 설정.
+
+#### Core Layer
+- [x] `SettingsKey.myNodeId` — 설정 키 추가
+- [x] `SettingsRepository.getMyNodeId()` / `setMyNodeId()` / `clearMyNodeId()`
+- [x] `lib/features/canvas/providers/my_node_provider.dart` — `MyNodeNotifier` Riverpod provider (신규)
+
+#### 온보딩 자동 설정
+- [x] `first_family_screen.dart` — 프로필 노드 생성 시 자동 `myNodeId` 저장
+
+#### 캔버스 시각적 구분
+- [x] `NodeCard` — "나" 뱃지 (좌상단, primary 색상) + primary 테두리 (2.0px)
+- [x] `NodeCardLod` — 모든 LOD 레벨 지원 (BirdEye: primary 색상 점, Overview: "나" 뱃지, Detail/Zoom: 전체)
+- [x] `canvas_screen.dart` — `myNodeNotifierProvider` 감시 → `isMe` 전달
+
+#### 노드 상세 "나로 설정" 버튼
+- [x] `node_detail_sheet.dart` — "나로 설정" / "나 설정 해제" GlassCard 버튼 + SnackBar 피드백
+
+#### 백업 공유 발신자 식별
+- [x] `BackupManifest.senderNodeId` — 필드 추가 (fromJson/toJson)
+- [x] `BackupService.createBackup()` — manifest에 `myNodeId` 자동 포함
+
+#### Debugger
+- [x] `flutter analyze` → 0 errors
+
+---
+
+### Batch 3 — 후속 기능 구현 (4 에이전트 병렬) ✅
+
+#### Teammate 1 — 꽃다발 리포트 + 슬라이드쇼 프리로드
+- [x] `bouquet_wrapped_screen.dart` — Spotify Wrapped 스타일 4페이지 (총 꽃/Top3/인기꽃/마무리)
+- [x] 라우터 등록 (`/bouquet-wrapped`) + 설정 화면 진입점
+- [x] 추모 슬라이드쇼 이미지 프리로드 (precacheImage, 다음 2장)
+
+#### Teammate 2 — 팔고조도(八高祖圖)
+- [x] `palgojodo_screen.dart` — 8세대 조상 바이너리 트리 시각화
+- [x] InteractiveViewer + CustomPainter (베지어 곡선 연결선)
+- [x] "나" 노드 기반 BFS 조상 탐색, 빈 슬롯 점선 원 표시
+- [x] 라우터 등록 (`/palgojodo`) + 설정 화면 진입점
+
+#### Teammate 3 — 제사 안내 + 자동 Ghost
+- [x] `ritual_guide_screen.dart` — 전통 제사 10단계 안내 + 차례 비교
+- [x] 라우터 등록 (`/ritual-guide`) + 설정/명절배너 진입점
+- [x] 자동 Ghost 생성 기본 활성화 (`_autoGhostParents = true`)
+
+#### Teammate 4 — 온도 히스토리 검증
+- [x] 온도 히스토리 완전 구현 확인 (TemperatureDiaryScreen + 그래프 + 일/주/월)
+- [x] 라우트/진입점 정상 작동 확인
+
+#### Debugger
+- [x] `flutter analyze` → 0 errors (기존 4 warning, 29 info)
+
+---
+
+### 바텀 네비게이션 메뉴 구조 개편 ✅ (2026-03-21)
+
+> 기존: 홈 / 이야기 / [+] / 보관함 / 설정 → 변경: 홈 / 기억 / 가족 / 탐색 / 설정
+
+#### 변경 사항
+- [x] 가운데 "+" 버튼 제거 (캔버스 FAB와 중복)
+- [x] "이야기" 탭 → "기억" 탭에 병합 (보관함 + 이야기 통합, 5탭: 이야기/전체/사진/음성/메모)
+- [x] "가족" 탭 신설 — `family_hub_screen.dart` (일상: 생일/효도/단어장/레시피, 공유: 초대/지도/꽃다발)
+- [x] "탐색" 탭 신설 — `explore_hub_screen.dart` (뿌리: 족보/팔고조도/성씨/제사, 특별: 캡슐/유언, 성과: 배지/리뷰/아트카드)
+- [x] 설정 화면 정리 — 14개 가족기록 항목 제거 (허브 이동), 내보내기/초대 섹션 제거, 순수 설정만 유지
+- [x] `app_router.dart` — ShellRoute 5탭 구조, `/family-hub` + `/explore-hub` 라우트 추가
+- [x] `archive_screen.dart` — 제목 "기억"으로 변경, 이야기 탭 통합 (StoryFeedNotifier 연동)
+- [x] `flutter analyze` → 0 errors (52 info/warning 기존)
+
+### 실기기 배포 ✅ (2026-03-21)
+- [x] iPhone Air — release 빌드 + 설치 완료
+- [x] iPad Pro 12.9" (6th gen) — release 빌드 + 설치 완료
+
+---
+
 ## v2.1 개발 우선순위 요약
 
 | 순위 | Phase | 기능 | 예상 기간 | 우선도 |
@@ -2575,11 +2732,11 @@
 | Phase 4d 성능 & 테스트 | 80% | ✅ 완료 (패키지 정리/QuadTree캐싱/통합테스트, DevTools는 실디바이스) |
 | Phase 4e 런치 준비 | 40% | 🔄 진행 중 (Android12스플래시/이용약관/Info.plist완료, TestFlight/스크린샷 대기) |
 | Phase 4f UX 고도화 | 100% | ✅ 완료 (Spring/Haptic/VoiceSpeed/FocusPanel/GhostAnim/VibeMeter/MergePreview) |
-| Phase 4g 실기기 테스트 | 90% | ✅ 버그 수정 + 실기기 설치 완료, 캔버스/UX 수정 반영 |
+| Phase 4g 실기기 테스트 | 100% | ✅ 버그 수정 + 실기기 설치 완료, 캔버스/UX 수정 반영 |
 | Phase 4h 디자인 문서 반영 | 100% | ✅ 완료 (색상/타이포/글래스/반경/모션 전면 교체) |
 | Phase 4i 화면별 UX 설계 | 100% | ✅ 완료 (온보딩/노드상세/TimeSlider토스트/Ghost 모두 완료) |
 | Phase 4j 라이트모드 & 관계선 | 95% | ✅ 완료 (라이트모드/엣지관리/부부스냅/돌아가신분 — 빌드/실기기 잔여) |
-| **전체 테스트** | **809/809** | ✅ 전체 통과 |
+| **전체 테스트** | **809/809+** | ✅ 전체 통과 (352개 신규 테스트 포함) |
 | **커버리지** | **81.1%+** | ✅ 목표 80% 달성 |
 
 ### v2.0 진행 현황
@@ -2595,3 +2752,4 @@
 | Phase 5g 인프라 & 전략 | 3개 | ✅ 3/3 완료 (프라이버시/피드백/오프라인퍼스트) |
 | **v2.0 전체** | **26개 기능** | ✅ 전체 완료 |
 | Phase 6 v2.1 추가 기능 | 4개 | ✅ 4/4 완료 (타임머신/아트카드/웰컴캡슐/변경로그) |
+| Phase 7 미구현 구현 | 30+ 항목 | ✅ Batch1(코드) + Batch2(테스트352개) + UX수정 + "나 설정" + 메뉴개편 |

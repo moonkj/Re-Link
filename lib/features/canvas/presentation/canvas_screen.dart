@@ -25,6 +25,7 @@ import '../../prompt/widgets/daily_prompt_card.dart';
 import '../../holiday/widgets/holiday_banner.dart';
 import '../../holiday/providers/holiday_notifier.dart';
 import '../../badges/providers/badge_notifier.dart';
+import '../providers/my_node_provider.dart';
 import '../../tree_growth/widgets/tree_growth_overlay.dart';
 import '../utils/quad_tree.dart';
 import '../utils/lod_utils.dart';
@@ -175,6 +176,9 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     final holidayState = ref.watch(holidayNotifierProvider).valueOrNull;
     final isHolidayActive = holidayState != null && holidayState.hasHoliday;
 
+    // "나" 노드 ID
+    final myNodeId = ref.watch(myNodeNotifierProvider).valueOrNull;
+
     // 겹치는 노드 자동 분산 (1회만 실행)
     if (!_didSpreadNodes && nodes.length > 1) {
       _didSpreadNodes = true;
@@ -293,6 +297,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                                 ? earnedBadgeIds
                                 : null,
                             showHolidayGlow: holidayGlowIds.contains(node.id),
+                            isMe: myNodeId == node.id,
                             onDragStarted: () =>
                                 setState(() {
                                   _draggingId = node.id;
@@ -441,7 +446,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
 
           // ── 데일리 프롬프트 카드 ────────────────────────────────────────
           Positioned(
-            top: 160, left: AppSpacing.lg, right: AppSpacing.lg,
+            top: 100, left: AppSpacing.lg, right: AppSpacing.lg,
             child: const DailyPromptCard(),
           ),
 
@@ -478,15 +483,16 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
           // ── Time Slider 이벤트 토스트 ──────────────────────────────────
           TimeEventToast(message: _timeEventMessage),
 
-          // ── Minimap (우하단) ─────────────────────────────────────────────
+          // ── Minimap (좌하단, 광고 위) ─────────────────────────────────────
           Positioned(
-            bottom: AppSpacing.xxl + 90,
+            bottom: AppSpacing.bottomNavHeight + 80,
             left: AppSpacing.lg,
             child: nodes.isEmpty
                 ? const SizedBox.shrink()
                 : MinimapWidget(
                     nodes: nodes,
                     transformationController: _transformCtrl,
+                    screenSize: MediaQuery.sizeOf(context),
                   ),
           ),
 
@@ -752,6 +758,7 @@ class _DraggableNodeCard extends StatefulWidget {
     required this.onDragEnded,
     this.earnedBadgeIds,
     this.showHolidayGlow = false,
+    this.isMe = false,
   });
 
   final NodeModel node;
@@ -772,6 +779,9 @@ class _DraggableNodeCard extends StatefulWidget {
 
   /// 명절 기간 조상 노드 glow 여부
   final bool showHolidayGlow;
+
+  /// 이 노드가 "나"인지 여부
+  final bool isMe;
 
   @override
   State<_DraggableNodeCard> createState() => _DraggableNodeCardState();
@@ -960,6 +970,7 @@ class _DraggableNodeCardState extends State<_DraggableNodeCard> {
                       : null,
                   earnedBadgeIds: widget.earnedBadgeIds,
                   showHolidayGlow: widget.showHolidayGlow,
+                  isMe: widget.isMe,
                 ),
               ),
             ),

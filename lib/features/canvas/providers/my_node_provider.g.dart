@@ -1,31 +1,28 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'birthday_notifier.dart';
+part of 'my_node_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$birthdayNotifierHash() => r'13e221efeb2132f1099b17e7d8fb9693ac03688c';
+String _$myNodeNotifierHash() => r'51e40957330790c260ae3d3f8318890f9a256485';
 
-/// 가족 생일 목록 프로바이더 — 다음 생일 기준 정렬
+/// 내 노드 ID 상태 관리
 ///
-/// Copied from [BirthdayNotifier].
-@ProviderFor(BirthdayNotifier)
-final birthdayNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<
-      BirthdayNotifier,
-      List<BirthdayEntry>
-    >.internal(
-      BirthdayNotifier.new,
-      name: r'birthdayNotifierProvider',
+/// Copied from [MyNodeNotifier].
+@ProviderFor(MyNodeNotifier)
+final myNodeNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<MyNodeNotifier, String?>.internal(
+      MyNodeNotifier.new,
+      name: r'myNodeNotifierProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
           ? null
-          : _$birthdayNotifierHash,
+          : _$myNodeNotifierHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
-typedef _$BirthdayNotifier = AutoDisposeAsyncNotifier<List<BirthdayEntry>>;
+typedef _$MyNodeNotifier = AutoDisposeAsyncNotifier<String?>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

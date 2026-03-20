@@ -9,6 +9,7 @@ import '../../../design/tokens/app_spacing.dart';
 import '../../../features/canvas/providers/node_notifier.dart';
 import '../../../shared/models/node_model.dart';
 import '../../../shared/repositories/profile_repository.dart';
+import '../../../shared/repositories/settings_repository.dart';
 
 /// 온보딩 Step 2 — 첫 가족 연결 화면
 /// 프로필 설정 후, 캔버스 진입 전에 최초 가족 구성원을 빠르게 추가
@@ -65,6 +66,8 @@ class _FirstFamilyScreenState extends ConsumerState<FirstFamilyScreen>
 
     if (mounted && node != null) {
       setState(() => _selfNode = node);
+      // "나" 노드로 자동 설정
+      await ref.read(settingsRepositoryProvider).setMyNodeId(node.id);
     }
   }
 

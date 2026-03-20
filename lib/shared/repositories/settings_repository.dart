@@ -123,6 +123,19 @@ class SettingsRepository {
   Future<void> setSpouseSnap(bool enabled) =>
       set(SettingsKey.spouseSnap, enabled.toString());
 
+  // ── 내 노드 ────────────────────────────────────────────────────────────────
+
+  Future<String?> getMyNodeId() async {
+    final v = await get(SettingsKey.myNodeId);
+    return (v == null || v.isEmpty) ? null : v;
+  }
+
+  Future<void> setMyNodeId(String nodeId) =>
+      set(SettingsKey.myNodeId, nodeId);
+
+  Future<void> clearMyNodeId() =>
+      set(SettingsKey.myNodeId, '');
+
   // ── 스트릭 ────────────────────────────────────────────────────────────────
 
   Future<int> getStreakCount() async {
