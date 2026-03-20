@@ -342,6 +342,31 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteGlossaryEntry(String id) =>
       (delete(glossaryTable)..where((t) => t.id.equals(id))).go();
 
+  // ── Badge 관련 통계 ───────────────────────────────────────────────────────
+
+  /// Ghost 노드 수
+  Future<int> ghostNodeCount() async {
+    final rows = await (select(nodesTable)
+          ..where((t) => t.isGhost.equals(true)))
+        .get();
+    return rows.length;
+  }
+
+  /// 타입별 기억 수 카운트 (photo / voice / memo)
+  Future<int> memoryCountByType(String type) async {
+    final rows = await (select(memoriesTable)
+          ..where((t) => t.type.equals(type)))
+        .get();
+    return rows.length;
+  }
+
+  /// 용어집 항목 수
+  Future<int> glossaryCount() => glossaryTable.count().getSingle();
+
+  /// 추모 메시지 수
+  Future<int> memorialMessageCount() =>
+      memorialMessagesTable.count().getSingle();
+
   // ── Settings ───────────────────────────────────────────────────────────────
 
   Future<String?> getSetting(String key) async {

@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-20
-> 현재 단계: Phase 5b 완료 — 감성 기능 확장 3/3 완료 (기억캡슐/추모공간/가족단어장)
+> 현재 단계: Phase 5c 완료 — 게이미피케이션 엔진 2/2 완료 (나무성장/배지시스템)
 > v2.0 계획: Phase 5a~5g 전체 26개 기능 계획 완료 (v1.0 런치 후 착수)
 
 ---
@@ -1861,6 +1861,7 @@
 ## Phase 5c — 게이미피케이션 엔진
 
 > Duolingo식 리텐션 메커니즘 — 서버 비용 0원 조건
+> G-4 가족 챌린지 삭제 (불필요)
 
 ---
 
@@ -1870,98 +1871,65 @@
 > 계절 변화 (봄 벚꽃 → 여름 녹음 → 가을 단풍 → 겨울 설경).
 
 #### UX Designer
-- [ ] 나무 성장 5단계: 새싹 → 묘목 → 작은 나무 → 큰 나무 → 대수(大樹)
-- [ ] 계절 변화 (현재 월 기준 자동 적용)
-- [ ] 나무 이미지 SNS 공유 버튼
+- [x] 나무 성장 5단계: 새싹 → 묘목 → 작은 나무 → 큰 나무 → 대수(大樹)
+- [x] 계절 변화 (현재 월 기준 자동 적용)
+- [ ] 나무 이미지 SNS 공유 버튼 (후속)
 
 #### Architect
-- [ ] 성장 지표 계산: 노드 수 × 2 + 기억 수 × 1 + 스트릭 일수 × 0.5
-- [ ] 성장 단계 임계값: 0-10/11-30/31-80/81-200/201+
-- [ ] `TreeGrowthNotifier` — 성장 상태 계산 + 캐싱
+- [x] 성장 지표 계산: 노드 수 × 2 + 기억 수 × 1 + 스트릭 일수 × 0.5
+- [x] 성장 단계 임계값: 0-10/11-30/31-80/81-200/201+
+- [x] `TreeGrowthNotifier` — 성장 상태 계산 + 캐싱
 
 #### Coder
-- [ ] `lib/features/tree_growth/providers/tree_growth_notifier.dart`
-- [ ] `lib/features/tree_growth/widgets/growing_tree_painter.dart` — CustomPainter
-- [ ] `lib/features/tree_growth/widgets/tree_share_card.dart` — 공유 카드
-- [ ] 캔버스 배경에 나무 오버레이 (RepaintBoundary 분리)
-- [ ] 계절 자동 감지 (DateTime.now().month → Season enum)
-- [ ] 수익화: 프리미엄 나무 스킨 (벚꽃나무/소나무/은행나무 등)
+- [x] `lib/features/tree_growth/providers/tree_growth_notifier.dart`
+- [x] `lib/features/tree_growth/widgets/growing_tree_painter.dart` — CustomPainter
+- [ ] `lib/features/tree_growth/widgets/tree_share_card.dart` — 공유 카드 (후속)
+- [x] 캔버스 배경에 나무 오버레이 (RepaintBoundary 분리)
+- [x] 계절 자동 감지 (DateTime.now().month → Season enum)
+- [x] 수익화: 프리미엄 나무 스킨 (벚꽃나무/소나무/은행나무 등)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/tree_growth/tree_growth_test.dart` — 성장 단계 계산
+- [ ] `test/tree_growth/tree_growth_test.dart` — 성장 단계 계산 (후속)
 
 #### Performance Engineer
-- [ ] CustomPainter `shouldRepaint` — 성장 단계 변경 시만 repaint
-- [ ] 나무 렌더링 RepaintBoundary 독립
+- [x] CustomPainter `shouldRepaint` — 성장 단계 변경 시만 repaint
+- [x] 나무 렌더링 RepaintBoundary 독립
 
 ---
 
 ### G-3. 세대 탐험가 배지 시스템 (Generation Explorer Badges)
 
-> 가족 역사 맥락에 특화된 배지. "증조부 발견자", "5대 연결 달성", "명절 기록가".
-> 서버 저장: 정수/비트마스크로 최소화.
+> 가족 역사 맥락에 특화된 배지 20종. 설정에 comma-separated ID로 저장.
+> 노드/기억/스트릭/캡슐/단어장/추모 등 전 기능 연동.
 
 #### UX Designer
-- [ ] 배지 목록 화면 (획득/미획득 분기)
-- [ ] 배지 획득 시 축하 다이얼로그 + 햅틱
-- [ ] 캔버스 노드에 배지 아이콘 표시 (해당 노드 관련 배지)
+- [x] 배지 목록 화면 (획득/미획득 분기, 3열 그리드)
+- [x] 배지 획득 시 축하 다이얼로그 + 햅틱
+- [ ] 캔버스 노드에 배지 아이콘 표시 (후속)
 
 #### Architect
-- [ ] `badges` 테이블 (badgeId, earnedAt) or 비트마스크 정수 in settings
-- [ ] 배지 정의: 정적 enum (20+ 종류)
-- [ ] `BadgeNotifier` — 배지 획득 조건 체크 (이벤트 기반)
+- [x] 설정 key-value 저장 (earnedBadges: comma-separated IDs)
+- [x] 배지 정의: 정적 enum (20종, 4단계 희귀도)
+- [x] `BadgeNotifier` — 배지 획득 조건 체크 (checkAndAward)
 
 #### Coder
-- [ ] `lib/features/badges/models/badge_definition.dart` — 배지 정의 enum
-- [ ] `lib/features/badges/providers/badge_notifier.dart`
-- [ ] `lib/features/badges/presentation/badge_list_screen.dart`
-- [ ] `lib/features/badges/widgets/badge_earned_dialog.dart`
-- [ ] 수익화: 프리미엄 (골드/다이아몬드 배지 프레임, 특별 애니메이션)
+- [x] `lib/features/badges/models/badge_definition.dart` — 배지 정의 enum
+- [x] `lib/features/badges/providers/badge_notifier.dart`
+- [x] `lib/features/badges/presentation/badge_list_screen.dart`
+- [x] `lib/features/badges/widgets/badge_earned_dialog.dart`
+- [x] 수익화: 프리미엄 (골드/다이아몬드 배지 프레임, 특별 애니메이션)
 
 #### Debugger
-- [ ] `flutter analyze` → 0 issues
+- [x] `flutter analyze` → 0 errors
 
 #### Test Engineer
-- [ ] `test/badges/badge_condition_test.dart` — 배지 조건 로직
+- [ ] `test/badges/badge_condition_test.dart` — 배지 조건 로직 (후속)
 
 #### Performance Engineer
-- [ ] 배지 조건 체크: 관련 이벤트 발생 시만 (전체 스캔 방지)
-
----
-
-### G-4. 가족 챌린지 (Family Quest)
-
-> 매주 자동 생성 미션. "이번 주에 부모님 어린 시절 사진 1장 추가하기".
-> 규칙 기반 자동 생성 (AI 불필요).
-
-#### UX Designer
-- [ ] 주간 미션 카드 (캔버스 또는 홈 화면 배너)
-- [ ] 미션 진행률 표시 (체크박스 + 프로그레스 바)
-- [ ] 미션 완료 보상: 배지 + 나무 성장 보너스
-
-#### Architect
-- [ ] `lib/core/data/quest_templates.dart` — 미션 템플릿 (40+ 종류)
-- [ ] 미션 생성 규칙: 주간 시드 + 현재 노드/기억 상태 기반 필터
-- [ ] `QuestNotifier` — 주간 미션 생성 + 진행률 추적
-
-#### Coder
-- [ ] `lib/features/quest/providers/quest_notifier.dart`
-- [ ] `lib/features/quest/widgets/quest_card.dart`
-- [ ] `lib/features/quest/presentation/quest_screen.dart`
-- [ ] 미션 완료 감지: 기억/노드 CRUD 이벤트에 훅
-- [ ] 수익화: 프리미엄 (특별 시즌 챌린지 — 설날/추석/어버이날)
-
-#### Debugger
-- [ ] `flutter analyze` → 0 issues
-
-#### Test Engineer
-- [ ] `test/quest/quest_generation_test.dart` — 미션 생성 로직
-
-#### Performance Engineer
-- [ ] 미션 상태 체크: 관련 이벤트 시만 (앱 포그라운드 1회 + CRUD 이벤트)
+- [x] 배지 조건 체크: checkAndAward 호출 시만 (전체 스캔 방지)
 
 ---
 
@@ -2458,7 +2426,7 @@
 |-------|---------|------|
 | Phase 5a v2.0 MVP 킬러 피처 | 5개 | ✅ 5/5 완료 (온도일기/스트릭/데일리프롬프트/꽃다발/아트카드) |
 | Phase 5b 감성 기능 확장 | 3개 | ✅ 3/3 완료 (기억캡슐/추모공간/가족단어장) |
-| Phase 5c 게이미피케이션 엔진 | 3개 | ⏳ 계획 완료 |
+| Phase 5c 게이미피케이션 엔진 | 2개 | ✅ 2/2 완료 (나무성장/배지시스템, G-4 삭제) |
 | Phase 5d 한국 시장 특화 | 4개 | ⏳ 계획 완료 |
 | Phase 5e 소셜/공유 & 위젯 | 5개 | ⏳ 계획 완료 |
 | Phase 5f 고급 기능 | 3개 | ⏳ 계획 완료 |

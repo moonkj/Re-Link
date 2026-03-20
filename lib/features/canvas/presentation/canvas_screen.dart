@@ -22,6 +22,7 @@ import '../../settings/providers/spouse_snap_notifier.dart';
 import '../../streak/providers/streak_notifier.dart';
 import '../../streak/widgets/streak_badge.dart';
 import '../../prompt/widgets/daily_prompt_card.dart';
+import '../../tree_growth/widgets/tree_growth_overlay.dart';
 import '../utils/quad_tree.dart';
 import '../utils/lod_utils.dart';
 import '../utils/generation_utils.dart';
@@ -212,6 +213,14 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
               height: 4000,
               child: Stack(
                 children: [
+                  // 가족 나무 성장 배경 (캔버스 하단 중앙)
+                  const Positioned(
+                    bottom: 200,
+                    left: 0,
+                    right: 0,
+                    child: Center(child: TreeGrowthOverlay()),
+                  ),
+
                   // 관계선 레이어 — 데이터 변경 시만 재페인트 (RepaintBoundary 분리)
                   Positioned.fill(
                     child: RepaintBoundary(

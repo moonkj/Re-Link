@@ -20,6 +20,7 @@ import '../../features/temperature/presentation/temperature_diary_screen.dart';
 import '../../features/memorial/presentation/memorial_screen.dart';
 import '../../features/capsule/presentation/capsule_list_screen.dart';
 import '../../features/glossary/presentation/glossary_screen.dart';
+import '../../features/badges/presentation/badge_list_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
 import '../../shared/widgets/ad_banner_widget.dart';
 
@@ -44,6 +45,7 @@ abstract final class AppRoutes {
   static const String memorial = '/memorial/:nodeId';
   static const String capsules = '/capsules';
   static const String glossary = '/glossary';
+  static const String badges = '/badges';
 
   static String memoryPath(String nodeId) => '/memory/$nodeId';
   static String temperatureDiaryPath(String nodeId) =>
@@ -159,6 +161,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.glossary,
         builder: (_, s) => const GlossaryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.badges,
+        builder: (_, s) => const BadgeListScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

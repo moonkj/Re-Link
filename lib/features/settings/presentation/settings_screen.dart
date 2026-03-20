@@ -791,6 +791,20 @@ class _FamilyRecordSection extends StatelessWidget {
                       builder: (_) => const CapsuleListScreen()),
                 ),
               ),
+              Divider(color: AppColors.glassBorder, height: 1),
+              ListTile(
+                leading: const Icon(Icons.emoji_events_outlined,
+                    color: AppColors.primary),
+                title: Text('배지 컬렉션',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: Text('가족 기록 활동으로 배지 획득',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                trailing:
+                    Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                onTap: () => context.push(AppRoutes.badges),
+              ),
             ],
           ),
         ),

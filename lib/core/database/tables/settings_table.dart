@@ -44,6 +44,12 @@ abstract final class SettingsKey {
   static const String streakFreezeCount = 'streak_freeze_count'; // int as string
   static const String streakFreezeUsedMonth = 'streak_freeze_used_month'; // YYYY-MM
 
+  // ── 배지 ─────────────────────────────────────────────────────────────────
+  static const String earnedBadges = 'earned_badges'; // comma-separated badge IDs
+
   // ── 데일리 프롬프트 ──────────────────────────────────────────────────────
   static const String dailyPromptDismissedDate = 'daily_prompt_dismissed_date'; // YYYY-MM-DD
+
+  // ── 가족 나무 성장 ──────────────────────────────────────────────────────
+  static const String treeGrowthStage = 'tree_growth_stage'; // sprout / sapling / smallTree / bigTree / grandTree
 }
