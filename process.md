@@ -2801,6 +2801,26 @@
 
 ---
 
+### 가족 일정 추가 기능 ✅ (2026-03-21)
+
+#### DB + 모델
+- [x] `family_events_table.dart` — Drift 테이블 (id, title, description, eventDate, isYearly, colorValue, createdAt)
+- [x] `family_event_model.dart` — D-day 계산, 매년 반복, 컬러 지원
+- [x] `family_event_repository.dart` — CRUD + Riverpod provider
+- [x] `app_database.dart` — FamilyEvents 테이블 추가 + 마이그레이션
+
+#### UI
+- [x] `add_event_sheet.dart` — 일정 추가 바텀시트 (이름, 메모, 날짜, 매년 반복, 6색 컬러 팔레트)
+- [x] `birthday_calendar_section.dart` — 달력 위에 "가족 달력" 라벨 + "일정 추가" 버튼 배치
+- [x] 달력에 생일(산호) + 일정(커스텀 컬러) 도트 통합 표시
+- [x] "다가오는 일정" D-day 타일 (삭제 기능 포함)
+- [x] "다가오는 생일" D-day 섹션 제거 (가족 생일 화면에서 확인 가능)
+
+#### Provider
+- [x] `family_event_notifier.dart` — Riverpod AsyncNotifier (addEvent, deleteEvent)
+
+---
+
 ## v2.1 개발 우선순위 요약
 
 | 순위 | Phase | 기능 | 예상 기간 | 우선도 |

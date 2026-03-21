@@ -9,6 +9,7 @@ import '../../../shared/models/node_model.dart';
 import '../../../shared/widgets/section_label.dart';
 import '../providers/canvas_notifier.dart';
 import '../providers/my_node_provider.dart';
+import '../widgets/birthday_calendar_section.dart';
 import '../widgets/node_detail_sheet.dart';
 
 /// 가족 목록 (섹션별 리스트 뷰) — 캔버스의 대체 보기 모드
@@ -160,8 +161,11 @@ class FamilyListView extends ConsumerWidget {
         .where((kind) => (groups[kind] ?? []).isNotEmpty)
         .toList();
 
-    // 위젯 목록: 섹션 헤더 + 멤버 타일을 번갈아 추가
-    final items = <Widget>[];
+    // 위젯 목록: 생일 달력 + 섹션 헤더 + 멤버 타일
+    final items = <Widget>[
+      const BirthdayCalendarSection(),
+      const SizedBox(height: AppSpacing.lg),
+    ];
     for (final kind in activeSections) {
       final members = groups[kind]!;
       // 섹션 헤더

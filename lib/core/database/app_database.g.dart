@@ -6706,6 +6706,524 @@ class ThenNowTableCompanion extends UpdateCompanion<ThenNowTableData> {
   }
 }
 
+class $FamilyEventsTableTable extends FamilyEventsTable
+    with TableInfo<$FamilyEventsTableTable, FamilyEventsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FamilyEventsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 200,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _eventDateMeta = const VerificationMeta(
+    'eventDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> eventDate = GeneratedColumn<DateTime>(
+    'event_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isYearlyMeta = const VerificationMeta(
+    'isYearly',
+  );
+  @override
+  late final GeneratedColumn<bool> isYearly = GeneratedColumn<bool>(
+    'is_yearly',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_yearly" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _colorHexMeta = const VerificationMeta(
+    'colorHex',
+  );
+  @override
+  late final GeneratedColumn<String> colorHex = GeneratedColumn<String>(
+    'color_hex',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('#8B5CF6'),
+  );
+  static const VerificationMeta _nodeIdMeta = const VerificationMeta('nodeId');
+  @override
+  late final GeneratedColumn<String> nodeId = GeneratedColumn<String>(
+    'node_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    title,
+    description,
+    eventDate,
+    isYearly,
+    colorHex,
+    nodeId,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'family_events';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FamilyEventsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('event_date')) {
+      context.handle(
+        _eventDateMeta,
+        eventDate.isAcceptableOrUnknown(data['event_date']!, _eventDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_eventDateMeta);
+    }
+    if (data.containsKey('is_yearly')) {
+      context.handle(
+        _isYearlyMeta,
+        isYearly.isAcceptableOrUnknown(data['is_yearly']!, _isYearlyMeta),
+      );
+    }
+    if (data.containsKey('color_hex')) {
+      context.handle(
+        _colorHexMeta,
+        colorHex.isAcceptableOrUnknown(data['color_hex']!, _colorHexMeta),
+      );
+    }
+    if (data.containsKey('node_id')) {
+      context.handle(
+        _nodeIdMeta,
+        nodeId.isAcceptableOrUnknown(data['node_id']!, _nodeIdMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FamilyEventsTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FamilyEventsTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      eventDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}event_date'],
+      )!,
+      isYearly: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_yearly'],
+      )!,
+      colorHex: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color_hex'],
+      )!,
+      nodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}node_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FamilyEventsTableTable createAlias(String alias) {
+    return $FamilyEventsTableTable(attachedDatabase, alias);
+  }
+}
+
+class FamilyEventsTableData extends DataClass
+    implements Insertable<FamilyEventsTableData> {
+  final String id;
+  final String title;
+  final String? description;
+  final DateTime eventDate;
+  final bool isYearly;
+  final String colorHex;
+  final String? nodeId;
+  final DateTime createdAt;
+  const FamilyEventsTableData({
+    required this.id,
+    required this.title,
+    this.description,
+    required this.eventDate,
+    required this.isYearly,
+    required this.colorHex,
+    this.nodeId,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['event_date'] = Variable<DateTime>(eventDate);
+    map['is_yearly'] = Variable<bool>(isYearly);
+    map['color_hex'] = Variable<String>(colorHex);
+    if (!nullToAbsent || nodeId != null) {
+      map['node_id'] = Variable<String>(nodeId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  FamilyEventsTableCompanion toCompanion(bool nullToAbsent) {
+    return FamilyEventsTableCompanion(
+      id: Value(id),
+      title: Value(title),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      eventDate: Value(eventDate),
+      isYearly: Value(isYearly),
+      colorHex: Value(colorHex),
+      nodeId: nodeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nodeId),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory FamilyEventsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FamilyEventsTableData(
+      id: serializer.fromJson<String>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      description: serializer.fromJson<String?>(json['description']),
+      eventDate: serializer.fromJson<DateTime>(json['eventDate']),
+      isYearly: serializer.fromJson<bool>(json['isYearly']),
+      colorHex: serializer.fromJson<String>(json['colorHex']),
+      nodeId: serializer.fromJson<String?>(json['nodeId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'title': serializer.toJson<String>(title),
+      'description': serializer.toJson<String?>(description),
+      'eventDate': serializer.toJson<DateTime>(eventDate),
+      'isYearly': serializer.toJson<bool>(isYearly),
+      'colorHex': serializer.toJson<String>(colorHex),
+      'nodeId': serializer.toJson<String?>(nodeId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  FamilyEventsTableData copyWith({
+    String? id,
+    String? title,
+    Value<String?> description = const Value.absent(),
+    DateTime? eventDate,
+    bool? isYearly,
+    String? colorHex,
+    Value<String?> nodeId = const Value.absent(),
+    DateTime? createdAt,
+  }) => FamilyEventsTableData(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    description: description.present ? description.value : this.description,
+    eventDate: eventDate ?? this.eventDate,
+    isYearly: isYearly ?? this.isYearly,
+    colorHex: colorHex ?? this.colorHex,
+    nodeId: nodeId.present ? nodeId.value : this.nodeId,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  FamilyEventsTableData copyWithCompanion(FamilyEventsTableCompanion data) {
+    return FamilyEventsTableData(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      eventDate: data.eventDate.present ? data.eventDate.value : this.eventDate,
+      isYearly: data.isYearly.present ? data.isYearly.value : this.isYearly,
+      colorHex: data.colorHex.present ? data.colorHex.value : this.colorHex,
+      nodeId: data.nodeId.present ? data.nodeId.value : this.nodeId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilyEventsTableData(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('eventDate: $eventDate, ')
+          ..write('isYearly: $isYearly, ')
+          ..write('colorHex: $colorHex, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    title,
+    description,
+    eventDate,
+    isYearly,
+    colorHex,
+    nodeId,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FamilyEventsTableData &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.description == this.description &&
+          other.eventDate == this.eventDate &&
+          other.isYearly == this.isYearly &&
+          other.colorHex == this.colorHex &&
+          other.nodeId == this.nodeId &&
+          other.createdAt == this.createdAt);
+}
+
+class FamilyEventsTableCompanion
+    extends UpdateCompanion<FamilyEventsTableData> {
+  final Value<String> id;
+  final Value<String> title;
+  final Value<String?> description;
+  final Value<DateTime> eventDate;
+  final Value<bool> isYearly;
+  final Value<String> colorHex;
+  final Value<String?> nodeId;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const FamilyEventsTableCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
+    this.eventDate = const Value.absent(),
+    this.isYearly = const Value.absent(),
+    this.colorHex = const Value.absent(),
+    this.nodeId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FamilyEventsTableCompanion.insert({
+    required String id,
+    required String title,
+    this.description = const Value.absent(),
+    required DateTime eventDate,
+    this.isYearly = const Value.absent(),
+    this.colorHex = const Value.absent(),
+    this.nodeId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       title = Value(title),
+       eventDate = Value(eventDate);
+  static Insertable<FamilyEventsTableData> custom({
+    Expression<String>? id,
+    Expression<String>? title,
+    Expression<String>? description,
+    Expression<DateTime>? eventDate,
+    Expression<bool>? isYearly,
+    Expression<String>? colorHex,
+    Expression<String>? nodeId,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
+      if (eventDate != null) 'event_date': eventDate,
+      if (isYearly != null) 'is_yearly': isYearly,
+      if (colorHex != null) 'color_hex': colorHex,
+      if (nodeId != null) 'node_id': nodeId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FamilyEventsTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? title,
+    Value<String?>? description,
+    Value<DateTime>? eventDate,
+    Value<bool>? isYearly,
+    Value<String>? colorHex,
+    Value<String?>? nodeId,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return FamilyEventsTableCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      eventDate: eventDate ?? this.eventDate,
+      isYearly: isYearly ?? this.isYearly,
+      colorHex: colorHex ?? this.colorHex,
+      nodeId: nodeId ?? this.nodeId,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (eventDate.present) {
+      map['event_date'] = Variable<DateTime>(eventDate.value);
+    }
+    if (isYearly.present) {
+      map['is_yearly'] = Variable<bool>(isYearly.value);
+    }
+    if (colorHex.present) {
+      map['color_hex'] = Variable<String>(colorHex.value);
+    }
+    if (nodeId.present) {
+      map['node_id'] = Variable<String>(nodeId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilyEventsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('eventDate: $eventDate, ')
+          ..write('isYearly: $isYearly, ')
+          ..write('colorHex: $colorHex, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -6729,6 +7247,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $ThenNowTableTable thenNowTable = $ThenNowTableTable(this);
+  late final $FamilyEventsTableTable familyEventsTable =
+      $FamilyEventsTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -6748,6 +7268,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     nodeLocationsTable,
     voiceLegacyTable,
     thenNowTable,
+    familyEventsTable,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -10735,6 +11256,278 @@ typedef $$ThenNowTableTableProcessedTableManager =
       ThenNowTableData,
       PrefetchHooks Function()
     >;
+typedef $$FamilyEventsTableTableCreateCompanionBuilder =
+    FamilyEventsTableCompanion Function({
+      required String id,
+      required String title,
+      Value<String?> description,
+      required DateTime eventDate,
+      Value<bool> isYearly,
+      Value<String> colorHex,
+      Value<String?> nodeId,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$FamilyEventsTableTableUpdateCompanionBuilder =
+    FamilyEventsTableCompanion Function({
+      Value<String> id,
+      Value<String> title,
+      Value<String?> description,
+      Value<DateTime> eventDate,
+      Value<bool> isYearly,
+      Value<String> colorHex,
+      Value<String?> nodeId,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$FamilyEventsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $FamilyEventsTableTable> {
+  $$FamilyEventsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get eventDate => $composableBuilder(
+    column: $table.eventDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isYearly => $composableBuilder(
+    column: $table.isYearly,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get colorHex => $composableBuilder(
+    column: $table.colorHex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nodeId => $composableBuilder(
+    column: $table.nodeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FamilyEventsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $FamilyEventsTableTable> {
+  $$FamilyEventsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get eventDate => $composableBuilder(
+    column: $table.eventDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isYearly => $composableBuilder(
+    column: $table.isYearly,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get colorHex => $composableBuilder(
+    column: $table.colorHex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nodeId => $composableBuilder(
+    column: $table.nodeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FamilyEventsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FamilyEventsTableTable> {
+  $$FamilyEventsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get eventDate =>
+      $composableBuilder(column: $table.eventDate, builder: (column) => column);
+
+  GeneratedColumn<bool> get isYearly =>
+      $composableBuilder(column: $table.isYearly, builder: (column) => column);
+
+  GeneratedColumn<String> get colorHex =>
+      $composableBuilder(column: $table.colorHex, builder: (column) => column);
+
+  GeneratedColumn<String> get nodeId =>
+      $composableBuilder(column: $table.nodeId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$FamilyEventsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FamilyEventsTableTable,
+          FamilyEventsTableData,
+          $$FamilyEventsTableTableFilterComposer,
+          $$FamilyEventsTableTableOrderingComposer,
+          $$FamilyEventsTableTableAnnotationComposer,
+          $$FamilyEventsTableTableCreateCompanionBuilder,
+          $$FamilyEventsTableTableUpdateCompanionBuilder,
+          (
+            FamilyEventsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $FamilyEventsTableTable,
+              FamilyEventsTableData
+            >,
+          ),
+          FamilyEventsTableData,
+          PrefetchHooks Function()
+        > {
+  $$FamilyEventsTableTableTableManager(
+    _$AppDatabase db,
+    $FamilyEventsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FamilyEventsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FamilyEventsTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FamilyEventsTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<DateTime> eventDate = const Value.absent(),
+                Value<bool> isYearly = const Value.absent(),
+                Value<String> colorHex = const Value.absent(),
+                Value<String?> nodeId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FamilyEventsTableCompanion(
+                id: id,
+                title: title,
+                description: description,
+                eventDate: eventDate,
+                isYearly: isYearly,
+                colorHex: colorHex,
+                nodeId: nodeId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String title,
+                Value<String?> description = const Value.absent(),
+                required DateTime eventDate,
+                Value<bool> isYearly = const Value.absent(),
+                Value<String> colorHex = const Value.absent(),
+                Value<String?> nodeId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FamilyEventsTableCompanion.insert(
+                id: id,
+                title: title,
+                description: description,
+                eventDate: eventDate,
+                isYearly: isYearly,
+                colorHex: colorHex,
+                nodeId: nodeId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FamilyEventsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FamilyEventsTableTable,
+      FamilyEventsTableData,
+      $$FamilyEventsTableTableFilterComposer,
+      $$FamilyEventsTableTableOrderingComposer,
+      $$FamilyEventsTableTableAnnotationComposer,
+      $$FamilyEventsTableTableCreateCompanionBuilder,
+      $$FamilyEventsTableTableUpdateCompanionBuilder,
+      (
+        FamilyEventsTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $FamilyEventsTableTable,
+          FamilyEventsTableData
+        >,
+      ),
+      FamilyEventsTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -10767,4 +11560,6 @@ class $AppDatabaseManager {
       $$VoiceLegacyTableTableTableManager(_db, _db.voiceLegacyTable);
   $$ThenNowTableTableTableManager get thenNowTable =>
       $$ThenNowTableTableTableManager(_db, _db.thenNowTable);
+  $$FamilyEventsTableTableTableManager get familyEventsTable =>
+      $$FamilyEventsTableTableTableManager(_db, _db.familyEventsTable);
 }

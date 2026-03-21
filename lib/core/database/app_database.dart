@@ -16,6 +16,7 @@ import 'tables/recipes_table.dart';
 import 'tables/node_locations_table.dart';
 import 'tables/voice_legacy_table.dart';
 import 'tables/then_now_table.dart';
+import 'tables/family_events_table.dart';
 
 part 'app_database.g.dart';
 
@@ -34,6 +35,7 @@ part 'app_database.g.dart';
   NodeLocationsTable,
   VoiceLegacyTable,
   ThenNowTable,
+  FamilyEventsTable,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -46,7 +48,7 @@ class AppDatabase extends _$AppDatabase {
       : super(NativeDatabase(File(path)));
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -91,6 +93,10 @@ class AppDatabase extends _$AppDatabase {
           // v5 → v6: then_now (Then & Now 비교 페어)
           if (from < 6) {
             await m.createTable(thenNowTable);
+          }
+          // v6 → v7: family_events (가족 일정)
+          if (from < 7) {
+            await m.createTable(familyEventsTable);
           }
         },
       );
@@ -471,6 +477,24 @@ class AppDatabase extends _$AppDatabase {
       (delete(thenNowTable)..where((t) => t.id.equals(id))).go();
 
   Future<int> thenNowCount() => thenNowTable.count().getSingle();
+
+  // ── Family Events (가족 일정) ─────────────────────────────────────────────
+
+  Future<void> upsertFamilyEvent(FamilyEventsTableCompanion event) =>
+      into(familyEventsTable).insertOnConflictUpdate(event);
+
+  Stream<List<FamilyEventsTableData>> watchAllFamilyEvents() =>
+      (select(familyEventsTable)
+            ..orderBy([(t) => OrderingTerm.asc(t.eventDate)]))
+          .watch();
+
+  Future<List<FamilyEventsTableData>> getAllFamilyEvents() =>
+      (select(familyEventsTable)
+            ..orderBy([(t) => OrderingTerm.asc(t.eventDate)]))
+          .get();
+
+  Future<int> deleteFamilyEvent(String id) =>
+      (delete(familyEventsTable)..where((t) => t.id.equals(id))).go();
 
   // ── Settings ───────────────────────────────────────────────────────────────
 
