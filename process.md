@@ -2987,6 +2987,7 @@
 | Phase 8 UX/UI 리디자인 | 20+ 항목 | ✅ Gen Z 디자인 + 엣지수정 + 나무성장 + 미니맵 + LOD |
 | Phase 9 영상/공개비공개/구독 | 30+ 항목 | ✅ 영상기억 + video_thumbnail + _PrivacyPill + 구독수정 |
 | Phase 10 로그인 + 클라우드동기화 | 40+ 항목 | ✅ Apple/Google Sign-In + Cloudflare Workers + D1 동기화 + R2 미디어 |
+| Phase 11 UI 연동 + 자동 동기화 | 20+ 항목 | ✅ 설정계정섹션 + 가족탭클라우드 + 딥링크 + 구독로그인유도 + 자동sync |
 
 ---
 
