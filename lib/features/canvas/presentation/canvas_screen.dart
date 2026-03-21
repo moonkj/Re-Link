@@ -26,6 +26,7 @@ import '../../prompt/widgets/daily_prompt_card.dart';
 import '../../holiday/widgets/holiday_banner.dart';
 import '../../holiday/providers/holiday_notifier.dart';
 import '../../badges/providers/badge_notifier.dart';
+import '../../badges/widgets/badge_earned_dialog.dart';
 import '../providers/my_node_provider.dart';
 import '../../tree_growth/widgets/tree_growth_overlay.dart';
 import '../utils/quad_tree.dart';
@@ -76,6 +77,17 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
       } catch (_) {
         // provider 초기화 미완료 시 무시
       }
+      // 배지 조건 확인 (앱 진입 시)
+      try {
+        ref.read(badgeNotifierProvider.notifier).checkAndAward().then((newBadges) {
+          if (newBadges.isNotEmpty && mounted) {
+            showDialog(
+              context: context,
+              builder: (_) => BadgeEarnedDialog(badge: newBadges.first),
+            );
+          }
+        }).catchError((_) {});
+      } catch (_) {}
     });
   }
 
@@ -87,6 +99,10 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
 
   /// BFS 세대 깊이 캐시 (노드/엣지 변경 시 갱신)
   Map<String, int> _generations = {};
+
+  /// computeGenerations 입력 캐시 (동일 입력이면 재계산 스킵)
+  List<NodeModel>? _lastGenNodes;
+  List<NodeEdge>? _lastGenEdges;
 
   @override
   void dispose() {
@@ -226,8 +242,12 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
       });
     }
 
-    // 세대 깊이 갱신 (nodes/edges 변경 시 build 재호출됨)
-    _generations = computeGenerations(nodes: nodes, edges: edges);
+    // 세대 깊이 갱신 (nodes/edges 변경 시만 재계산)
+    if (!identical(nodes, _lastGenNodes) || !identical(edges, _lastGenEdges)) {
+      _generations = computeGenerations(nodes: nodes, edges: edges);
+      _lastGenNodes = nodes;
+      _lastGenEdges = edges;
+    }
 
     // Time Slider 연도 변경 감지 → 이벤트 토스트
     final currentSliderYear = canvasState.timeSliderYear;
@@ -355,9 +375,25 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                               });
                               final snapOn = ref.read(spouseSnapNotifierProvider).valueOrNull ?? true;
                               final pos = snapOn ? _spouseSnap(node.id, dx, dy, canvasState) : Offset(dx, dy);
-                              // 겹침 감지 → 자동 밀어내기
+
+                              // snap이 발생했으면 배우자는 겹침 검사에서 제외
+                              String? snapSpouseId;
+                              if (snapOn && (pos.dx != dx || pos.dy != dy)) {
+                                final spouseEdge = canvasState.edges.where((e) =>
+                                    e.relation == RelationType.spouse &&
+                                    (e.fromNodeId == node.id || e.toNodeId == node.id),
+                                ).firstOrNull;
+                                if (spouseEdge != null) {
+                                  snapSpouseId = spouseEdge.fromNodeId == node.id
+                                      ? spouseEdge.toNodeId
+                                      : spouseEdge.fromNodeId;
+                                }
+                              }
+
+                              // 겹침 감지 → 자동 밀어내기 (배우자 제외)
                               final resolved = _resolveDropOverlap(
                                 node.id, pos.dx, pos.dy, nodes,
+                                skipNodeId: snapSpouseId,
                               );
                               await ref.read(canvasNotifierProvider.notifier).saveNodePosition(node.id, resolved.dx, resolved.dy);
                             },
@@ -670,6 +706,14 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
           );
       if (edge != null && mounted) {
         HapticService.connectionMade();
+        // 관계 추가 후 배지 조건 재확인
+        final newBadges = await ref.read(badgeNotifierProvider.notifier).checkAndAward();
+        if (newBadges.isNotEmpty && mounted) {
+          showDialog(
+            context: context,
+            builder: (_) => BadgeEarnedDialog(badge: newBadges.first),
+          );
+        }
       }
     } else if (result is RelationDeleted && existingEdge != null) {
       await ref.read(nodeNotifierProvider.notifier).deleteEdge(existingEdge.id);
@@ -712,7 +756,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     String nodeId, double x, double y, CanvasState state,
   ) {
     const snapDistance = 200.0;
-    const snapGap = 130.0; // 노드 가로 폭 + 약간의 간격
+    const snapGap = 160.0; // 노드 가로 폭(110) + 50px 간격 (레이블 공간 확보)
 
     // 이 노드의 배우자 엣지 찾기
     final spouseEdge = state.edges.where((e) =>
@@ -744,8 +788,10 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
   }
 
   /// 드래그 드롭 후 겹침 감지 → 가장 가까운 빈 자리로 밀어내기
+  /// [skipNodeId]: 자석 스냅으로 의도적으로 붙인 배우자 등 겹침 검사 제외 대상
   Offset _resolveDropOverlap(
     String droppedId, double x, double y, List<NodeModel> nodes,
+    {String? skipNodeId}
   ) {
     const minDx = 140.0;
     const minDy = 160.0;
@@ -757,6 +803,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     for (int attempt = 0; attempt < 20; attempt++) {
       final overlap = nodes.any((n) =>
           n.id != droppedId &&
+          n.id != skipNodeId &&
           (n.positionX - newX).abs() < minDx &&
           (n.positionY - newY).abs() < minDy);
       if (!overlap) return Offset(newX, newY);
@@ -766,20 +813,22 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
       double pushDx = minDx;
       double pushDy = 0;
       for (final n in nodes) {
-        if (n.id == droppedId) continue;
+        if (n.id == droppedId || n.id == skipNodeId) continue;
         final dx = newX - n.positionX;
         final dy = newY - n.positionY;
         if (dx.abs() < minDx && dy.abs() < minDy) {
           final dist = dx * dx + dy * dy;
           if (dist < bestDist) {
             bestDist = dist;
-            // 가장 짧은 축 방향으로 밀어내기
-            if (dx.abs() <= dy.abs()) {
-              pushDx = (dx >= 0 ? minDx - dx.abs() : -(minDx - dx.abs())) + (dx >= 0 ? 5 : -5);
+            // 겹침이 적은 축 방향으로 밀어내기
+            final overlapX = minDx - dx.abs();
+            final overlapY = minDy - dy.abs();
+            if (overlapX <= overlapY) {
+              pushDx = (dx >= 0 ? overlapX : -overlapX) + (dx >= 0 ? 5 : -5);
               pushDy = 0;
             } else {
               pushDx = 0;
-              pushDy = (dy >= 0 ? minDy - dy.abs() : -(minDy - dy.abs())) + (dy >= 0 ? 5 : -5);
+              pushDy = (dy >= 0 ? overlapY : -overlapY) + (dy >= 0 ? 5 : -5);
             }
           }
         }
@@ -823,6 +872,16 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
         initialPositionY: newY.clamp(100, 3800),
       ),
     );
+    // 노드 추가 후 배지 조건 재확인
+    if (mounted) {
+      final newBadges = await ref.read(badgeNotifierProvider.notifier).checkAndAward();
+      if (newBadges.isNotEmpty && mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => BadgeEarnedDialog(badge: newBadges.first),
+        );
+      }
+    }
   }
 
   void _resetZoom() {

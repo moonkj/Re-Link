@@ -4,6 +4,8 @@ import '../../../core/utils/haptic_service.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
+import '../../badges/providers/badge_notifier.dart';
+import '../../badges/widgets/badge_earned_dialog.dart';
 import '../providers/memorial_notifier.dart';
 
 /// 추모 메시지 작성 바텀시트
@@ -55,6 +57,15 @@ class _AddMemorialSheetState extends ConsumerState<AddMemorialSheet> {
     setState(() => _isSaving = false);
 
     if (id != null) {
+      // 배지 조건 확인
+      final newBadges = await ref.read(badgeNotifierProvider.notifier).checkAndAward();
+      if (newBadges.isNotEmpty && mounted) {
+        await showDialog(
+          context: context,
+          builder: (_) => BadgeEarnedDialog(badge: newBadges.first),
+        );
+      }
+      if (!mounted) return;
       Navigator.of(context).pop(true);
     }
   }

@@ -110,11 +110,8 @@ class _RestoreDetectScreenState extends ConsumerState<RestoreDetectScreen>
 
   void _goToNotFound() {
     if (!mounted) return;
-    setState(() => _state = _DetectState.notFound);
-    // 3초 후 자동 이동
-    _autoNavTimer = Timer(const Duration(seconds: 3), () {
-      if (mounted) context.go(AppRoutes.onboarding);
-    });
+    // 백업 미발견 → 즉시 온보딩으로 이동
+    context.go(AppRoutes.onboarding);
   }
 
   // ── 복원 실행 ──────────────────────────────────────────────────────────────

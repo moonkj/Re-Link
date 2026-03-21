@@ -11,6 +11,8 @@ import '../../../core/services/media/media_service.dart';
 import '../../../shared/repositories/memory_repository.dart';
 import '../../../shared/repositories/settings_repository.dart';
 import '../../../core/utils/haptic_service.dart';
+import '../../badges/providers/badge_notifier.dart';
+import '../../badges/widgets/badge_earned_dialog.dart';
 import '../providers/memory_notifier.dart';
 import 'voice_recorder_sheet.dart';
 
@@ -188,6 +190,15 @@ class _AddMemorySheetState extends ConsumerState<AddMemorySheet> {
       );
       if (!mounted) return;
       HapticService.memoryAdded();
+      // 배지 조건 확인
+      final newBadges = await ref.read(badgeNotifierProvider.notifier).checkAndAward();
+      if (newBadges.isNotEmpty && mounted) {
+        await showDialog(
+          context: context,
+          builder: (_) => BadgeEarnedDialog(badge: newBadges.first),
+        );
+      }
+      if (!mounted) return;
       Navigator.of(context).pop(true);
     } on PlanLimitError catch (e) {
       if (!mounted) return;
@@ -219,6 +230,15 @@ class _AddMemorySheetState extends ConsumerState<AddMemorySheet> {
       );
       if (!mounted) return;
       HapticService.memoryAdded();
+      // 배지 조건 확인
+      final newBadges = await ref.read(badgeNotifierProvider.notifier).checkAndAward();
+      if (newBadges.isNotEmpty && mounted) {
+        await showDialog(
+          context: context,
+          builder: (_) => BadgeEarnedDialog(badge: newBadges.first),
+        );
+      }
+      if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;

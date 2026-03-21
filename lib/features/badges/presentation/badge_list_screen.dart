@@ -194,13 +194,7 @@ class _BadgeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final rarityColor = _rarityColor(badge.rarity);
 
-    return GlassCard(
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.md,
-      ),
-      child: Column(
+    final cardContent = Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // 배지 아이콘 + 잠금 오버레이
@@ -219,9 +213,14 @@ class _BadgeCard extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: rarityColor.withAlpha(80),
-                          blurRadius: 12,
-                          spreadRadius: 2,
+                          color: rarityColor.withAlpha(140),
+                          blurRadius: 24,
+                          spreadRadius: 4,
+                        ),
+                        BoxShadow(
+                          color: rarityColor.withAlpha(60),
+                          blurRadius: 32,
+                          spreadRadius: 8,
                         ),
                       ],
                     ),
@@ -239,20 +238,16 @@ class _BadgeCard extends StatelessWidget {
                     right: 0,
                     bottom: 0,
                     child: Container(
-                      width: 18,
-                      height: 18,
+                      width: 22,
+                      height: 22,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.bgElevated,
-                        border: Border.all(
-                          color: AppColors.glassBorder,
-                          width: 1,
-                        ),
+                        color: AppColors.accent,
                       ),
                       child: Icon(
                         Icons.lock,
-                        size: 10,
-                        color: AppColors.textTertiary,
+                        size: 12,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -296,6 +291,27 @@ class _BadgeCard extends StatelessWidget {
             ),
           ),
         ],
+      );
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: isEarned
+            ? Border.all(color: rarityColor.withAlpha(120), width: 1.5)
+            : null,
+      ),
+      child: GlassCard(
+        onTap: onTap,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.md,
+        ),
+        child: isEarned
+            ? cardContent
+            : Opacity(
+                opacity: 0.5,
+                child: cardContent,
+              ),
       ),
     );
   }

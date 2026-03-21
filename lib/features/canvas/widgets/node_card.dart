@@ -94,7 +94,11 @@ class _NodeCardState extends State<NodeCard>
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
-    )..repeat(reverse: true);
+    );
+    // 연결 모드 소스일 때만 pulse 시작
+    if (widget.isConnectSource) {
+      _pulseController.repeat(reverse: true);
+    }
     _pulseAnim = Tween<double>(begin: 1.0, end: 1.06).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
@@ -126,6 +130,13 @@ class _NodeCardState extends State<NodeCard>
   @override
   void didUpdateWidget(NodeCard old) {
     super.didUpdateWidget(old);
+    // 연결 모드 pulse 시작/중지
+    if (widget.isConnectSource && !old.isConnectSource) {
+      _pulseController.repeat(reverse: true);
+    } else if (!widget.isConnectSource && old.isConnectSource) {
+      _pulseController.stop();
+      _pulseController.value = 0;
+    }
     // Ghost → 실제 인물 전환 감지
     if (_wasGhost && !widget.node.isGhost) {
       _fillController.forward(from: 0);
@@ -331,29 +342,37 @@ class _NormalContent extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // 아바타
           _NodeAvatar(node: node, size: 52),
           const SizedBox(height: 6),
           // 이름
-          Text(
-            node.name,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+          SizedBox(
+            width: double.infinity,
+            child: Text(
+              node.name,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
           ),
           if (node.birthDate != null) ...[
             const SizedBox(height: 2),
-            Text(
-              '${node.birthDate!.year}년생',
-              style: TextStyle(
-                fontSize: 11,
-                color: AppColors.textTertiary,
+            SizedBox(
+              width: double.infinity,
+              child: Text(
+                '${node.birthDate!.year}년생',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textTertiary,
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
           ],

@@ -9,6 +9,8 @@ import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/node_model.dart';
 import '../../../shared/repositories/node_repository.dart';
+import '../../badges/providers/badge_notifier.dart';
+import '../../badges/widgets/badge_earned_dialog.dart';
 import '../providers/glossary_notifier.dart';
 
 /// 단어 추가 바텀시트 (음성 녹음 포함)
@@ -545,6 +547,15 @@ class _AddGlossarySheetState extends ConsumerState<AddGlossarySheet>
     setState(() => _saving = false);
 
     if (id != null) {
+      // 배지 조건 확인
+      final newBadges = await ref.read(badgeNotifierProvider.notifier).checkAndAward();
+      if (newBadges.isNotEmpty && mounted) {
+        await showDialog(
+          context: context,
+          builder: (_) => BadgeEarnedDialog(badge: newBadges.first),
+        );
+      }
+      if (!mounted) return;
       HapticService.medium();
       Navigator.of(context).pop(true);
     }

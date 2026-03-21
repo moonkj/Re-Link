@@ -9,6 +9,8 @@ import '../../../design/glass/app_glass.dart';
 import '../../../design/motion/app_motion.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
+import '../../badges/providers/badge_notifier.dart';
+import '../../badges/widgets/badge_earned_dialog.dart';
 import '../providers/memory_notifier.dart';
 
 /// 음성 녹음 바텀시트
@@ -373,6 +375,15 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
       );
       if (!mounted) return;
       HapticService.memoryAdded();
+      // 배지 조건 확인
+      final newBadges = await ref.read(badgeNotifierProvider.notifier).checkAndAward();
+      if (newBadges.isNotEmpty && mounted) {
+        await showDialog(
+          context: context,
+          builder: (_) => BadgeEarnedDialog(badge: newBadges.first),
+        );
+      }
+      if (!mounted) return;
       Navigator.of(context).pop(true);
     } on PlanLimitError catch (e) {
       if (!mounted) return;

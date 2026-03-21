@@ -115,13 +115,13 @@ class BadgeNotifier extends _$BadgeNotifier {
       final childrenOf = <String, Set<String>>{};
       for (final edge in parentEdges) {
         if (edge.relation == 'parent') {
-          // fromNode is parent of toNode
-          childrenOf.putIfAbsent(edge.fromNodeId, () => <String>{});
-          childrenOf[edge.fromNodeId]!.add(edge.toNodeId);
-        } else {
-          // child relation: fromNode is child of toNode
+          // parent 관계: toNode이 fromNode의 부모 → toNode의 자녀 = fromNode
           childrenOf.putIfAbsent(edge.toNodeId, () => <String>{});
           childrenOf[edge.toNodeId]!.add(edge.fromNodeId);
+        } else {
+          // child 관계: fromNode이 toNode의 부모 → fromNode의 자녀 = toNode
+          childrenOf.putIfAbsent(edge.fromNodeId, () => <String>{});
+          childrenOf[edge.fromNodeId]!.add(edge.toNodeId);
         }
       }
 

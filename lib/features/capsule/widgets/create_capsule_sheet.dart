@@ -6,6 +6,8 @@ import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/memory_model.dart';
 import '../../../shared/repositories/memory_repository.dart';
+import '../../badges/providers/badge_notifier.dart';
+import '../../badges/widgets/badge_earned_dialog.dart';
 import '../providers/capsule_notifier.dart';
 import 'seal_animation.dart';
 
@@ -213,6 +215,15 @@ class _CreateCapsuleSheetState extends ConsumerState<CreateCapsuleSheet> {
     if (!mounted) return;
 
     if (id != null) {
+      // 배지 조건 확인
+      final newBadges = await ref.read(badgeNotifierProvider.notifier).checkAndAward();
+      if (newBadges.isNotEmpty && mounted) {
+        await showDialog(
+          context: context,
+          builder: (_) => BadgeEarnedDialog(badge: newBadges.first),
+        );
+      }
+      if (!mounted) return;
       // 봉인 애니메이션 표시 후 시트 닫기
       await showSealAnimation(context, type: SealAnimationType.seal);
       if (!mounted) return;

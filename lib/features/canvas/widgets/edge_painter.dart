@@ -5,8 +5,9 @@ import '../../../design/tokens/app_colors.dart';
 import 'node_card.dart';
 
 /// 노드 간 관계선을 그리는 CustomPainter
+/// Waypoint 기반 카드 회피 라우팅 + 레이블 후처리 렌더링
 class EdgePainter extends CustomPainter {
-  const EdgePainter({
+  EdgePainter({
     required this.nodes,
     required this.edges,
     this.connectingNodeId,
@@ -28,26 +29,66 @@ class EdgePainter extends CustomPainter {
   final String? draggingNodeId;
   final Offset? draggingPosition;
 
+  /// 노드 센터 위치 캐시 — paint() 시작 시 구축, _centerOf()에서 O(1) 조회
+  Map<String, Offset> _centerCache = {};
+
   @override
   void paint(Canvas canvas, Size size) {
+    // 노드 센터 위치 캐시 구축 (O(1) 조회)
+    _centerCache = <String, Offset>{};
+    for (final node in nodes) {
+      final id = node.id;
+      if (id == draggingNodeId && draggingPosition != null) {
+        _centerCache[id] = Offset(
+          draggingPosition!.dx + kNodeCardWidth / 2,
+          draggingPosition!.dy + kNodeCardHeight / 2,
+        );
+      } else {
+        _centerCache[id] = Offset(
+          node.positionX + kNodeCardWidth / 2,
+          node.positionY + kNodeCardHeight / 2,
+        );
+      }
+    }
+
+    // 레이블 수집 리스트 — 선 그리기 후 일괄 렌더링
+    final labels = <_LabelInfo>[];
+
+    // ── 카드 영역 클리핑 (선이 카드 뒤로 가도록) ─────────────────────
+    canvas.save();
+    final clipPath = Path()
+      ..fillType = PathFillType.evenOdd
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+    for (final node in nodes) {
+      final center = _centerOf(node.id);
+      if (center == null) continue;
+      clipPath.addRRect(RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: center,
+          width: kNodeCardWidth + 8,
+          height: kNodeCardHeight + 8,
+        ),
+        const Radius.circular(16),
+      ));
+    }
+    canvas.clipPath(clipPath);
+
+    // ── 선 그리기 (카드 회피 라우팅) ────────────────────────────────────
+
     // 부부 엣지 수집
     final spouseEdges =
         edges.where((e) => e.relation == RelationType.spouse).toList();
 
     // 부모-자녀 엣지 정규화 (방향 통일: parentNodeId → childNodeId)
-    // child 타입: fromNodeId=parent, toNodeId=child (관례)
-    // parent 타입: fromNodeId=child, toNodeId=parent (역방향)
     final normalizedChildEdges = <_NormalizedChildEdge>[];
     for (final e in edges) {
       if (e.relation == RelationType.child) {
-        // 양방향 대응: coupleIds에 포함된 쪽이 parent
         normalizedChildEdges.add(_NormalizedChildEdge(
           edgeId: e.id,
           parentNodeId: e.fromNodeId,
           childNodeId: e.toNodeId,
         ));
       } else if (e.relation == RelationType.parent) {
-        // parent 타입: fromNodeId=child, toNodeId=parent → 방향 스왑
         normalizedChildEdges.add(_NormalizedChildEdge(
           edgeId: e.id,
           parentNodeId: e.toNodeId,
@@ -57,8 +98,6 @@ class EdgePainter extends CustomPainter {
     }
 
     final drawnChildEdgeIds = <String>{};
-
-    // 부부별 자녀 ID 세트 (같은 부모 밑 형제/자매 sibling 중복선 방지용)
     final coupleChildSets = <Set<String>>[];
 
     // 각 부부 쌍에 대해 통합 자녀 선 처리
@@ -67,17 +106,17 @@ class EdgePainter extends CustomPainter {
       final p2 = _centerOf(se.toNodeId);
       if (p1 == null || p2 == null) continue;
 
-      // 부부 선 그리기 — 카드 외곽 간 직선
+      // 부부 선 그리기
       final p1Border = _borderPoint(p1, p2);
       final p2Border = _borderPoint(p2, p1);
-      _drawStraightEdge(canvas, p1Border, p2Border, RelationType.spouse);
+      _drawSpouseLine(canvas, p1Border, p2Border, labels);
 
-      // 부부 중앙점 — 배우자 경계선의 중간점에서 아래로 내림
+      // 부부 중앙점
       final spouseMidX = (p1Border.dx + p2Border.dx) / 2;
       final spouseMidY = (p1Border.dy + p2Border.dy) / 2;
       final coupleMid = Offset(spouseMidX, spouseMidY);
 
-      // 이 부부의 자녀 찾기 (양방향 + parent 타입 포함)
+      // 이 부부의 자녀 찾기
       final coupleIds = {se.fromNodeId, se.toNodeId};
       final coupleChildren = normalizedChildEdges
           .where((ce) => coupleIds.contains(ce.parentNodeId))
@@ -90,7 +129,6 @@ class EdgePainter extends CustomPainter {
       final seenChildIds = <String>{};
       for (final ce in coupleChildren) {
         if (seenChildIds.contains(ce.childNodeId)) {
-          // 동일 자녀의 중복 엣지 (양쪽 부모 각각) → 처리 완료 표시만
           drawnChildEdgeIds.add(ce.edgeId);
           continue;
         }
@@ -102,21 +140,17 @@ class EdgePainter extends CustomPainter {
       }
 
       if (childPositions.isEmpty) continue;
-
-      // 이 부부의 자녀 ID 세트 저장 (sibling 중복선 판별용)
       coupleChildSets.add(seenChildIds);
 
-      // T-shape 통합 관계선 그리기
-      _drawCoupleChildrenLine(canvas, coupleMid, childPositions);
+      // 부부→자녀 곡선 그리기
+      _drawCoupleChildrenLine(canvas, coupleMid, childPositions, labels);
     }
 
     // 나머지 엣지 (통합 선으로 그려지지 않은 것들)
     for (final edge in edges) {
-      if (edge.relation == RelationType.spouse) continue; // 이미 그림
-      if (drawnChildEdgeIds.contains(edge.id)) continue; // 통합 선으로 그림
+      if (edge.relation == RelationType.spouse) continue;
+      if (drawnChildEdgeIds.contains(edge.id)) continue;
 
-      // 같은 부부의 자녀끼리 sibling 엣지는 skip
-      // (T-shape 통합선이 이미 형제 관계를 시각적으로 표현하므로 중복 방지)
       if (edge.relation == RelationType.sibling) {
         final isSameCoupleSiblings = coupleChildSets.any((childSet) =>
             childSet.contains(edge.fromNodeId) &&
@@ -129,10 +163,10 @@ class EdgePainter extends CustomPainter {
       if (fromCenter == null || toCenter == null) continue;
       final from = _borderPoint(fromCenter, toCenter);
       final to = _borderPoint(toCenter, fromCenter);
-      _drawEdge(canvas, from, to, edge.relation);
+      _drawEdgeLine(canvas, from, to, edge.relation, labels);
     }
 
-    // 연결 중인 임시 선 (카드 외곽에서 출발)
+    // 연결 중인 임시 선
     if (connectingNodeId != null && pointerPosition != null) {
       final fromCenter = _centerOf(connectingNodeId!);
       if (fromCenter != null) {
@@ -140,125 +174,43 @@ class EdgePainter extends CustomPainter {
         _drawDashedLine(canvas, from, pointerPosition!);
       }
     }
+
+    canvas.restore();
+
+    // ── 레이블 그리기 ──────────────────────────────────────────────────
+    for (final label in labels) {
+      _drawLabel(canvas, label.pos, label.text);
+    }
   }
 
-  /// 부부 중점에서 자녀들로 T-shape 통합선 그리기
-  ///
-  /// 구조:
-  /// ```
-  ///   [부모A] ---- coupleMid ---- [부모B]
-  ///                    |
-  ///                    | (수직 하강선)
-  ///                    |
-  ///          +---------+---------+  (수평 분기선)
-  ///          |         |         |
-  ///       [자녀1]   [자녀2]   [자녀3]
-  /// ```
-  void _drawCoupleChildrenLine(
-    Canvas canvas,
-    Offset coupleMid,
-    List<_ChildEdgeInfo> children,
-  ) {
-    final color = _edgeColor(RelationType.child);
+  // ── 선 그리기 메서드 (레이블은 수집만) ──────────────────────────────────
+
+  /// 배우자 엣지 — 부드러운 아치형 곡선
+  void _drawSpouseLine(
+      Canvas canvas, Offset from, Offset to, List<_LabelInfo> labels) {
+    final color = _edgeColor(RelationType.spouse);
     final paint = Paint()
       ..color = color.withAlpha(180)
       ..strokeWidth = 1.8
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    // 자녀 카드 상단 좌표로 변환
-    final childTopPositions = children
-        .map((c) => _ChildEdgeInfo(
-              pos: Offset(c.pos.dx, c.pos.dy - kNodeCardHeight / 2),
-              edgeId: c.edgeId,
-            ))
-        .toList();
-
-    if (childTopPositions.length == 1) {
-      // 자녀가 1명: 직선 경로 (수직 → 수평 → 수직)
-      final childTop = childTopPositions.first.pos;
-      final midY = coupleMid.dy + (childTop.dy - coupleMid.dy) * 0.5;
-      // 수직 하강
-      canvas.drawLine(coupleMid, Offset(coupleMid.dx, midY), paint);
-      // 수평 이동
-      canvas.drawLine(
-          Offset(coupleMid.dx, midY), Offset(childTop.dx, midY), paint);
-      // 수직 하강
-      canvas.drawLine(Offset(childTop.dx, midY), childTop, paint);
-      final labelY = (coupleMid.dy + midY) / 2;
-      _drawLabel(canvas, Offset(coupleMid.dx, labelY), RelationType.child.label);
-      return;
-    }
-
-    // 자녀가 2명 이상: T-shape 구조
-    // 자녀 카드 상단 중 가장 위에 있는 Y 좌표
-    final childMinY =
-        childTopPositions.map((c) => c.pos.dy).reduce(math.min);
-
-    // 수직 하강 높이: 부부 중점과 자녀 사이의 중간 지점
-    final branchY = coupleMid.dy + (childMinY - coupleMid.dy) * 0.5;
-
-    // 1) 부부 중점에서 수직 하강
-    canvas.drawLine(coupleMid, Offset(coupleMid.dx, branchY), paint);
-
-    // 2) 수평 분기선 (coupleMid.dx 포함하여 좌측~우측 범위)
-    final allXs = [
-      ...childTopPositions.map((c) => c.pos.dx),
-      coupleMid.dx,
-    ];
-    allXs.sort();
-    final leftX = allXs.first;
-    final rightX = allXs.last;
-    canvas.drawLine(Offset(leftX, branchY), Offset(rightX, branchY), paint);
-
-    // 3) 수평 분기선에서 각 자녀 카드 상단으로 수직 하강
-    for (final child in childTopPositions) {
-      canvas.drawLine(
-        Offset(child.pos.dx, branchY),
-        child.pos,
-        paint,
-      );
-    }
-
-    // 레이블: 수직선 중간에 한 번만
-    final labelPos = Offset(coupleMid.dx, (coupleMid.dy + branchY) / 2);
-    _drawLabel(canvas, labelPos, RelationType.child.label);
-  }
-
-  Offset? _centerOf(String nodeId) {
-    final node = nodes.where((n) => n.id == nodeId).firstOrNull;
-    if (node == null) return null;
-
-    // 드래그 중인 노드는 실시간 좌표 사용
-    if (nodeId == draggingNodeId && draggingPosition != null) {
-      return Offset(
-        draggingPosition!.dx + kNodeCardWidth / 2,
-        draggingPosition!.dy + kNodeCardHeight / 2,
-      );
-    }
-
-    return Offset(
-      node.positionX + kNodeCardWidth / 2,
-      node.positionY + kNodeCardHeight / 2,
-    );
-  }
-
-  /// 직선 엣지 (배우자/구조선용 — 끊김 없음)
-  void _drawStraightEdge(
-      Canvas canvas, Offset from, Offset to, RelationType relation) {
-    final color = _edgeColor(relation);
-    final paint = Paint()
-      ..color = color.withAlpha(180)
-      ..strokeWidth = 1.8
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(from, to, paint);
     final mid = _midPoint(from, to);
-    _drawLabel(canvas, mid, relation.label);
+    final dist = (to - from).distance;
+    final bow = dist * 0.15; // 거리의 15%만큼 위로 볼록
+    final path = _curvePath(from, to);
+    canvas.drawPath(path, paint);
+
+    // 레이블: 아치 꼭대기 위쪽 (카드 사이가 아닌 아치 위)
+    labels.add(_LabelInfo(
+      pos: _safeLabelPos(Offset(mid.dx, mid.dy - bow - 10)),
+      text: RelationType.spouse.label,
+    ));
   }
 
-  void _drawEdge(
-      Canvas canvas, Offset from, Offset to, RelationType relation) {
+  /// 일반 관계 엣지 — 베지어 곡선 + 노드 회피
+  void _drawEdgeLine(Canvas canvas, Offset from, Offset to,
+      RelationType relation, List<_LabelInfo> labels) {
     final color = _edgeColor(relation);
     final paint = Paint()
       ..color = color.withAlpha(180)
@@ -269,19 +221,174 @@ class EdgePainter extends CustomPainter {
     final path = _curvePath(from, to);
     canvas.drawPath(path, paint);
 
-    // 관계 레이블 (중앙)
+    // 레이블: 곡선 중간 (카드와 겹치지 않는 위치 탐색)
     final mid = _midPoint(from, to);
-    _drawLabel(canvas, mid, relation.label);
+    labels.add(_LabelInfo(pos: _safeLabelPos(mid), text: relation.label));
   }
 
-  /// 베지어 곡선 경로
+  /// 부부 중점에서 자녀들로 곡선 연결
+  void _drawCoupleChildrenLine(
+    Canvas canvas,
+    Offset coupleMid,
+    List<_ChildEdgeInfo> children,
+    List<_LabelInfo> labels,
+  ) {
+    final color = _edgeColor(RelationType.child);
+    final paint = Paint()
+      ..color = color.withAlpha(180)
+      ..strokeWidth = 1.8
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final childTopPositions = children
+        .map((c) => _ChildEdgeInfo(
+              pos: Offset(c.pos.dx, c.pos.dy - kNodeCardHeight / 2),
+              edgeId: c.edgeId,
+            ))
+        .toList();
+
+    bool labelCollected = false;
+    for (final child in childTopPositions) {
+      final to = child.pos;
+      final path = _curvePath(coupleMid, to);
+      canvas.drawPath(path, paint);
+
+      if (!labelCollected) {
+        final labelPos = Offset(
+          (coupleMid.dx + to.dx) / 2,
+          coupleMid.dy + (to.dy - coupleMid.dy) * 0.3,
+        );
+        labels.add(_LabelInfo(
+          pos: _safeLabelPos(labelPos),
+          text: RelationType.child.label,
+        ));
+        labelCollected = true;
+      }
+    }
+  }
+
+  // ── 유틸리티 ──────────────────────────────────────────────────────────
+
+  /// 레이블 위치가 카드와 겹치면 위로 밀어서 안전한 위치 반환
+  Offset _safeLabelPos(Offset pos) {
+    for (final node in nodes) {
+      final c = _centerOf(node.id);
+      if (c == null) continue;
+      final cardRect = Rect.fromCenter(
+        center: c,
+        width: kNodeCardWidth + 16,
+        height: kNodeCardHeight + 16,
+      );
+      if (cardRect.contains(pos)) {
+        // 카드 위쪽으로 밀기
+        return Offset(pos.dx, cardRect.top - 12);
+      }
+    }
+    return pos;
+  }
+
+  Offset? _centerOf(String nodeId) => _centerCache[nodeId];
+
+  /// Waypoint 기반 경로 — 중간 카드 회피 라우팅
   Path _curvePath(Offset from, Offset to) {
-    final dx = (to.dx - from.dx) * 0.4;
-    final cp1 = Offset(from.dx + dx, from.dy);
-    final cp2 = Offset(to.dx - dx, to.dy);
-    return Path()
-      ..moveTo(from.dx, from.dy)
-      ..cubicTo(cp1.dx, cp1.dy, cp2.dx, cp2.dy, to.dx, to.dy);
+    final lineVec = to - from;
+    final lineLenSq = lineVec.dx * lineVec.dx + lineVec.dy * lineVec.dy;
+    if (lineLenSq < 1) {
+      return Path()..moveTo(from.dx, from.dy)..lineTo(to.dx, to.dy);
+    }
+    final lineLen = math.sqrt(lineLenSq);
+
+    // 경로상 장애물(중간 카드) 탐색
+    final obstacles = <_CardObstacle>[];
+    for (final node in nodes) {
+      final c = _centerOf(node.id);
+      if (c == null) continue;
+
+      // 출발/도착 노드 스킵
+      if ((c - from).distance < kNodeCardWidth * 0.8) continue;
+      if ((c - to).distance < kNodeCardWidth * 0.8) continue;
+
+      // 카드 중심을 선분에 투영
+      final toC = c - from;
+      final t = (lineVec.dx * toC.dx + lineVec.dy * toC.dy) / lineLenSq;
+      if (t < 0.02 || t > 0.98) continue;
+
+      final proj = from + lineVec * t;
+      final dxToCard = (proj.dx - c.dx).abs();
+      final dyToCard = (proj.dy - c.dy).abs();
+
+      // 카드 영역 + 여유(40px)에 걸리는지 확인
+      const padX = kNodeCardWidth / 2 + 40;
+      const padY = kNodeCardHeight / 2 + 40;
+      if (dxToCard < padX && dyToCard < padY) {
+        obstacles.add(_CardObstacle(center: c, projT: t));
+      }
+    }
+
+    if (obstacles.isEmpty) {
+      // 장애물 없음: 부드러운 S-커브
+      final d = lineVec.dx * 0.3;
+      return Path()
+        ..moveTo(from.dx, from.dy)
+        ..cubicTo(from.dx + d, from.dy, to.dx - d, to.dy, to.dx, to.dy);
+    }
+
+    // 투영 위치 순 정렬
+    obstacles.sort((a, b) => a.projT.compareTo(b.projT));
+
+    // 수직 단위 벡터
+    final perpX = -lineVec.dy / lineLen;
+    final perpY = lineVec.dx / lineLen;
+
+    // 각 장애물마다 우회 웨이포인트 생성
+    final waypoints = <Offset>[];
+    for (final obs in obstacles) {
+      final toC = obs.center - from;
+      final cross = lineVec.dx * toC.dy - lineVec.dy * toC.dx;
+      final sign = cross > 0 ? -1.0 : 1.0; // 카드 반대편으로 우회
+
+      final proj = from + lineVec * obs.projT;
+      final perpToCard = obs.center - proj;
+      final perpDist = perpToCard.distance;
+      // 카드 반대각선 절반 + 여유만큼 밀어냄
+      final needed = math.max(110.0 - perpDist, 0.0) + 60.0;
+
+      waypoints.add(Offset(
+        proj.dx + perpX * needed * sign,
+        proj.dy + perpY * needed * sign,
+      ));
+    }
+
+    return _smoothPath([from, ...waypoints, to]);
+  }
+
+  /// 웨이포인트를 거치는 부드러운 베지어 경로
+  Path _smoothPath(List<Offset> pts) {
+    final path = Path()..moveTo(pts.first.dx, pts.first.dy);
+
+    if (pts.length == 2) {
+      path.lineTo(pts.last.dx, pts.last.dy);
+      return path;
+    }
+    if (pts.length == 3) {
+      path.quadraticBezierTo(pts[1].dx, pts[1].dy, pts[2].dx, pts[2].dy);
+      return path;
+    }
+
+    // 4+ 포인트: 중간점 연결 quadratic 체인
+    var mid = _midPoint(pts[1], pts[2]);
+    path.quadraticBezierTo(pts[1].dx, pts[1].dy, mid.dx, mid.dy);
+
+    for (int i = 2; i < pts.length - 2; i++) {
+      mid = _midPoint(pts[i], pts[i + 1]);
+      path.quadraticBezierTo(pts[i].dx, pts[i].dy, mid.dx, mid.dy);
+    }
+
+    path.quadraticBezierTo(
+      pts[pts.length - 2].dx, pts[pts.length - 2].dy,
+      pts.last.dx, pts.last.dy,
+    );
+    return path;
   }
 
   void _drawDashedLine(Canvas canvas, Offset from, Offset to) {
@@ -293,6 +400,7 @@ class EdgePainter extends CustomPainter {
     const dashLen = 8.0;
     const gapLen = 5.0;
     final total = (to - from).distance;
+    if (total < 1) return;
     final dir = (to - from) / total;
     double d = 0;
     while (d < total) {
@@ -316,7 +424,6 @@ class EdgePainter extends CustomPainter {
       textDirection: TextDirection.ltr,
     )..layout();
 
-    // 배경
     final bgRect = Rect.fromCenter(
       center: pos,
       width: tp.width + 8,
@@ -332,9 +439,6 @@ class EdgePainter extends CustomPainter {
     tp.paint(canvas, pos - Offset(tp.width / 2, tp.height / 2));
   }
 
-  /// 카드 중심에서 대상 방향으로의 카드 외곽 교차점 계산
-  /// center: 노드 카드의 중심, target: 연결 대상 위치
-  /// → 카드 사각형 외곽선의 교차점 반환
   Offset _borderPoint(Offset center, Offset target) {
     final dx = target.dx - center.dx;
     final dy = target.dy - center.dy;
@@ -364,12 +468,21 @@ class EdgePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(EdgePainter oldDelegate) =>
-      oldDelegate.nodes != nodes ||
-      oldDelegate.edges != edges ||
+      !identical(oldDelegate.nodes, nodes) ||
+      !identical(oldDelegate.edges, edges) ||
       oldDelegate.connectingNodeId != connectingNodeId ||
       oldDelegate.pointerPosition != pointerPosition ||
       oldDelegate.draggingNodeId != draggingNodeId ||
       oldDelegate.draggingPosition != draggingPosition;
+}
+
+// ── 헬퍼 클래스 ────────────────────────────────────────────────────────
+
+/// 지연 렌더링용 레이블 정보
+class _LabelInfo {
+  const _LabelInfo({required this.pos, required this.text});
+  final Offset pos;
+  final String text;
 }
 
 /// 자녀 엣지 정보 (통합선 렌더링용)
@@ -377,6 +490,13 @@ class _ChildEdgeInfo {
   const _ChildEdgeInfo({required this.pos, required this.edgeId});
   final Offset pos;
   final String edgeId;
+}
+
+/// 경로상 장애물 카드 정보
+class _CardObstacle {
+  const _CardObstacle({required this.center, required this.projT});
+  final Offset center;
+  final double projT; // 선분 위 투영 위치 (0~1)
 }
 
 /// 정규화된 부모-자녀 엣지 (방향 통일: parent → child)
