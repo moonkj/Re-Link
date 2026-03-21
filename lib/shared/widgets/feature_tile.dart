@@ -37,11 +37,6 @@ class FeatureTile extends StatelessWidget {
           color: AppColors.textSecondary,
         ),
       ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: AppColors.textTertiary,
-        size: 20,
-      ),
       onTap: onTap,
     );
   }

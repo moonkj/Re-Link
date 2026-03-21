@@ -106,10 +106,10 @@ class FamilyHubScreen extends StatelessWidget {
             child: Column(
               children: [
                 FeatureTile(
-                  icon: Icons.cake_outlined,
+                  icon: Icons.event_note_outlined,
                   iconColor: AppColors.accent,
-                  title: '가족 생일',
-                  subtitle: '다가오는 생일 카운트다운',
+                  title: '생일 & 일정',
+                  subtitle: '생일과 가족 일정을 한눈에',
                   onTap: () => context.push(AppRoutes.birthday),
                 ),
                 const TileDivider(),

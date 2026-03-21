@@ -4,23 +4,75 @@ import '../../../core/utils/haptic_service.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
+import '../../../features/canvas/providers/family_event_notifier.dart';
+import '../../../features/canvas/widgets/add_event_sheet.dart';
+import '../../../shared/models/family_event_model.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
 import '../providers/birthday_notifier.dart';
 import '../widgets/birthday_countdown_card.dart';
 
-/// 가족 생일 대시보드 화면
-class BirthdayScreen extends ConsumerWidget {
+/// 생일 & 일정 대시보드 화면
+class BirthdayScreen extends ConsumerStatefulWidget {
   const BirthdayScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BirthdayScreen> createState() => _BirthdayScreenState();
+}
+
+class _BirthdayScreenState extends ConsumerState<BirthdayScreen> {
+  /// 일정 삭제 확인 다이얼로그 후 삭제 수행
+  Future<void> _confirmDeleteEvent(FamilyEventModel event) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgBase,
+        title: Text(
+          '일정 삭제',
+          style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+          '"${event.title}" 일정을 삭제할까요?',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text('삭제', style: TextStyle(color: AppColors.accent)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await ref
+          .read(familyEventNotifierProvider.notifier)
+          .deleteEvent(event.id);
+    }
+  }
+
+  void _showAddEventSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const AddEventSheet(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final asyncBirthdays = ref.watch(birthdayNotifierProvider);
+    final asyncEvents = ref.watch(familyEventNotifierProvider);
 
     return Scaffold(
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
         title: Text(
-          '가족 생일',
+          '생일 & 일정',
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 18,
@@ -43,11 +95,14 @@ class BirthdayScreen extends ConsumerWidget {
           ),
         ),
         data: (entries) {
-          if (entries.isEmpty) {
+          final events = asyncEvents.valueOrNull ?? [];
+          final hasNoData = entries.isEmpty && events.isEmpty;
+
+          if (hasNoData) {
             return const EmptyStateWidget(
               icon: Icons.cake_outlined,
-              title: '등록된 생일이 없습니다',
-              subtitle: '가족 노드에 생년월일을 입력하면\n생일 카운트다운이 표시됩니다',
+              title: '등록된 생일·일정이 없습니다',
+              subtitle: '가족 노드에 생년월일을 입력하거나\n일정을 추가하면 여기에 표시됩니다',
             );
           }
 
@@ -56,11 +111,14 @@ class BirthdayScreen extends ConsumerWidget {
 
           return RefreshIndicator(
             color: AppColors.primary,
-            onRefresh: () => ref.read(birthdayNotifierProvider.notifier).refresh(),
+            onRefresh: () async {
+              await ref.read(birthdayNotifierProvider.notifier).refresh();
+              await ref.read(familyEventNotifierProvider.notifier).refresh();
+            },
             child: ListView(
               padding: const EdgeInsets.all(AppSpacing.pagePadding),
               children: [
-                // 오늘 생일 헤더
+                // ── 오늘 생일 헤더 ───────────────────────────────────
                 if (todayBirthdays.isNotEmpty) ...[
                   _TodayBirthdayHeader(entries: todayBirthdays),
                   const SizedBox(height: AppSpacing.lg),
@@ -77,11 +135,12 @@ class BirthdayScreen extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.md),
                   ],
                 ],
-                if (todayBirthdays.isEmpty) ...[
+                if (todayBirthdays.isEmpty && upcomingBirthdays.isNotEmpty) ...[
                   _SectionHeader(title: '다가오는 생일'),
                   const SizedBox(height: AppSpacing.md),
                 ],
-                // 다가오는 생일 목록
+
+                // ── 다가오는 생일 목록 ───────────────────────────────
                 ...upcomingBirthdays.map((entry) => Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.md),
                   child: BirthdayCountdownCard(
@@ -89,6 +148,70 @@ class BirthdayScreen extends ConsumerWidget {
                     onTap: () => HapticService.light(),
                   ),
                 )),
+
+                // ── 가족 일정 섹션 ───────────────────────────────────
+                if (entries.isNotEmpty)
+                  const SizedBox(height: AppSpacing.xl),
+
+                // 섹션 헤더
+                Row(
+                  children: [
+                    Icon(
+                      Icons.event_outlined,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      '가족 일정',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: _showAddEventSheet,
+                      child: Text(
+                        '+ 추가',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // 일정 없을 때
+                if (events.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                    child: Center(
+                      child: Text(
+                        '등록된 일정이 없습니다.\n+ 추가 버튼으로 일정을 만들어보세요.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textTertiary,
+                          height: 1.6,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // 일정 목록
+                ...events.map((event) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: _EventCard(
+                    event: event,
+                    onDelete: () => _confirmDeleteEvent(event),
+                  ),
+                )),
+
                 const SizedBox(height: AppSpacing.xxxl),
               ],
             ),
@@ -177,6 +300,117 @@ class _SectionHeader extends StatelessWidget {
         fontSize: 13,
         fontWeight: FontWeight.w600,
         color: AppColors.textSecondary,
+      ),
+    );
+  }
+}
+
+// ── 가족 일정 카드 ─────────────────────────────────────────────────────────────
+
+class _EventCard extends StatelessWidget {
+  const _EventCard({required this.event, required this.onDelete});
+
+  final FamilyEventModel event;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final nextDate = event.nextEventDate;
+    final daysUntil = event.daysUntil;
+    final dDayLabel = daysUntil == 0 ? 'D-day' : 'D-$daysUntil';
+    final dateLabel =
+        '${nextDate.month}월 ${nextDate.day}일${event.isYearly ? ' · 매년' : ''}';
+
+    return GlassCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
+      child: Row(
+        children: [
+          // ── 색상 원형 아이콘 ───────────────────────────────────────
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: event.color.withAlpha(30),
+            ),
+            child: Center(
+              child: Icon(
+                event.isYearly
+                    ? Icons.repeat_rounded
+                    : Icons.event_rounded,
+                size: 20,
+                color: event.color,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+
+          // ── 제목 + 날짜 ───────────────────────────────────────────
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  event.title,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  dateLabel,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+
+          // ── D-day 배지 ────────────────────────────────────────────
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: 3,
+            ),
+            decoration: BoxDecoration(
+              color: event.color.withAlpha(30),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              dDayLabel,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: event.color,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+
+          // ── 삭제 버튼 ─────────────────────────────────────────────
+          GestureDetector(
+            onTap: onDelete,
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(
+                Icons.close,
+                size: 18,
+                color: AppColors.textTertiary,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
