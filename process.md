@@ -3042,7 +3042,7 @@
   - `syncAll()`: pull (D1→Drift) + push (SyncQueue→D1)
   - `enqueue()`: 로컬 변경 SyncQueue에 추가
   - Last-Write-Wins (LWW) 전략
-- [x] `lib/core/services/sync/r2_media_service.dart` — R2 presigned URL 업/다운로드 스텁
+- [x] `lib/core/services/sync/r2_media_service.dart` — R2 presigned URL 업/다운로드 (Phase 12에서 완전 구현)
 
 ---
 
@@ -3153,3 +3153,67 @@
 | TestFlight 업로드 | Apple Developer 계정 필요 |
 | 스크린샷 촬영 | 실기기 필요 |
 | App Store 심사 제출 | Apple Developer 계정 필요 |
+
+---
+
+## Phase 12 — SyncService / R2 / FamilyMembers HTTP 완전 구현 + 빌드 최적화 (2026-03-22)
+
+> SyncService `_pull()/_push()`, R2MediaService, FamilyMembersNotifier 모든 TODO 스텁을 AuthHttpClient로 완전 구현. 빌드 스크립트 + iOS Privacy Manifest 추가.
+
+---
+
+### SyncService HTTP 완전 구현 ✅
+
+- [x] `lib/core/services/sync/sync_service.dart`
+  - `_pull()`: GET /sync/pull?since=lastSyncAt_ms → nodes/edges/memories Drift upsert
+    - `is_deleted=1` 시 로컬 레코드 삭제 (LWW 전략)
+    - DateTime 필드: ms → DateTime.fromMillisecondsSinceEpoch 변환
+    - `is_ghost`, `is_private`: int(0/1) → bool 변환
+    - `filePath`/`thumbnailPath`: R2 키는 로컬 경로가 아니므로 생략 (R2MediaService로 별도 다운로드)
+  - `_push()`: 대기열 50개 배치 → POST /sync/push
+    - targetTable 매핑: 'nodes'→'node', 'node_edges'→'edge', 'memories'→'memory'
+    - 성공 시 `db.markSyncedItems()`, 실패 시 `db.incrementRetryCount()`
+  - `import '../../database/app_database.dart'` 추가 (Companion 클래스 접근)
+
+---
+
+### R2MediaService HTTP 완전 구현 ✅
+
+- [x] `lib/core/services/sync/r2_media_service.dart`
+  - `uploadFile()`: POST /media/upload-url (presigned PUT URL 획득) → PUT 파일 바이트
+    - fileKey 패턴: `{groupId}/{userId}/{folder}/{uuid}.{ext}`
+    - 성공 시 fileKey 반환, 실패 시 null
+  - `downloadFile()`: GET /media/:fileKey/download-url → GET presigned URL → 로컬 저장
+  - `deleteFile()`: DELETE /media/:fileKey
+  - 모든 메서드 try/catch 방어 처리
+
+---
+
+### FamilyMembersNotifier HTTP 완전 구현 ✅
+
+- [x] `lib/features/family_sync/providers/family_members_notifier.dart`
+  - `build()`: GET /family/members → `List<FamilyMember>` 파싱
+  - `createInviteLink()`: POST /family/invite → `'relink://invite/accept?token=$token'` 반환
+  - `acceptInvite(token)`: POST /family/invite/:token/accept → groupId 저장 + ref.invalidateSelf()
+  - `removeMember(userId)`: DELETE /family/members/:userId → finally 블록에서 ref.invalidateSelf()
+  - `leaveGroup()`: DELETE /family/leave → settingsRepository.clearAuthData()
+
+---
+
+### 빌드 최적화 + iOS Privacy Manifest ✅
+
+- [x] `scripts/build_release.sh` — 릴리즈 빌드 스크립트
+  - Android APK: `--obfuscate --split-debug-info --split-per-abi`
+  - iOS IPA: `--obfuscate --split-debug-info --no-codesign`
+  - `chmod +x` 실행 권한 설정
+- [x] `ios/Runner/PrivacyInfo.xcprivacy` — iOS 17+ 필수 Privacy Manifest
+  - `NSPrivacyTracking: false`, 데이터 수집 없음
+  - 파일 타임스탬프(C617.1), 디스크 공간(85F4.1), UserDefaults(CA92.1) API 이유 선언
+
+---
+
+### 빌드 검증 ✅
+
+- [x] `flutter pub get` — 정상
+- [x] `flutter analyze lib/core/services/sync/ lib/features/family_sync/providers/` — 0 errors
+- [x] `flutter analyze lib/` — 0 errors (기존 warning만 존재)
