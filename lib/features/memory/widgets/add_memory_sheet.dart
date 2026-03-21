@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:video_player/video_player.dart';
+import 'package:video_player/video_player.dart'; // duration 체크용 임시 컨트롤러
 import '../../../core/errors/app_error.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
@@ -515,17 +515,16 @@ class _VideoForm extends ConsumerStatefulWidget {
 
 class _VideoFormState extends ConsumerState<_VideoForm> {
   String? _videoPath;
+  String? _thumbPath;
   int _durationSeconds = 0;
   final _titleCtrl = TextEditingController();
   bool _saving = false;
   bool _picking = false;
   bool _isPrivate = false;
-  VideoPlayerController? _videoCtrl;
 
   @override
   void dispose() {
     _titleCtrl.dispose();
-    _videoCtrl?.dispose();
     super.dispose();
   }
 
@@ -545,16 +544,14 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
       final videoPath = await media.pickAndSaveVideo();
       if (!mounted || videoPath == null) return;
 
-      // 단일 컨트롤러로 duration 체크 + 프리뷰 렌더링
-      await _videoCtrl?.dispose();
+      // duration 체크만을 위한 임시 컨트롤러 (미리보기에는 사용 안 함)
       final ctrl = VideoPlayerController.file(File(videoPath));
       await ctrl.initialize();
-
       final duration = ctrl.value.duration.inSeconds;
+      await ctrl.dispose();
 
       // 플랜 초 제한 초과 시 파일 삭제 후 에러
       if (plan.maxVideoSeconds > 0 && duration > plan.maxVideoSeconds) {
-        await ctrl.dispose();
         try { File(videoPath).deleteSync(); } catch (_) {}
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -566,24 +563,14 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
         return;
       }
 
+      // 썸네일 생성 (정적 이미지로 미리보기)
+      final thumbPath = await media.generateVideoThumbnail(videoPath);
+
+      if (!mounted) return;
       setState(() {
         _videoPath = videoPath;
+        _thumbPath = thumbPath;
         _durationSeconds = duration;
-        _videoCtrl = ctrl;
-      });
-
-      // VideoPlayer 위젯이 트리에 마운트된 후 첫 프레임 렌더링
-      // seekTo(zero)는 iOS 텍스처를 blank로 만들므로 호출하지 않음
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (!mounted || _videoCtrl == null) return;
-        try {
-          await _videoCtrl!.setVolume(0.0);
-          await _videoCtrl!.play();
-          await Future.delayed(const Duration(milliseconds: 300));
-          if (mounted && _videoCtrl != null) {
-            await _videoCtrl!.pause();
-          }
-        } catch (_) {}
       });
     } finally {
       if (mounted) setState(() => _picking = false);
@@ -605,30 +592,18 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
       final videoPath = await media.captureAndSaveVideo(maxSeconds: plan.maxVideoSeconds);
       if (!mounted || videoPath == null) return;
 
-      await _videoCtrl?.dispose();
       final ctrl = VideoPlayerController.file(File(videoPath));
       await ctrl.initialize();
-
       final duration = ctrl.value.duration.inSeconds;
+      await ctrl.dispose();
 
+      final thumbPath = await media.generateVideoThumbnail(videoPath);
+
+      if (!mounted) return;
       setState(() {
         _videoPath = videoPath;
+        _thumbPath = thumbPath;
         _durationSeconds = duration;
-        _videoCtrl = ctrl;
-      });
-
-      // VideoPlayer 위젯이 트리에 마운트된 후 첫 프레임 렌더링
-      // seekTo(zero)는 iOS 텍스처를 blank로 만들므로 호출하지 않음
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (!mounted || _videoCtrl == null) return;
-        try {
-          await _videoCtrl!.setVolume(0.0);
-          await _videoCtrl!.play();
-          await Future.delayed(const Duration(milliseconds: 300));
-          if (mounted && _videoCtrl != null) {
-            await _videoCtrl!.pause();
-          }
-        } catch (_) {}
       });
     } finally {
       if (mounted) setState(() => _picking = false);
@@ -657,6 +632,7 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
         type: MemoryType.video,
         title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
         filePath: _videoPath,
+        thumbnailPath: _thumbPath,
         durationSeconds: _durationSeconds,
         dateTaken: DateTime.now(),
         isPrivate: _isPrivate,
@@ -744,54 +720,47 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
             Center(child: CircularProgressIndicator(color: AppColors.primary)),
           ],
         ] else ...[
-          // 선택 후: 미리보기 + 재생 버튼
-          GestureDetector(
-            onTap: () {
-              if (_videoCtrl == null) return;
-              setState(() {
-                _videoCtrl!.value.isPlaying
-                    ? _videoCtrl!.pause()
-                    : _videoCtrl!.play();
-              });
-            },
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: AspectRatio(
-                    aspectRatio: _videoCtrl?.value.aspectRatio ?? 16 / 9,
-                    child: _videoCtrl != null
-                        ? VideoPlayer(_videoCtrl!)
-                        : Container(color: AppColors.glassSurface),
-                  ),
-                ),
-                if (_videoCtrl?.value.isPlaying != true)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: const BoxDecoration(
-                      color: Colors.black54,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.play_arrow, color: Colors.white, size: 32),
-                  ),
-                // 길이 배지
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      _formatDuration(_durationSeconds),
-                      style: const TextStyle(color: Colors.white, fontSize: 11),
+          // 선택 후: 썸네일 이미지 미리보기
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // 썸네일 이미지 (정적 프레임)
+                  _thumbPath != null
+                      ? Image.file(File(_thumbPath!), fit: BoxFit.cover)
+                      : Container(color: AppColors.bgSurface),
+                  // 재생 아이콘 (시각적 힌트)
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: const BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.play_arrow, color: Colors.white, size: 32),
                     ),
                   ),
-                ),
-              ],
+                  // 길이 배지
+                  Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        _formatDuration(_durationSeconds),
+                        style: const TextStyle(color: Colors.white, fontSize: 11),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.sm),

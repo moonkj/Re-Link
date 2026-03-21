@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -172,6 +173,26 @@ class MediaService {
     final dest = File(p.join(dir.path, '$uuid.mp4'));
     await src.copy(dest.path);
     return dest.path;
+  }
+
+  /// 영상에서 첫 프레임 썸네일 이미지 생성 (JPG)
+  Future<String?> generateVideoThumbnail(String videoPath) async {
+    try {
+      final thumbsDir = await _thumbsDir;
+      final id = _uuid.v4();
+      final thumbPath = p.join(thumbsDir.path, 'video_thumb_$id.jpg');
+      final result = await VideoThumbnail.thumbnailFile(
+        video: videoPath,
+        thumbnailPath: thumbPath,
+        imageFormat: ImageFormat.JPEG,
+        maxWidth: 600,
+        quality: 80,
+        timeMs: 0,
+      );
+      return result;
+    } catch (_) {
+      return null;
+    }
   }
 
   // ── 삭제 ─────────────────────────────────────────────────────────────────

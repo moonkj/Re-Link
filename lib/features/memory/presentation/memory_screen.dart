@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/privacy/privacy_service.dart';
 import '../../../design/glass/app_glass.dart';
@@ -381,8 +380,11 @@ class _VideoGridItem extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // 배경 (glassSurface)
+            // 배경
             Container(color: AppColors.bgSurface),
+            // 썸네일 이미지
+            if (memory.thumbnailPath != null)
+              Image.file(File(memory.thumbnailPath!), fit: BoxFit.cover),
             // 플레이 아이콘 중앙
             Center(
               child: Container(

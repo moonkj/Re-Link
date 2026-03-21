@@ -764,51 +764,37 @@ class _VideoContent extends StatefulWidget {
 
 class _VideoContentState extends State<_VideoContent> {
   VideoPlayerController? _ctrl;
-  bool _initialized = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _init();
-  }
-
-  Future<void> _init() async {
-    if (widget.memory.filePath == null) return;
-    final file = File(widget.memory.filePath!);
-    if (!file.existsSync()) return;
-    final ctrl = VideoPlayerController.file(file);
-    await ctrl.initialize();
-
-    ctrl.addListener(() {
-      if (mounted) setState(() {});
-    });
-
-    // 1단계: VideoPlayer를 트리에 먼저 마운트
-    if (!mounted) return;
-    setState(() {
-      _ctrl = ctrl;
-      _initialized = true;
-    });
-
-    // 2단계: 트리에 마운트된 후 첫 프레임 렌더링
-    // seekTo(zero)는 iOS 텍스처를 blank로 만들므로 호출하지 않음
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted || _ctrl == null) return;
-      try {
-        await _ctrl!.setVolume(0.0);
-        await _ctrl!.play();
-        await Future.delayed(const Duration(milliseconds: 300));
-        if (mounted && _ctrl != null) {
-          await _ctrl!.pause();
-        }
-      } catch (_) {}
-    });
-  }
+  bool _playerLoading = false;
+  bool _playerReady = false;
 
   @override
   void dispose() {
     _ctrl?.dispose();
     super.dispose();
+  }
+
+  /// 탭 시 VideoPlayer 지연 로드
+  Future<void> _startPlay() async {
+    if (_playerLoading || _playerReady) return;
+    if (widget.memory.filePath == null) return;
+    final file = File(widget.memory.filePath!);
+    if (!file.existsSync()) return;
+
+    setState(() => _playerLoading = true);
+    try {
+      final ctrl = VideoPlayerController.file(file);
+      await ctrl.initialize();
+      ctrl.addListener(() { if (mounted) setState(() {}); });
+      if (!mounted) return;
+      setState(() {
+        _ctrl = ctrl;
+        _playerReady = true;
+        _playerLoading = false;
+      });
+      await ctrl.play();
+    } catch (_) {
+      if (mounted) setState(() => _playerLoading = false);
+    }
   }
 
   String _formatDuration(Duration d) {
@@ -817,18 +803,16 @@ class _VideoContentState extends State<_VideoContent> {
     return '$m:${s.toString().padLeft(2, '0')}';
   }
 
+  String _fmtSec(int? seconds) {
+    if (seconds == null) return '0:00';
+    return '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (!_initialized || _ctrl == null) {
-      return SizedBox(
-        height: 200,
-        child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
-      );
-    }
-
-    final isPlaying = _ctrl!.value.isPlaying;
-    final position = _ctrl!.value.position;
-    final duration = _ctrl!.value.duration;
+    final isPlaying = _ctrl?.value.isPlaying ?? false;
+    final position = _ctrl?.value.position ?? Duration.zero;
+    final duration = _ctrl?.value.duration ?? Duration(seconds: widget.memory.durationSeconds ?? 0);
     final progress = duration.inMilliseconds > 0
         ? position.inMilliseconds / duration.inMilliseconds
         : 0.0;
@@ -840,23 +824,41 @@ class _VideoContentState extends State<_VideoContent> {
           // 영상 화면
           GestureDetector(
             onTap: () async {
-              if (isPlaying) {
+              if (!_playerReady) {
+                await _startPlay();
+              } else if (isPlaying) {
                 _ctrl!.pause();
               } else {
-                // 첫 프레임 트릭 시 소거된 음량 복원 후 재생
-                await _ctrl!.setVolume(1.0);
                 _ctrl!.play();
               }
             },
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: AspectRatio(
-                aspectRatio: _ctrl!.value.aspectRatio,
+                aspectRatio: _ctrl?.value.aspectRatio ?? 16 / 9,
                 child: Stack(
+                  fit: StackFit.expand,
                   alignment: Alignment.center,
                   children: [
-                    VideoPlayer(_ctrl!),
-                    if (!isPlaying)
+                    // 썸네일 포스터 (VideoPlayer 로드 전)
+                    if (!_playerReady && widget.memory.thumbnailPath != null)
+                      Image.file(File(widget.memory.thumbnailPath!), fit: BoxFit.cover)
+                    else if (!_playerReady)
+                      Container(color: AppColors.bgSurface),
+
+                    // VideoPlayer (로드 완료 후)
+                    if (_playerReady && _ctrl != null)
+                      VideoPlayer(_ctrl!),
+
+                    // 로딩 인디케이터
+                    if (_playerLoading)
+                      Container(
+                        color: Colors.black45,
+                        child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                      ),
+
+                    // 플레이 버튼 (정지 상태)
+                    if (!isPlaying && !_playerLoading)
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: const BoxDecoration(
@@ -871,41 +873,46 @@ class _VideoContentState extends State<_VideoContent> {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          // 진행 바
-          SliderTheme(
-            data: SliderThemeData(
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-              overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-              trackHeight: 3,
-            ),
-            child: Slider(
-              value: progress.clamp(0.0, 1.0),
-              onChanged: (v) {
-                _ctrl!.seekTo(
+          // 진행 바 (VideoPlayer 로드 후에만)
+          if (_playerReady) ...[
+            SliderTheme(
+              data: SliderThemeData(
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                trackHeight: 3,
+              ),
+              child: Slider(
+                value: progress.clamp(0.0, 1.0),
+                onChanged: (v) => _ctrl!.seekTo(
                   Duration(milliseconds: (v * duration.inMilliseconds).round()),
-                );
-              },
-              activeColor: AppColors.primary,
-              inactiveColor: AppColors.glassBorder,
-            ),
-          ),
-          // 시간 표시
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _formatDuration(position),
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
-                Text(
-                  _formatDuration(duration),
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                ),
-              ],
+                activeColor: AppColors.primary,
+                inactiveColor: AppColors.glassBorder,
+              ),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(_formatDuration(position),
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  Text(_formatDuration(duration),
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
+          ] else
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(_fmtSec(widget.memory.durationSeconds),
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
         ],
       ),
     );

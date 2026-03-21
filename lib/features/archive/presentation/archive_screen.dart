@@ -728,6 +728,9 @@ class _VideoArchiveTile extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             Container(color: AppColors.bgSurface),
+            // 썸네일 이미지
+            if (memory.thumbnailPath != null)
+              Image.file(File(memory.thumbnailPath!), fit: BoxFit.cover),
             Center(
               child: Container(
                 padding: const EdgeInsets.all(10),
