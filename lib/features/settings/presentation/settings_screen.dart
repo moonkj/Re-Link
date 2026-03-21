@@ -22,6 +22,7 @@ import '../providers/reduce_motion_notifier.dart';
 import '../providers/spouse_snap_notifier.dart';
 import '../../../shared/widgets/section_label.dart';
 import '../providers/theme_mode_notifier.dart';
+import '../../auth/providers/auth_notifier.dart';
 
 /// 관리자 모드 활성화 여부 (DB 연동)
 final _adminEnabledProvider = FutureProvider<bool>((ref) async {
@@ -53,6 +54,8 @@ class SettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(AppSpacing.pagePadding),
         children: [
           const _ProfileSection(),
+          const SizedBox(height: AppSpacing.xl),
+          const _AccountSection(),
           const SizedBox(height: AppSpacing.xl),
           const _PlanSection(),
           const SizedBox(height: AppSpacing.xl),
@@ -1137,3 +1140,213 @@ class _AdminModeSection extends ConsumerWidget {
   }
 }
 
+
+// ── 계정 섹션 ──────────────────────────────────────────────────────────────────
+
+class _AccountSection extends ConsumerWidget {
+  const _AccountSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authAsync = ref.watch(authNotifierProvider);
+    final user = authAsync.valueOrNull;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionLabel(label: '계정'),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: user == null
+              ? _buildSignInRow(context)
+              : _buildSignedInContent(context, ref, user),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSignInRow(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withAlpha(20),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(Icons.person_outline, color: AppColors.primary, size: 24),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '로그인 안 됨',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              Text(
+                '패밀리 플랜에서 클라우드 동기화 사용',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+        ),
+        GlassButton(
+          onPressed: () => context.push(AppRoutes.login),
+          child: Text(
+            '로그인',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSignedInContent(BuildContext context, WidgetRef ref, authUser) {
+    final isFamily = authUser.hasFamilyPlan as bool;
+    final providerIcon = (authUser.provider as String) == 'apple'
+        ? Icons.apple
+        : Icons.account_circle_outlined;
+    final email = authUser.email as String?;
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(20),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(providerIcon, color: AppColors.primary, size: 24),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    email ?? '로그인 됨',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    (authUser.provider as String) == 'apple' ? 'Apple ID' : 'Google 계정',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        if (isFamily) ...[
+          const SizedBox(height: AppSpacing.md),
+          SizedBox(
+            width: double.infinity,
+            child: GlassButton(
+              onPressed: () => context.push(AppRoutes.familyMembers),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.group_outlined, color: AppColors.primary, size: 18),
+                  const SizedBox(width: 6),
+                  Text(
+                    '가족 멤버 관리',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Expanded(
+              child: GlassButton(
+                onPressed: () => _confirmSignOut(context, ref),
+                child: Text(
+                  '로그아웃',
+                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            GlassButton(
+              onPressed: () => _confirmDeleteAccount(context, ref),
+              child: Text(
+                '계정 삭제',
+                style: TextStyle(fontSize: 13, color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('로그아웃'),
+        content: const Text('로그아웃하면 클라우드 동기화가 중단됩니다.\n로컬 데이터는 유지됩니다.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('로그아웃', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    await ref.read(authNotifierProvider.notifier).signOut();
+  }
+
+  Future<void> _confirmDeleteAccount(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('계정 삭제'),
+        content: const Text(
+          '계정을 삭제하면 서버의 모든 동기화 데이터가 영구 삭제됩니다.\n'
+          '기기의 로컬 데이터는 유지됩니다.\n\n이 작업은 되돌릴 수 없습니다.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('삭제', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    await ref.read(authNotifierProvider.notifier).deleteAccount();
+  }
+}

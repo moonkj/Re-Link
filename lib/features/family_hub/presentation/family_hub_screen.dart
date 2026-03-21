@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
 import '../../../design/glass/app_glass.dart';
@@ -7,15 +8,19 @@ import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/widgets/feature_tile.dart';
 import '../../../shared/widgets/section_label.dart';
 import '../../../shared/widgets/tile_divider.dart';
+import '../../auth/providers/auth_notifier.dart';
 import '../../canvas/widgets/birthday_calendar_section.dart';
 import '../../canvas/widgets/add_event_sheet.dart';
+import '../../family_sync/providers/family_sync_notifier.dart';
 
 /// 가족 탭 — 가족 생활 기능 허브
-class FamilyHubScreen extends StatelessWidget {
+class FamilyHubScreen extends ConsumerWidget {
   const FamilyHubScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authNotifierProvider).valueOrNull;
+    final isFamily = user?.hasFamilyPlan ?? false;
     return Scaffold(
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
@@ -97,6 +102,17 @@ class FamilyHubScreen extends StatelessWidget {
           // ── 달력 섹션 (생일 + 가족 일정) ────────────────────────────
           const BirthdayCalendarSection(),
           const SizedBox(height: AppSpacing.xl),
+
+          // ── 클라우드 동기화 섹션 (패밀리 플랜) ─────────────────────
+          if (isFamily) ...[
+            const SectionLabel(label: '클라우드'),
+            const SizedBox(height: AppSpacing.sm),
+            const _CloudSyncCard(),
+            const SizedBox(height: AppSpacing.xl),
+          ] else ...[
+            const _CloudUpsellCard(),
+            const SizedBox(height: AppSpacing.xl),
+          ],
 
           // ── 일상 섹션 ──────────────────────────────────────────────
           const SectionLabel(label: '일상'),
@@ -180,6 +196,118 @@ class FamilyHubScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => const AddEventSheet(),
+    );
+  }
+}
+
+
+// ── 클라우드 동기화 카드 (패밀리 플랜 전용) ──────────────────────────────────────
+
+class _CloudSyncCard extends ConsumerWidget {
+  const _CloudSyncCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final syncState = ref.watch(familySyncNotifierProvider);
+    final isSyncing = syncState.status == SyncStatus.syncing;
+    final lastSyncAt = syncState.lastSyncAt;
+
+    String syncLabel;
+    if (isSyncing) {
+      syncLabel = '동기화 중...';
+    } else if (lastSyncAt != null) {
+      final diff = DateTime.now().difference(lastSyncAt);
+      if (diff.inMinutes < 1) {
+        syncLabel = '방금 동기화됨';
+      } else if (diff.inHours < 1) {
+        syncLabel = '${diff.inMinutes}분 전 동기화됨';
+      } else {
+        syncLabel = '${diff.inHours}시간 전 동기화됨';
+      }
+    } else {
+      syncLabel = '아직 동기화 안 됨';
+    }
+
+    return GlassCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          FeatureTile(
+            icon: Icons.group_outlined,
+            iconColor: AppColors.primary,
+            title: '가족 멤버 관리',
+            subtitle: '멤버 초대 · 동기화 상태 확인',
+            onTap: () => context.push(AppRoutes.familyMembers),
+          ),
+          const TileDivider(),
+          FeatureTile(
+            icon: isSyncing ? Icons.sync : Icons.cloud_done_outlined,
+            iconColor: isSyncing ? AppColors.secondary : AppColors.primaryMint,
+            title: '클라우드 동기화',
+            subtitle: syncLabel,
+            onTap: isSyncing
+                ? () {}
+                : () => ref.read(familySyncNotifierProvider.notifier).sync(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── 클라우드 업셀 카드 (무료/플러스 플랜) ────────────────────────────────────────
+
+class _CloudUpsellCard extends StatelessWidget {
+  const _CloudUpsellCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withAlpha(20),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.cloud_outlined, color: AppColors.primary, size: 24),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '클라우드 동기화',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  '패밀리 플랜에서 가족과 실시간 공유',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          GlassButton(
+            onPressed: () => context.push(AppRoutes.subscription),
+            child: Text(
+              '업그레이드',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
