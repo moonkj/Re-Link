@@ -112,6 +112,8 @@ class _AddMemorySheetState extends ConsumerState<AddMemorySheet> {
                   _photoPath = null;
                   _thumbPath = null;
                 }),
+                isPrivate: _isPrivate,
+                onPrivateChanged: (v) => setState(() => _isPrivate = v),
               ),
             ] else if (_selectedType == MemoryType.note) ...[
               _NoteForm(
@@ -193,6 +195,7 @@ class _AddMemorySheetState extends ConsumerState<AddMemorySheet> {
         filePath: _photoPath,
         thumbnailPath: _thumbPath,
         dateTaken: _dateTaken ?? DateTime.now(),
+        isPrivate: _isPrivate,
       );
       if (!mounted) return;
       HapticService.memoryAdded();
@@ -345,6 +348,8 @@ class _PhotoForm extends StatelessWidget {
     required this.onDateChanged,
     required this.onSave,
     required this.onBack,
+    required this.isPrivate,
+    required this.onPrivateChanged,
   });
 
   final String? photoPath;
@@ -357,6 +362,8 @@ class _PhotoForm extends StatelessWidget {
   final void Function(DateTime?) onDateChanged;
   final VoidCallback onSave;
   final VoidCallback onBack;
+  final bool isPrivate;
+  final void Function(bool) onPrivateChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -452,7 +459,34 @@ class _PhotoForm extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.xxl),
+        const SizedBox(height: AppSpacing.md),
+
+        // 공개 범위 토글
+        GlassCard(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 2),
+          child: Row(
+            children: [
+              Icon(
+                isPrivate ? Icons.lock_outline : Icons.public,
+                color: isPrivate ? AppColors.accent : AppColors.primary,
+                size: 18,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  isPrivate ? '나만 보기' : '가족과 공유',
+                  style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                ),
+              ),
+              Switch(
+                value: isPrivate,
+                onChanged: onPrivateChanged,
+                activeThumbColor: AppColors.accent,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xl),
 
         SizedBox(
           width: double.infinity,
@@ -485,6 +519,7 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
   final _titleCtrl = TextEditingController();
   bool _saving = false;
   bool _picking = false;
+  bool _isPrivate = false;
   VideoPlayerController? _videoCtrl;
 
   @override
@@ -592,6 +627,7 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
         filePath: _videoPath,
         durationSeconds: _durationSeconds,
         dateTaken: DateTime.now(),
+        isPrivate: _isPrivate,
       );
 
       widget.onSaved?.call();
@@ -760,7 +796,35 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.md),
+
+          // 공개 범위 토글
+          GlassCard(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 2),
+            child: Row(
+              children: [
+                Icon(
+                  _isPrivate ? Icons.lock_outline : Icons.public,
+                  color: _isPrivate ? AppColors.accent : AppColors.primary,
+                  size: 18,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    _isPrivate ? '나만 보기' : '가족과 공유',
+                    style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                  ),
+                ),
+                Switch(
+                  value: _isPrivate,
+                  onChanged: (v) => setState(() => _isPrivate = v),
+                  activeThumbColor: AppColors.accent,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+
           SizedBox(
             width: double.infinity,
             child: PrimaryGlassButton(

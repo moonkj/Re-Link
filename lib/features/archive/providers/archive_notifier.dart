@@ -8,7 +8,7 @@ import '../../../shared/repositories/node_repository.dart';
 part 'archive_notifier.g.dart';
 
 /// 아카이브 필터
-enum ArchiveFilter { all, photo, voice, note }
+enum ArchiveFilter { all, photo, voice, note, video }
 
 /// 아카이브 정렬
 enum ArchiveSortOrder { newest, oldest, name }
@@ -114,6 +114,7 @@ class ArchiveNotifier extends _$ArchiveNotifier {
 
     // 1. 필터 적용
     var filtered = _allMemories.where((m) {
+      if (m.isPrivate) return false; // 비공개 기억은 아카이브에서 제외
       if (filter != ArchiveFilter.all && m.type.name != filter.name) return false;
       if (query.isNotEmpty) {
         final titleMatch = m.title?.toLowerCase().contains(query) ?? false;

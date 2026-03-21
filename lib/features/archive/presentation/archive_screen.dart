@@ -32,14 +32,16 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return;
       setState(() => _currentTab = _tabController.index);
       if (_tabController.index > 0) {
-        // index 1=사진, 2=음성, 3=메모 → ArchiveFilter.photo/voice/note
+        // index 1=사진, 2=음성, 3=메모, 4=영상 → ArchiveFilter.photo/voice/note/video
         final filter = ArchiveFilter.values[_tabController.index];
         ref.read(archiveNotifierProvider.notifier).setFilter(filter);
+      } else {
+        ref.read(archiveNotifierProvider.notifier).setFilter(ArchiveFilter.all);
       }
     });
   }
@@ -134,6 +136,7 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
                       Tab(text: '사진'),
                       Tab(text: '음성'),
                       Tab(text: '메모'),
+                      Tab(text: '영상'),
                     ],
                   ),
                 ],
@@ -147,21 +150,29 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
                 ? const Center(child: CircularProgressIndicator())
                 : state.isEmpty
                     ? EmptyStateWidget(
-                        icon: Icons.photo_library_outlined,
+                        icon: _currentTab == 4
+                            ? Icons.videocam_outlined
+                            : Icons.photo_library_outlined,
                         title: '보관된 기억이 없어요',
                         subtitle: '소중한 기억을 추가하면\n여기에 모입니다',
                       )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(AppSpacing.lg),
-                        itemCount: state.groups.length,
-                        itemBuilder: (_, i) {
-                          final group = state.groups[i];
-                          return _ArchiveGroup(
-                            group: group,
-                            onPrivateTap: _handlePrivateTap,
-                          );
-                        },
-                      ),
+                    : _currentTab == 4
+                        ? _VideoGridTab(
+                            groups: state.groups,
+                            onTap: (m) =>
+                                context.push(AppRoutes.memoryPath(m.nodeId)),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(AppSpacing.lg),
+                            itemCount: state.groups.length,
+                            itemBuilder: (_, i) {
+                              final group = state.groups[i];
+                              return _ArchiveGroup(
+                                group: group,
+                                onPrivateTap: _handlePrivateTap,
+                              );
+                            },
+                          ),
       ),
     );
   }
@@ -650,5 +661,119 @@ class _StoryContent extends StatelessWidget {
         ),
       MemoryType.video => const SizedBox.shrink(),
     };
+  }
+}
+
+/// 영상 탭 — 2열 그리드 (모든 그룹의 video 기억을 flat하게 표시)
+class _VideoGridTab extends StatelessWidget {
+  const _VideoGridTab({
+    required this.groups,
+    required this.onTap,
+  });
+  final List<ArchiveGroup> groups;
+  final void Function(MemoryModel memory) onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    // 모든 그룹에서 video 기억만 flat하게 수집
+    final videos = [
+      for (final g in groups)
+        for (final m in g.memories)
+          if (m.type == MemoryType.video) m,
+    ];
+
+    if (videos.isEmpty) {
+      return EmptyStateWidget(
+        icon: Icons.videocam_outlined,
+        title: '보관된 영상이 없어요',
+        subtitle: '소중한 영상 기억을 추가하면\n여기에 모입니다',
+      );
+    }
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: AppSpacing.sm,
+        mainAxisSpacing: AppSpacing.sm,
+        childAspectRatio: 1.0,
+      ),
+      itemCount: videos.length,
+      itemBuilder: (_, i) => _VideoArchiveTile(
+        memory: videos[i],
+        onTap: () => onTap(videos[i]),
+      ),
+    );
+  }
+}
+
+/// 영상 그리드 아이템
+class _VideoArchiveTile extends StatelessWidget {
+  const _VideoArchiveTile({required this.memory, required this.onTap});
+  final MemoryModel memory;
+  final VoidCallback onTap;
+
+  String _fmt(int? s) {
+    if (s == null) return '';
+    return '${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Container(color: AppColors.bgSurface),
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.play_arrow,
+                    color: Colors.white, size: 28),
+              ),
+            ),
+            if (memory.durationSeconds != null)
+              Positioned(
+                bottom: 6,
+                right: 6,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    _fmt(memory.durationSeconds),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            if (memory.title != null)
+              Positioned(
+                bottom: 6,
+                left: 6,
+                right: memory.durationSeconds != null ? 50 : 6,
+                child: Text(
+                  memory.title!,
+                  style: const TextStyle(color: Colors.white, fontSize: 10),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }

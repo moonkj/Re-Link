@@ -50,6 +50,7 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
   String? _recordedPath;
   int _recordedSeconds = 0;
   bool _saving = false;
+  bool _isPrivate = false;
   final _titleCtrl = TextEditingController();
 
   _PlaybackSpeed _speed = _PlaybackSpeed.normal;
@@ -272,6 +273,33 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
                 ],
               ),
             ),
+            const SizedBox(height: AppSpacing.md),
+
+            // 공개 범위 토글
+            GlassCard(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 2),
+              child: Row(
+                children: [
+                  Icon(
+                    _isPrivate ? Icons.lock_outline : Icons.public,
+                    color: _isPrivate ? AppColors.accent : AppColors.primary,
+                    size: 18,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      _isPrivate ? '나만 보기' : '가족과 공유',
+                      style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                    ),
+                  ),
+                  Switch(
+                    value: _isPrivate,
+                    onChanged: (v) => setState(() => _isPrivate = v),
+                    activeThumbColor: AppColors.accent,
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: AppSpacing.lg),
 
             SizedBox(
@@ -372,6 +400,7 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
         durationSeconds: _recordedSeconds,
         title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
         tags: _selectedTag != null ? [_selectedTag!] : const [],
+        isPrivate: _isPrivate,
       );
       if (!mounted) return;
       HapticService.memoryAdded();

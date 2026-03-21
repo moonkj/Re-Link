@@ -109,6 +109,7 @@ class MemoryNotifier extends _$MemoryNotifier {
     required int durationSeconds,
     String? title,
     List<String> tags = const [],
+    bool isPrivate = false,
   }) async {
     state = const AsyncLoading();
     try {
@@ -121,6 +122,7 @@ class MemoryNotifier extends _$MemoryNotifier {
         durationSeconds: durationSeconds,
         dateTaken: DateTime.now(),
         tags: tags,
+        isPrivate: isPrivate,
       );
       state = const AsyncData(null);
       return memory;
