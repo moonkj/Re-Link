@@ -9,7 +9,9 @@ import 'core/utils/haptic_service.dart';
 import 'design/tokens/app_colors.dart';
 import 'design/tokens/app_theme.dart';
 import 'features/changelog/presentation/changelog_modal.dart';
+import 'features/auth/providers/auth_notifier.dart';
 import 'features/changelog/providers/changelog_notifier.dart';
+import 'features/family_sync/providers/family_sync_notifier.dart';
 import 'features/memorial/providers/memorial_notifier.dart';
 import 'features/settings/providers/elderly_mode_notifier.dart';
 import 'features/settings/providers/haptic_notifier.dart';
@@ -98,16 +100,19 @@ class _ChangelogChecker extends ConsumerStatefulWidget {
   ConsumerState<_ChangelogChecker> createState() => _ChangelogCheckerState();
 }
 
-class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker> {
+class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
+    with WidgetsBindingObserver {
   /// static으로 앱 라이프사이클 동안 1회만 실행 보장
   /// (MaterialApp key 변경 시 위젯 재생성 방어)
   static bool _checked = false;
 
   StreamSubscription<Uri>? _linkSub;
+  DateTime? _lastSyncTrigger;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _checkChangelog();
     });
@@ -116,8 +121,30 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _linkSub?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _triggerSyncIfNeeded();
+    }
+  }
+
+  /// 포그라운드 복귀 시 5분 이상 경과했고 패밀리 플랜이면 자동 동기화
+  void _triggerSyncIfNeeded() {
+    final user = ref.read(authNotifierProvider).valueOrNull;
+    if (user == null || !user.hasFamilyPlan) return;
+
+    final now = DateTime.now();
+    if (_lastSyncTrigger != null &&
+        now.difference(_lastSyncTrigger!) < const Duration(minutes: 5)) {
+      return;
+    }
+    _lastSyncTrigger = now;
+    ref.read(familySyncNotifierProvider.notifier).sync();
   }
 
   void _initDeepLinks() {
