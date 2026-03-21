@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-21
-> 현재 단계: Phase 8 — UX/UI 전면 리디자인 + 버그 수정
+> 현재 단계: Phase 9 — 영상 기억 + 공개/비공개 + 구독 수정
 > v2.0 계획: Phase 5a~5g 전체 26개 기능 계획 완료 (v1.0 런치 후 착수)
 
 ---
@@ -2821,6 +2821,93 @@
 
 ---
 
+## Phase 9 — 영상 기억 + 공개/비공개 + 구독 수정 (2026-03-21)
+
+---
+
+### 백업/설정 버그 수정 ✅
+
+- [x] `backup_notifier.dart` — `restoreFromCloud()` / `restoreFromFile()` 완료 후 `_loadInfo()` 누락 수정 (상태 동기화)
+- [x] `canvas_screen.dart` — `reduceMotionNotifierProvider` watch 연동 (FAB 호흡 애니메이션 조건부 제어)
+
+---
+
+### 구독 화면 수정 ✅
+
+- [x] `subscription_screen.dart` — 플러스: "기기 내 저장(로컬 전용)" 표기 추가
+- [x] 패밀리/패밀리플러스: "테마 10종 / 전체테마+시즌한정" 허위 항목 제거
+- [x] 영상 항목: "무제한" → "클라우드 저장" 등 실제 제약 반영한 표현으로 교체
+
+---
+
+### 영상 기억 기능 구현 ✅
+
+#### 패키지
+- [x] `pubspec.yaml` — `video_player: ^2.9.2`, `video_thumbnail: ^0.5.3` 추가
+
+#### 모델 / DB
+- [x] `memory_model.dart` — `MemoryType.video` 추가 (`label: '영상'`)
+- [x] `memory_repository.dart` — `totalVideoCount()`, `totalVideoSeconds()` 추가
+- [x] `user_plan.dart` — `hasVideo`, `maxVideoSeconds`, `maxVideoCount` 플랜별 제한
+
+#### Media Service
+- [x] `media_service.dart` — `pickAndSaveVideo()`, `captureAndSaveVideo()` 추가
+- [x] `media_service.dart` — `generateVideoThumbnail(videoPath)` — `video_thumbnail`로 JPG 썸네일 생성
+
+#### 영상 추가 UI
+- [x] `add_memory_sheet.dart` — `_VideoForm` / `_VideoFormState` 추가
+  - 갤러리/카메라 선택 2분할 버튼
+  - 플랜 초과 시 에러 + 파일 삭제
+  - VideoPlayerController: duration 체크 후 즉시 dispose (미리보기에 미사용)
+  - 썸네일 이미지로 정적 미리보기 표시
+
+#### 기억 탭 영상 탭 추가
+- [x] `archive_notifier.dart` — `ArchiveFilter.video` 추가, `isPrivate` 기억 필터링
+- [x] `archive_screen.dart` — `TabController(length: 5)`, "영상" 5번째 탭
+- [x] `_VideoGridTab`, `_VideoArchiveTile` 위젯 — 썸네일 이미지 + 재생 아이콘 + 시간 배지
+- [x] `memory_screen.dart` — 영상 탭 + `_VideoGrid` / `_VideoGridItem` 추가
+
+#### Switch 망라성 수정
+- [x] `MemoryType.video` 케이스 누락 7개 파일 일괄 수정 (archive_screen, node_detail_sheet, capsule_list_screen, create_capsule_sheet, search_screen, story_feed_screen, memory_repository)
+
+---
+
+### 공개/비공개 기억 분리 ✅
+
+- [x] `memories` 테이블 — `isPrivate` 컬럼 (schemaVersion 7)
+- [x] `memory_notifier.dart` — `updatePrivacy(id, {isPrivate})` 추가
+- [x] `voice_recorder_sheet.dart` — `_isPrivate` 상태 + 토글 UI + `addVoice()` 전달
+- [x] `add_memory_sheet.dart` — 사진/영상 폼에 `isPrivate` 파라미터 추가
+- [x] `archive_notifier.dart` `_rebuild()` — `isPrivate` 기억 필터링 (기억 탭에서 완전 제외)
+
+---
+
+### 알약형 공개/비공개 토글 ✅
+
+- [x] `memory_detail_sheet.dart` — `_PrivacyPill` + `_PillOption` 위젯 추가
+  - `[🌍 공개 | 🔒 비공개]` 양쪽이 항상 표시되는 알약형 세그먼트
+  - `HitTestBehavior.opaque` — 알약 전체 터치 가능
+  - `AnimatedContainer` 200ms 전환 애니메이션
+  - 잠금 오버레이(`_LockedOverlay`)에도 동일 토글 노출
+
+---
+
+### 영상 프리뷰 수정 (video_thumbnail) ✅
+
+#### 근본 원인 분석
+- `VideoPlayer` 첫 프레임 렌더링: iOS AVPlayer 텍스처 등록 타이밍 문제
+- `seekTo(Duration.zero)` 호출이 iOS AVPlayer 텍스처를 blank로 리셋
+- `addPostFrameCallback` play/pause 트릭도 텍스처 미등록 타이밍에 실행 시 무효
+
+#### 해결 방법
+- [x] `media_service.generateVideoThumbnail()` — 영상 저장 시 첫 프레임 JPG 자동 생성
+- [x] `memory_repository.create()` — `thumbnailPath` 영상에도 저장
+- [x] 미리보기: `VideoPlayer` 대신 `Image.file(thumbnailPath)` 정적 이미지 (100% 신뢰성)
+- [x] `memory_detail_sheet._VideoContent` — 썸네일 포스터 이미지 → 탭 시 VideoPlayer 지연 로드
+- [x] `_VideoArchiveTile` / `_VideoGridItem` — `memory.thumbnailPath` 있으면 이미지 표시
+
+---
+
 ## v2.1 개발 우선순위 요약
 
 | 순위 | Phase | 기능 | 예상 기간 | 우선도 |
@@ -2898,3 +2985,4 @@
 | Phase 6 v2.1 추가 기능 | 4개 | ✅ 4/4 완료 (타임머신/아트카드/웰컴캡슐/변경로그) |
 | Phase 7 미구현 구현 | 30+ 항목 | ✅ Batch1(코드) + Batch2(테스트352개) + UX수정 + "나 설정" + 메뉴개편 |
 | Phase 8 UX/UI 리디자인 | 20+ 항목 | ✅ Gen Z 디자인 + 엣지수정 + 나무성장 + 미니맵 + LOD |
+| Phase 9 영상/공개비공개/구독 | 30+ 항목 | ✅ 영상기억 + video_thumbnail + _PrivacyPill + 구독수정 |
