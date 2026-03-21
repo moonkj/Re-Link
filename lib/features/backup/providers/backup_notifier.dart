@@ -127,6 +127,7 @@ class BackupNotifier extends _$BackupNotifier {
       final file = await _cloudProvider!.download(backup.filename);
       final service = ref.read(backupServiceProvider);
       await service.restoreBackup(file);
+      await _loadInfo();
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
@@ -142,6 +143,7 @@ class BackupNotifier extends _$BackupNotifier {
     try {
       final service = ref.read(backupServiceProvider);
       final manifest = await service.restoreBackup(file);
+      await _loadInfo();
       state = state.copyWith(isLoading: false);
       return manifest;
     } catch (e) {

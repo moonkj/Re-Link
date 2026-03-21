@@ -32,6 +32,7 @@ import '../../tree_growth/widgets/tree_growth_overlay.dart';
 import '../utils/quad_tree.dart';
 import '../utils/lod_utils.dart';
 import '../utils/generation_utils.dart';
+import '../../settings/providers/reduce_motion_notifier.dart';
 
 /// 무한 캔버스 메인 화면
 class CanvasScreen extends ConsumerStatefulWidget {
@@ -249,6 +250,15 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
 
     // "나" 노드 ID
     final myNodeId = ref.watch(myNodeNotifierProvider).valueOrNull;
+
+    final reduceMotion = ref.watch(reduceMotionNotifierProvider).valueOrNull ?? false;
+
+    // FAB 호흡 애니메이션 — 모션 줄이기 시 중단
+    if (reduceMotion) {
+      if (_fabBreathCtrl.isAnimating) _fabBreathCtrl.stop();
+    } else {
+      if (!_fabBreathCtrl.isAnimating) _fabBreathCtrl.repeat(reverse: true);
+    }
 
     // 겹치는 노드 자동 분산 — 노드 수 변경 시 디바운스로 재실행
     if (nodes.length > 1 && nodes.length != _lastSpreadNodeCount) {

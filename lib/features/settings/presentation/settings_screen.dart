@@ -51,25 +51,25 @@ class SettingsScreen extends ConsumerWidget {
       ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.pagePadding),
-        children: const [
-          _ProfileSection(),
-          SizedBox(height: AppSpacing.xl),
-          _PlanSection(),
-          SizedBox(height: AppSpacing.xl),
-          _ThemeSection(),
-          SizedBox(height: AppSpacing.xl),
-          _BackupSection(),
-          SizedBox(height: AppSpacing.xl),
-          _AccessibilitySection(),
-          SizedBox(height: AppSpacing.xl),
-          _PrivacyPromiseSection(),
-          SizedBox(height: AppSpacing.xl),
-          _FeedbackSection(),
-          SizedBox(height: AppSpacing.xl),
-          _AppInfoSection(),
-          SizedBox(height: AppSpacing.xl),
-          _AdminModeSection(),
-          SizedBox(height: AppSpacing.xxxl),
+        children: [
+          const _ProfileSection(),
+          const SizedBox(height: AppSpacing.xl),
+          const _PlanSection(),
+          const SizedBox(height: AppSpacing.xl),
+          const _ThemeSection(),
+          const SizedBox(height: AppSpacing.xl),
+          const _BackupSection(),
+          const SizedBox(height: AppSpacing.xl),
+          const _AccessibilitySection(),
+          const SizedBox(height: AppSpacing.xl),
+          const _PrivacyPromiseSection(),
+          const SizedBox(height: AppSpacing.xl),
+          const _FeedbackSection(),
+          const SizedBox(height: AppSpacing.xl),
+          const _AppInfoSection(),
+          const SizedBox(height: AppSpacing.xl),
+          const _AdminModeSection(),
+          const SizedBox(height: AppSpacing.xxxl),
         ],
       ),
     );
@@ -78,103 +78,122 @@ class SettingsScreen extends ConsumerWidget {
 
 // ── 프로필 섹션 ────────────────────────────────────────────────────────────────
 
-class _ProfileSection extends ConsumerWidget {
+class _ProfileSection extends ConsumerStatefulWidget {
   const _ProfileSection();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return FutureBuilder(
-      future: ref.read(profileRepositoryProvider).getProfile(),
-      builder: (context, snap) {
-        final profile = snap.data;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SectionLabel(label: '내 프로필'),
-            const SizedBox(height: AppSpacing.sm),
-            GlassCard(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Row(
-                children: [
-                  // 아바타
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.glassSurface,
-                      border:
-                          Border.all(color: AppColors.primary, width: 2),
-                      image: profile?.photoPath != null
-                          ? DecorationImage(
-                              image: FileImage(File(profile!.photoPath!)),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
-                    ),
-                    child: profile?.photoPath == null
-                        ? Center(
-                            child: Text(
-                              profile?.name.isNotEmpty == true
-                                  ? profile!.name[0]
-                                  : '?',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          profile?.name ?? '프로필 없음',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        if (profile?.nickname != null)
-                          Text(
-                            profile!.nickname!,
-                            style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textSecondary),
-                          ),
-                      ],
-                    ),
-                  ),
-                  GlassButton(
-                    onPressed: () => _openEditProfile(context, ref),
-                    child: Text(
-                      '편집',
-                      style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
+  ConsumerState<_ProfileSection> createState() => _ProfileSectionState();
+}
+
+class _ProfileSectionState extends ConsumerState<_ProfileSection> {
+  String? _profileName;
+  String? _profileNickname;
+  String? _profilePhotoPath;
+
+  @override
+  void initState() {
+    super.initState();
+    _reloadProfile();
   }
 
-  void _openEditProfile(BuildContext context, WidgetRef ref) {
+  Future<void> _reloadProfile() async {
+    final profile = await ref.read(profileRepositoryProvider).getProfile();
+    if (!mounted) return;
+    setState(() {
+      _profileName = profile?.name;
+      _profileNickname = profile?.nickname;
+      _profilePhotoPath = profile?.photoPath;
+    });
+  }
+
+  void _openEditProfile(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const _ProfileEditSheet(),
+    ).then((_) => _reloadProfile());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionLabel(label: '내 프로필'),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Row(
+            children: [
+              // 아바타
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.glassSurface,
+                  border:
+                      Border.all(color: AppColors.primary, width: 2),
+                  image: _profilePhotoPath != null
+                      ? DecorationImage(
+                          image: FileImage(File(_profilePhotoPath!)),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: _profilePhotoPath == null
+                    ? Center(
+                        child: Text(
+                          _profileName?.isNotEmpty == true
+                              ? _profileName![0]
+                              : '?',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _profileName ?? '프로필 없음',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    if (_profileNickname != null)
+                      Text(
+                        _profileNickname!,
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary),
+                      ),
+                  ],
+                ),
+              ),
+              GlassButton(
+                onPressed: () => _openEditProfile(context),
+                child: Text(
+                  '편집',
+                  style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -295,76 +314,89 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
 
 // ── 요금제 섹션 ────────────────────────────────────────────────────────────────
 
-class _PlanSection extends ConsumerWidget {
+class _PlanSection extends ConsumerStatefulWidget {
   const _PlanSection();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_PlanSection> createState() => _PlanSectionState();
+}
+
+class _PlanSectionState extends ConsumerState<_PlanSection> {
+  UserPlan _plan = UserPlan.free;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPlan();
+  }
+
+  Future<void> _loadPlan() async {
+    final plan = await ref.read(settingsRepositoryProvider).getUserPlan();
+    if (!mounted) return;
+    setState(() => _plan = plan);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SectionLabel(label: '요금제'),
         const SizedBox(height: AppSpacing.sm),
-        FutureBuilder<UserPlan>(
-          future: ref.read(settingsRepositoryProvider).getUserPlan(),
-          builder: (context, snap) {
-            final plan = snap.data ?? UserPlan.free;
-            return GlassCard(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Row(
-                children: [
-                  Icon(
-                    plan == UserPlan.familyPlus
-                        ? Icons.workspace_premium
-                        : plan == UserPlan.family
-                            ? Icons.family_restroom
-                            : plan == UserPlan.plus
-                                ? Icons.star_outline
-                                : Icons.person_outline,
-                    color: plan == UserPlan.familyPlus
-                        ? AppColors.planFamilyPlus
-                        : plan == UserPlan.family
-                            ? AppColors.planFamily
-                            : AppColors.primary,
-                    size: 28,
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          plan.displayName,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        Text(
-                          '노드 ${plan.isUnlimited ? "무제한" : "${plan.maxNodes}개"} · '
-                          '사진 ${plan.isUnlimited ? "무제한" : "${plan.maxPhotos}장"}',
-                          style: TextStyle(
-                              fontSize: 12, color: AppColors.textSecondary),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (plan != UserPlan.familyPlus)
-                    GlassButton(
-                      onPressed: () => context.push(AppRoutes.subscription),
-                      child: Text(
-                        '업그레이드',
-                        style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600),
+        GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Row(
+            children: [
+              Icon(
+                _plan == UserPlan.familyPlus
+                    ? Icons.workspace_premium
+                    : _plan == UserPlan.family
+                        ? Icons.family_restroom
+                        : _plan == UserPlan.plus
+                            ? Icons.star_outline
+                            : Icons.person_outline,
+                color: _plan == UserPlan.familyPlus
+                    ? AppColors.planFamilyPlus
+                    : _plan == UserPlan.family
+                        ? AppColors.planFamily
+                        : AppColors.primary,
+                size: 28,
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _plan.displayName,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
                       ),
                     ),
-                ],
+                    Text(
+                      '노드 ${_plan.isUnlimited ? "무제한" : "${_plan.maxNodes}개"} · '
+                      '사진 ${_plan.isUnlimited ? "무제한" : "${_plan.maxPhotos}장"}',
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
               ),
-            );
-          },
+              if (_plan != UserPlan.familyPlus)
+                GlassButton(
+                  onPressed: () => context.push(AppRoutes.subscription),
+                  child: Text(
+                    '업그레이드',
+                    style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ),
+            ],
+          ),
         ),
       ],
     );
@@ -373,11 +405,40 @@ class _PlanSection extends ConsumerWidget {
 
 // ── 백업 섹션 ─────────────────────────────────────────────────────────────────
 
-class _BackupSection extends ConsumerWidget {
+class _BackupSection extends ConsumerStatefulWidget {
   const _BackupSection();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_BackupSection> createState() => _BackupSectionState();
+}
+
+class _BackupSectionState extends ConsumerState<_BackupSection> {
+  bool _autoBackupEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAutoBackup();
+  }
+
+  Future<void> _loadAutoBackup() async {
+    final enabled =
+        await ref.read(settingsRepositoryProvider).isAutoBackupEnabled();
+    if (!mounted) return;
+    setState(() => _autoBackupEnabled = enabled);
+  }
+
+  Future<void> _onAutoBackupChanged(bool v) async {
+    setState(() => _autoBackupEnabled = v);
+    await ref.read(settingsRepositoryProvider).setAutoBackup(v);
+  }
+
+  String _formatDate(DateTime dt) =>
+      '${dt.year}.${dt.month.toString().padLeft(2, '0')}.${dt.day.toString().padLeft(2, '0')} '
+      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+
+  @override
+  Widget build(BuildContext context) {
     final backupState = ref.watch(backupNotifierProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,27 +473,18 @@ class _BackupSection extends ConsumerWidget {
               ),
               Divider(color: AppColors.glassBorder, height: 1),
               // 자동 백업 토글
-              FutureBuilder<bool>(
-                future: ref
-                    .read(settingsRepositoryProvider)
-                    .isAutoBackupEnabled(),
-                builder: (context, snap) {
-                  final enabled = snap.data ?? true;
-                  return SwitchListTile(
-                    secondary: Icon(Icons.schedule_outlined,
-                        color: AppColors.primary),
-                    title: Text('자동 백업',
-                        style: TextStyle(
-                            fontSize: 15, color: AppColors.textPrimary)),
-                    subtitle: Text('24시간마다 자동 저장',
-                        style: TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary)),
-                    value: enabled,
-                    onChanged: (v) =>
-                        ref.read(settingsRepositoryProvider).setAutoBackup(v),
-                    activeThumbColor: AppColors.primary,
-                  );
-                },
+              SwitchListTile(
+                secondary: Icon(Icons.schedule_outlined,
+                    color: AppColors.primary),
+                title: Text('자동 백업',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: Text('24시간마다 자동 저장',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                value: _autoBackupEnabled,
+                onChanged: _onAutoBackupChanged,
+                activeThumbColor: AppColors.primary,
               ),
             ],
           ),
@@ -440,10 +492,6 @@ class _BackupSection extends ConsumerWidget {
       ],
     );
   }
-
-  String _formatDate(DateTime dt) =>
-      '${dt.year}.${dt.month.toString().padLeft(2, '0')}.${dt.day.toString().padLeft(2, '0')} '
-      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 }
 
 // ── 테마 섹션 ──────────────────────────────────────────────────────────────────
