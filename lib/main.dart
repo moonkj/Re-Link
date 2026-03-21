@@ -79,11 +79,11 @@ Future<void> main() async {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
-    // AdMob 초기화 (첫 프레임 후 — startup watchdog 방지)
-    MobileAds.instance.initialize().catchError((_) => InitializationStatus({}));
-    // 로컬 알림 초기화 (채널 생성, timezone 설정)
-    NotificationService().init().catchError((_) {
-      debugPrint('[Re-Link] NotificationService init failed');
+    // AdMob + 알림 초기화: 1.5초 지연 (iOS 26 watchdog 방지)
+    // - NotificationService는 Riverpod 싱글톤이 lazy-init으로 처리
+    // - 여기서 별도 인스턴스 생성하면 이중 초기화로 충돌 발생
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      MobileAds.instance.initialize().then((_) {}).catchError((_) {});
     });
   });
 }
