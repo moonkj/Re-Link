@@ -43,9 +43,16 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(AppSpacing.pagePadding),
-            child: Column(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom -
+                    AppSpacing.pagePadding * 2,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: AppSpacing.giant),
                 // 타이틀
                 Text(
                   '시작해 볼게요',
@@ -145,6 +152,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
                 ),
               ],
+            ),
             ),
           ),
         ),
