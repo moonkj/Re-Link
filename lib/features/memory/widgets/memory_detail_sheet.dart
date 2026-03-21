@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:video_player/video_player.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -185,6 +186,7 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
                 onToggle: _togglePlayback,
               ),
             MemoryType.note => _NoteContent(memory: widget.memory),
+            MemoryType.video => _VideoContent(memory: widget.memory),
           },
 
           const SizedBox(height: AppSpacing.lg),
@@ -476,6 +478,13 @@ class _BlurredPreview extends StatelessWidget {
             child: Icon(Icons.notes_rounded, size: 48, color: AppColors.primary),
           ),
         );
+      case MemoryType.video:
+        return Container(
+          color: AppColors.bgSurface,
+          child: const Center(
+            child: Icon(Icons.videocam_rounded, size: 48, color: Colors.white54),
+          ),
+        );
     }
   }
 }
@@ -629,6 +638,148 @@ class _NoteContent extends StatelessWidget {
             style: TextStyle(fontSize: 15, color: AppColors.textPrimary, height: 1.6),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ── 영상 ──────────────────────────────────────────────────────────────────────
+
+class _VideoContent extends StatefulWidget {
+  const _VideoContent({required this.memory});
+  final MemoryModel memory;
+
+  @override
+  State<_VideoContent> createState() => _VideoContentState();
+}
+
+class _VideoContentState extends State<_VideoContent> {
+  VideoPlayerController? _ctrl;
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  Future<void> _init() async {
+    if (widget.memory.filePath == null) return;
+    final file = File(widget.memory.filePath!);
+    if (!file.existsSync()) return;
+    final ctrl = VideoPlayerController.file(file);
+    await ctrl.initialize();
+    ctrl.addListener(() {
+      if (mounted) setState(() {});
+    });
+    if (mounted) {
+      setState(() {
+        _ctrl = ctrl;
+        _initialized = true;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl?.dispose();
+    super.dispose();
+  }
+
+  String _formatDuration(Duration d) {
+    final m = d.inMinutes;
+    final s = d.inSeconds % 60;
+    return '$m:${s.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_initialized || _ctrl == null) {
+      return SizedBox(
+        height: 200,
+        child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      );
+    }
+
+    final isPlaying = _ctrl!.value.isPlaying;
+    final position = _ctrl!.value.position;
+    final duration = _ctrl!.value.duration;
+    final progress = duration.inMilliseconds > 0
+        ? position.inMilliseconds / duration.inMilliseconds
+        : 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: Column(
+        children: [
+          // 영상 화면
+          GestureDetector(
+            onTap: () {
+              if (isPlaying) {
+                _ctrl!.pause();
+              } else {
+                _ctrl!.play();
+              }
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: AspectRatio(
+                aspectRatio: _ctrl!.value.aspectRatio,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    VideoPlayer(_ctrl!),
+                    if (!isPlaying)
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: const BoxDecoration(
+                          color: Colors.black54,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.play_arrow, color: Colors.white, size: 36),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          // 진행 바
+          SliderTheme(
+            data: SliderThemeData(
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+              trackHeight: 3,
+            ),
+            child: Slider(
+              value: progress.clamp(0.0, 1.0),
+              onChanged: (v) {
+                _ctrl!.seekTo(
+                  Duration(milliseconds: (v * duration.inMilliseconds).round()),
+                );
+              },
+              activeColor: AppColors.primary,
+              inactiveColor: AppColors.glassBorder,
+            ),
+          ),
+          // 시간 표시
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _formatDuration(position),
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+                Text(
+                  _formatDuration(duration),
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

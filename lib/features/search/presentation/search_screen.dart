@@ -230,11 +230,13 @@ class _MemoryResultTile extends StatelessWidget {
       MemoryType.photo => Icons.photo_outlined,
       MemoryType.voice => Icons.mic_outlined,
       MemoryType.note => Icons.notes_outlined,
+      MemoryType.video => Icons.videocam_outlined,
     };
     final label = switch (memory.type) {
       MemoryType.photo => '사진',
       MemoryType.voice => '음성',
       MemoryType.note => '메모',
+      MemoryType.video => '영상',
     };
     return ListTile(
       contentPadding:

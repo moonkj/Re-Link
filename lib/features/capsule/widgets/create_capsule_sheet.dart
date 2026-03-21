@@ -351,6 +351,7 @@ class _MemorySelector extends ConsumerWidget {
         MemoryType.photo => Icons.photo_outlined,
         MemoryType.voice => Icons.mic_outlined,
         MemoryType.note => Icons.note_outlined,
+        MemoryType.video => Icons.videocam_outlined,
       };
 
   String _formatDate(DateTime dt) =>

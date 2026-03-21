@@ -692,25 +692,25 @@ List<({String label, bool enabled})> _featuresForPlan(UserPlan plan) {
         (label: '음성 무제한', enabled: true),
         (label: '영상 30초 (10개)', enabled: true),
         (label: '광고 없음', enabled: true),
-        (label: '테마 5종', enabled: true),
+        (label: '기기 내 저장 (로컬 전용)', enabled: true),
       ];
     case UserPlan.family:
       return [
         (label: '플러스 전체 포함', enabled: true),
         (label: '클라우드 동기화 20GB', enabled: true),
         (label: '가족 실시간 공유 6명', enabled: true),
-        (label: '영상 3분 무제한', enabled: true),
+        (label: '영상 최대 3분 · 클라우드 저장', enabled: true),
         (label: '자동 클라우드 백업', enabled: true),
-        (label: '테마 10종', enabled: true),
+        (label: '우선 고객 지원', enabled: true),
       ];
     case UserPlan.familyPlus:
       return [
         (label: '패밀리 전체 포함', enabled: true),
         (label: '클라우드 100GB', enabled: true),
         (label: '가족 초대 무제한', enabled: true),
-        (label: '영상 10분 무제한', enabled: true),
+        (label: '영상 최대 10분 · 클라우드 저장', enabled: true),
         (label: '버전 관리 백업', enabled: true),
-        (label: '전체 테마 + 시즌 한정', enabled: true),
+        (label: '신기능 얼리 액세스', enabled: true),
       ];
   }
 }

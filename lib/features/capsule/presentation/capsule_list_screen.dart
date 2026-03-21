@@ -449,6 +449,8 @@ class _MemoryItemTile extends ConsumerWidget {
             icon = Icons.mic_outlined;
           case MemoryType.note:
             icon = Icons.note_outlined;
+          case MemoryType.video:
+            icon = Icons.videocam_outlined;
         }
 
         return ListTile(

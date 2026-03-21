@@ -110,6 +110,22 @@ class MemoryRepository {
     return (seconds / 60).ceil();
   }
 
+  /// 영상 총 개수 (플랜 제한 체크용)
+  Future<int> totalVideoCount() async {
+    final rows = await (_db.select(_db.memoriesTable)
+      ..where((t) => t.type.equals('video')))
+      .get();
+    return rows.length;
+  }
+
+  /// 영상 총 길이 (초) — 플랜 제한 체크용
+  Future<int> totalVideoSeconds() async {
+    final rows = await (_db.select(_db.memoriesTable)
+      ..where((t) => t.type.equals('video')))
+      .get();
+    return rows.fold<int>(0, (sum, r) => sum + (r.durationSeconds ?? 0));
+  }
+
   // ── 변환 ──────────────────────────────────────────────────────────────────
 
   MemoryModel _rowToModel(MemoriesTableData row) {

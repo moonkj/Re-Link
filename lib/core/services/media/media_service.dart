@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
+import 'package:video_player/video_player.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -35,6 +36,13 @@ class MediaService {
   Future<Directory> get _voiceDir async {
     final base = await getApplicationDocumentsDirectory();
     final dir = Directory(p.join(base.path, 'media', 'voice'));
+    if (!await dir.exists()) await dir.create(recursive: true);
+    return dir;
+  }
+
+  Future<Directory> get _videoDir async {
+    final base = await getApplicationDocumentsDirectory();
+    final dir = Directory(p.join(base.path, 'media', 'videos'));
     if (!await dir.exists()) await dir.create(recursive: true);
     return dir;
   }
@@ -138,12 +146,60 @@ class MediaService {
     return p.join(dir.path, '${_uuid.v4()}.m4a');
   }
 
+  // ── 영상 선택/촬영 + 저장 ────────────────────────────────────────────────
+
+  /// 갤러리에서 영상 선택 후 로컬 저장
+  /// maxSeconds: 플랜 제한 초 (0이면 제한 없음)
+  /// 반환: (videoPath, durationSeconds) 또는 null
+  Future<({String videoPath, int durationSeconds})?> pickAndSaveVideo({required int maxSeconds}) async {
+    final picked = await _picker.pickVideo(
+      source: ImageSource.gallery,
+      maxDuration: maxSeconds > 0 ? Duration(seconds: maxSeconds) : null,
+    );
+    if (picked == null) return null;
+    return _saveVideoFile(File(picked.path), maxSeconds: maxSeconds);
+  }
+
+  /// 카메라로 영상 촬영 후 로컬 저장
+  Future<({String videoPath, int durationSeconds})?> captureAndSaveVideo({required int maxSeconds}) async {
+    final picked = await _picker.pickVideo(
+      source: ImageSource.camera,
+      maxDuration: maxSeconds > 0 ? Duration(seconds: maxSeconds) : null,
+    );
+    if (picked == null) return null;
+    return _saveVideoFile(File(picked.path), maxSeconds: maxSeconds);
+  }
+
+  Future<({String videoPath, int durationSeconds})?> _saveVideoFile(File src, {required int maxSeconds}) async {
+    // 영상 길이 확인
+    final controller = VideoPlayerController.file(src);
+    try {
+      await controller.initialize();
+      final duration = controller.value.duration.inSeconds;
+      if (maxSeconds > 0 && duration > maxSeconds) {
+        return null; // 제한 초과 → null 반환 (호출측에서 에러 처리)
+      }
+      final dir = await _videoDir;
+      final uuid = _uuid.v4();
+      final dest = File(p.join(dir.path, '$uuid.mp4'));
+      await src.copy(dest.path);
+      return (videoPath: dest.path, durationSeconds: duration);
+    } finally {
+      await controller.dispose();
+    }
+  }
+
   // ── 삭제 ─────────────────────────────────────────────────────────────────
 
   Future<void> deleteFile(String? path) async {
     if (path == null) return;
     final file = File(path);
     if (await file.exists()) await file.delete();
+  }
+
+  Future<void> deleteVideo(String path) async {
+    final f = File(path);
+    if (f.existsSync()) f.deleteSync();
   }
 
   // ── 미디어 디렉토리 전체 경로 (백업용) ──────────────────────────────────

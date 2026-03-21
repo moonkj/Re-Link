@@ -178,6 +178,7 @@ class _StoryCard extends StatelessWidget {
               MemoryType.photo => _PhotoContent(memory: memory),
               MemoryType.voice => _VoiceContent(memory: memory),
               MemoryType.note => _NoteContent(memory: memory),
+              MemoryType.video => const SizedBox.shrink(),
             },
           ],
         ),
@@ -291,6 +292,7 @@ class _PrivateStoryCard extends StatelessWidget {
                           MemoryType.photo => Icons.photo_outlined,
                           MemoryType.voice => Icons.mic_outlined,
                           MemoryType.note => Icons.note_outlined,
+                          MemoryType.video => Icons.videocam_outlined,
                         },
                         size: 40,
                         color: AppColors.textTertiary,
@@ -317,6 +319,7 @@ class _MemoryTypeChip extends StatelessWidget {
       MemoryType.photo => (Icons.photo_outlined, AppColors.secondary),
       MemoryType.voice => (Icons.mic_outlined, AppColors.accent),
       MemoryType.note => (Icons.note_outlined, AppColors.primary),
+      MemoryType.video => (Icons.videocam_outlined, AppColors.primary),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

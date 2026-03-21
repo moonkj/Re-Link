@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/privacy/privacy_service.dart';
 import '../../../design/glass/app_glass.dart';
@@ -33,6 +34,7 @@ class _MemoryScreenState extends ConsumerState<MemoryScreen>
     (label: '사진', type: MemoryType.photo),
     (label: '음성', type: MemoryType.voice),
     (label: '메모', type: MemoryType.note),
+    (label: '영상', type: MemoryType.video),
   ];
 
   @override
@@ -241,6 +243,10 @@ class _MemoryTabContent extends StatelessWidget {
       return _PhotoGrid(memories: memories, onTap: onTap);
     }
 
+    if (filterType == MemoryType.video) {
+      return _VideoGrid(memories: memories, onTap: onTap);
+    }
+
     // 전체 탭: 사진은 그리드 묶음, 나머지는 리스트
     if (filterType == null) {
       return _MixedList(memories: memories, onTap: onTap);
@@ -325,6 +331,105 @@ class _PhotoGrid extends StatelessWidget {
           child: photoWidget,
         );
       },
+    );
+  }
+}
+
+// ── 영상 그리드 ──────────────────────────────────────────────────────────────
+
+class _VideoGrid extends StatelessWidget {
+  const _VideoGrid({required this.memories, required this.onTap});
+  final List<MemoryModel> memories;
+  final void Function(MemoryModel) onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 100),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 6,
+        mainAxisSpacing: 6,
+      ),
+      itemCount: memories.length,
+      itemBuilder: (_, i) => _VideoGridItem(
+        memory: memories[i],
+        onTap: () => onTap(memories[i]),
+      ),
+    );
+  }
+}
+
+class _VideoGridItem extends StatelessWidget {
+  const _VideoGridItem({required this.memory, required this.onTap});
+  final MemoryModel memory;
+  final VoidCallback onTap;
+
+  String _formatDuration(int? seconds) {
+    if (seconds == null) return '';
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '$m:${s.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // 배경 (glassSurface)
+            Container(color: AppColors.bgSurface),
+            // 플레이 아이콘 중앙
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.play_arrow, color: Colors.white, size: 28),
+              ),
+            ),
+            // 길이 배지 (우하단)
+            if (memory.durationSeconds != null)
+              Positioned(
+                bottom: 6,
+                right: 6,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    _formatDuration(memory.durationSeconds),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            // 제목 배지 (좌하단)
+            if (memory.title != null)
+              Positioned(
+                bottom: 6,
+                left: 6,
+                right: memory.durationSeconds != null ? 50 : 6,
+                child: Text(
+                  memory.title!,
+                  style: const TextStyle(color: Colors.white, fontSize: 10),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -578,6 +683,7 @@ class _EmptyState extends StatelessWidget {
       MemoryType.photo => (Icons.photo_library_outlined, '사진 기억이 없습니다'),
       MemoryType.voice => (Icons.mic_none_outlined, '음성 기억이 없습니다'),
       MemoryType.note => (Icons.notes_outlined, '메모 기억이 없습니다'),
+      MemoryType.video => (Icons.videocam_outlined, '영상 기억이 없습니다'),
       null => (Icons.memory_outlined, '기억이 없습니다\n+ 버튼으로 추가해 보세요'),
     };
     return Center(

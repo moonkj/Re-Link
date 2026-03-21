@@ -2,12 +2,14 @@
 enum MemoryType {
   photo,
   voice,
-  note;
+  note,
+  video;
 
   String get label => switch (this) {
         photo => '사진',
         voice => '음성',
         note => '메모',
+        video => '영상',
       };
 }
 

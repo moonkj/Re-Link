@@ -798,6 +798,7 @@ class _TimelineTab extends ConsumerWidget {
               MemoryType.photo => Icons.photo_outlined,
               MemoryType.voice => Icons.mic_outlined,
               MemoryType.note => Icons.note_outlined,
+              MemoryType.video => Icons.videocam_outlined,
             },
             title: m.title ?? m.type.label,
             subtitle: m.description ??
@@ -806,6 +807,7 @@ class _TimelineTab extends ConsumerWidget {
               MemoryType.photo => AppColors.secondary,
               MemoryType.voice => AppColors.accent,
               MemoryType.note => AppColors.primary,
+              MemoryType.video => AppColors.primary,
             },
           ));
         }

@@ -269,6 +269,7 @@ class _MemoryTile extends StatelessWidget {
       MemoryType.photo => (Icons.photo_outlined, AppColors.secondary),
       MemoryType.voice => (Icons.mic_outlined, AppColors.accent),
       MemoryType.note => (Icons.note_outlined, AppColors.primary),
+      MemoryType.video => (Icons.videocam_outlined, AppColors.primary),
     };
 
     return GlassCard(
@@ -523,6 +524,7 @@ class _StoryFeedTab extends ConsumerWidget {
                                 MemoryType.photo => Icons.photo_outlined,
                                 MemoryType.voice => Icons.mic_outlined,
                                 MemoryType.note => Icons.note_outlined,
+                                MemoryType.video => Icons.videocam_outlined,
                               },
                               size: 40,
                               color: AppColors.textTertiary,
@@ -554,6 +556,7 @@ class _StoryTypeChip extends StatelessWidget {
       MemoryType.photo => (Icons.photo_outlined, AppColors.secondary),
       MemoryType.voice => (Icons.mic_outlined, AppColors.accent),
       MemoryType.note => (Icons.note_outlined, AppColors.primary),
+      MemoryType.video => (Icons.videocam_outlined, AppColors.primary),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -645,6 +648,7 @@ class _StoryContent extends StatelessWidget {
             height: 1.5,
           ),
         ),
+      MemoryType.video => const SizedBox.shrink(),
     };
   }
 }

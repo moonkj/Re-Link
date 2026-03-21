@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:video_player/video_player.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
@@ -122,6 +123,11 @@ class _AddMemorySheetState extends ConsumerState<AddMemorySheet> {
                 onEmotionChanged: (t) => setState(() => _emotionTag = t),
                 onPrivateChanged: (v) => setState(() => _isPrivate = v),
                 onSave: _saveNote,
+                onBack: () => setState(() => _selectedType = null),
+              ),
+            ] else if (_selectedType == MemoryType.video) ...[
+              _VideoForm(
+                nodeId: widget.nodeId,
                 onBack: () => setState(() => _selectedType = null),
               ),
             ],
@@ -293,6 +299,8 @@ class _TypeSelector extends StatelessWidget {
         _TypeButton(icon: Icons.mic_outlined, label: '음성', color: AppColors.accent, onTap: () => onSelect(MemoryType.voice)),
         const SizedBox(width: AppSpacing.sm),
         _TypeButton(icon: Icons.notes_outlined, label: '메모', color: AppColors.primary, onTap: () => onSelect(MemoryType.note)),
+        const SizedBox(width: AppSpacing.sm),
+        _TypeButton(icon: Icons.videocam_outlined, label: '영상', color: AppColors.tempWarm, onTap: () => onSelect(MemoryType.video)),
       ],
     );
   }
@@ -454,6 +462,314 @@ class _PhotoForm extends StatelessWidget {
             onPressed: photoPath == null ? null : onSave,
           ),
         ),
+      ],
+    );
+  }
+}
+
+// ── 영상 폼 ──────────────────────────────────────────────────────────────────
+
+class _VideoForm extends ConsumerStatefulWidget {
+  const _VideoForm({required this.nodeId, this.onSaved, required this.onBack});
+  final String nodeId;
+  final VoidCallback? onSaved;
+  final VoidCallback onBack;
+
+  @override
+  ConsumerState<_VideoForm> createState() => _VideoFormState();
+}
+
+class _VideoFormState extends ConsumerState<_VideoForm> {
+  String? _videoPath;
+  int _durationSeconds = 0;
+  final _titleCtrl = TextEditingController();
+  bool _saving = false;
+  bool _picking = false;
+  VideoPlayerController? _videoCtrl;
+
+  @override
+  void dispose() {
+    _titleCtrl.dispose();
+    _videoCtrl?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickVideo() async {
+    setState(() => _picking = true);
+    try {
+      final plan = await ref.read(settingsRepositoryProvider).getUserPlan();
+      if (!plan.hasVideo) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('영상은 플러스 플랜부터 사용 가능합니다'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+
+      final media = ref.read(mediaServiceProvider);
+      final result = await media.pickAndSaveVideo(maxSeconds: plan.maxVideoSeconds);
+      if (!mounted) return;
+      if (result == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('영상이 너무 깁니다 (최대 ${plan.maxVideoSeconds}초)'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+
+      await _videoCtrl?.dispose();
+      final ctrl = VideoPlayerController.file(File(result.videoPath));
+      await ctrl.initialize();
+
+      setState(() {
+        _videoPath = result.videoPath;
+        _durationSeconds = result.durationSeconds;
+        _videoCtrl = ctrl;
+      });
+    } finally {
+      if (mounted) setState(() => _picking = false);
+    }
+  }
+
+  Future<void> _captureVideo() async {
+    setState(() => _picking = true);
+    try {
+      final plan = await ref.read(settingsRepositoryProvider).getUserPlan();
+      if (!plan.hasVideo) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('영상은 플러스 플랜부터 사용 가능합니다'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+      final media = ref.read(mediaServiceProvider);
+      final result = await media.captureAndSaveVideo(maxSeconds: plan.maxVideoSeconds);
+      if (!mounted || result == null) return;
+
+      await _videoCtrl?.dispose();
+      final ctrl = VideoPlayerController.file(File(result.videoPath));
+      await ctrl.initialize();
+
+      setState(() {
+        _videoPath = result.videoPath;
+        _durationSeconds = result.durationSeconds;
+        _videoCtrl = ctrl;
+      });
+    } finally {
+      if (mounted) setState(() => _picking = false);
+    }
+  }
+
+  Future<void> _save() async {
+    if (_videoPath == null) return;
+    setState(() => _saving = true);
+    try {
+      final plan = await ref.read(settingsRepositoryProvider).getUserPlan();
+      final count = await ref.read(memoryRepositoryProvider).totalVideoCount();
+      if (count >= plan.maxVideoCount) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('영상 저장 한도 초과 (플랜: ${plan.displayName})'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+
+      await ref.read(memoryRepositoryProvider).create(
+        nodeId: widget.nodeId,
+        type: MemoryType.video,
+        title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
+        filePath: _videoPath,
+        durationSeconds: _durationSeconds,
+        dateTaken: DateTime.now(),
+      );
+
+      widget.onSaved?.call();
+      if (mounted) Navigator.of(context).pop(true);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  String _formatDuration(int seconds) {
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '$m:${s.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 헤더
+        Row(
+          children: [
+            GestureDetector(onTap: widget.onBack, child: Icon(Icons.arrow_back, color: AppColors.textSecondary)),
+            const SizedBox(width: AppSpacing.sm),
+            Text('영상 기억', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.lg),
+
+        // 영상 선택 영역
+        if (_videoPath == null) ...[
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: _picking ? null : _pickVideo,
+                  child: Container(
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: AppColors.glassSurface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.glassBorder),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.video_library_outlined, color: AppColors.textSecondary, size: 32),
+                        const SizedBox(height: 6),
+                        Text('갤러리', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: GestureDetector(
+                  onTap: _picking ? null : _captureVideo,
+                  child: Container(
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: AppColors.glassSurface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.glassBorder),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.videocam_outlined, color: AppColors.textSecondary, size: 32),
+                        const SizedBox(height: 6),
+                        Text('카메라', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (_picking) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Center(child: CircularProgressIndicator(color: AppColors.primary)),
+          ],
+        ] else ...[
+          // 선택 후: 미리보기 + 재생 버튼
+          GestureDetector(
+            onTap: () {
+              if (_videoCtrl == null) return;
+              setState(() {
+                _videoCtrl!.value.isPlaying
+                    ? _videoCtrl!.pause()
+                    : _videoCtrl!.play();
+              });
+            },
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: AspectRatio(
+                    aspectRatio: _videoCtrl?.value.aspectRatio ?? 16 / 9,
+                    child: _videoCtrl != null
+                        ? VideoPlayer(_videoCtrl!)
+                        : Container(color: AppColors.glassSurface),
+                  ),
+                ),
+                if (_videoCtrl?.value.isPlaying != true)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: const BoxDecoration(
+                      color: Colors.black54,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.play_arrow, color: Colors.white, size: 32),
+                  ),
+                // 길이 배지
+                Positioned(
+                  bottom: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      _formatDuration(_durationSeconds),
+                      style: const TextStyle(color: Colors.white, fontSize: 11),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          TextButton.icon(
+            onPressed: _pickVideo,
+            icon: Icon(Icons.swap_horiz, size: 16, color: AppColors.primary),
+            label: Text('다시 선택', style: TextStyle(color: AppColors.primary, fontSize: 13)),
+          ),
+        ],
+
+        const SizedBox(height: AppSpacing.md),
+
+        // 제목 입력 (영상 선택 후에만 표시)
+        if (_videoPath != null) ...[
+          GlassCard(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+            child: Row(
+              children: [
+                Icon(Icons.title, color: AppColors.primary, size: 18),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: TextField(
+                    controller: _titleCtrl,
+                    style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: '제목 (선택)',
+                      hintStyle: TextStyle(fontSize: 14, color: AppColors.textTertiary),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xxl),
+          SizedBox(
+            width: double.infinity,
+            child: PrimaryGlassButton(
+              label: '저장',
+              isLoading: _saving,
+              onPressed: _save,
+            ),
+          ),
+        ],
       ],
     );
   }
