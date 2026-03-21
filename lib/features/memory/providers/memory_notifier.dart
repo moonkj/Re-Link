@@ -178,6 +178,13 @@ class MemoryNotifier extends _$MemoryNotifier {
     }
   }
 
+  // ── Privacy ──────────────────────────────────────────────────────────────
+
+  /// 기억 공개/개인 설정 변경
+  Future<void> updatePrivacy(String memoryId, {required bool isPrivate}) async {
+    await _repo.setPrivate(memoryId, isPrivate: isPrivate);
+  }
+
   // ── 플랜 제한 ────────────────────────────────────────────────────────────
 
   Future<void> _checkPhotoLimit() async {

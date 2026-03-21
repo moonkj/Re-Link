@@ -560,12 +560,18 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
       await _videoCtrl?.dispose();
       final ctrl = VideoPlayerController.file(File(result.videoPath));
       await ctrl.initialize();
-      await ctrl.seekTo(Duration.zero); // 첫 프레임 강제 렌더링
 
       setState(() {
         _videoPath = result.videoPath;
         _durationSeconds = result.durationSeconds;
         _videoCtrl = ctrl;
+      });
+
+      // 위젯이 트리에 마운트된 후 seekTo 호출
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (mounted && _videoCtrl != null) {
+          await _videoCtrl!.seekTo(Duration.zero);
+        }
       });
     } finally {
       if (mounted) setState(() => _picking = false);
@@ -593,12 +599,18 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
       await _videoCtrl?.dispose();
       final ctrl = VideoPlayerController.file(File(result.videoPath));
       await ctrl.initialize();
-      await ctrl.seekTo(Duration.zero); // 첫 프레임 강제 렌더링
 
       setState(() {
         _videoPath = result.videoPath;
         _durationSeconds = result.durationSeconds;
         _videoCtrl = ctrl;
+      });
+
+      // 위젯이 트리에 마운트된 후 seekTo 호출
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (mounted && _videoCtrl != null) {
+          await _videoCtrl!.seekTo(Duration.zero);
+        }
       });
     } finally {
       if (mounted) setState(() => _picking = false);

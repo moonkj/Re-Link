@@ -27,6 +27,9 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
   PlayerController? _playerCtrl;
   bool _playerReady = false;
 
+  /// 공개/개인 상태 (로컬 즉시 반영용)
+  bool _isPrivate = false;
+
   /// Privacy Layer: 인증 완료 여부
   bool _privacyUnlocked = false;
 
@@ -39,6 +42,7 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
   @override
   void initState() {
     super.initState();
+    _isPrivate = widget.memory.isPrivate;
     _checkPrivacy();
     if (widget.memory.type == MemoryType.voice && widget.memory.filePath != null) {
       _initPlayer();
@@ -146,10 +150,51 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                         ),
                       ),
-                      if (widget.memory.isPrivate) ...[
-                        const SizedBox(width: 6),
-                        Icon(Icons.lock, size: 16, color: AppColors.accent),
-                      ],
+                      const SizedBox(width: 8),
+                      // 공개/개인 토글
+                      GestureDetector(
+                        onTap: () async {
+                          final newPrivate = !_isPrivate;
+                          setState(() => _isPrivate = newPrivate);
+                          await ref.read(memoryNotifierProvider.notifier).updatePrivacy(
+                            widget.memory.id,
+                            isPrivate: newPrivate,
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _isPrivate
+                                ? AppColors.accent.withAlpha(25)
+                                : AppColors.primary.withAlpha(25),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: _isPrivate
+                                  ? AppColors.accent.withAlpha(80)
+                                  : AppColors.primary.withAlpha(80),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _isPrivate ? Icons.lock_outline : Icons.public,
+                                size: 14,
+                                color: _isPrivate ? AppColors.accent : AppColors.primary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _isPrivate ? '나만 보기' : '가족과 공유',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _isPrivate ? AppColors.accent : AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
