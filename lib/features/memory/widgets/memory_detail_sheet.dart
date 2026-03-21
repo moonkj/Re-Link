@@ -122,12 +122,21 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
       );
     }
 
-    // Private 기억이고 인증 미완료 → 블러 + 잠금 오버레이
+    // Private 기억이고 인증 미완료 → 블러 + 잠금 오버레이 (토글 pill은 항상 표시)
     if (widget.memory.isPrivate && _privacyEnabled && !_privacyUnlocked) {
       return _LockedOverlay(
         memory: widget.memory,
         onUnlock: _attemptAuth,
         onClose: () => Navigator.of(context).pop(),
+        isPrivate: _isPrivate,
+        onTogglePrivacy: () async {
+          final newPrivate = !_isPrivate;
+          setState(() => _isPrivate = newPrivate);
+          await ref.read(memoryNotifierProvider.notifier).updatePrivacy(
+            widget.memory.id,
+            isPrivate: newPrivate,
+          );
+        },
       );
     }
 
@@ -365,11 +374,15 @@ class _LockedOverlay extends StatelessWidget {
     required this.memory,
     required this.onUnlock,
     required this.onClose,
+    required this.isPrivate,
+    required this.onTogglePrivacy,
   });
 
   final MemoryModel memory;
   final VoidCallback onUnlock;
   final VoidCallback onClose;
+  final bool isPrivate;
+  final VoidCallback onTogglePrivacy;
 
   @override
   Widget build(BuildContext context) {
@@ -378,15 +391,59 @@ class _LockedOverlay extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 닫기 버튼
+          // 제목 + 토글 pill + 닫기 버튼 (항상 표시)
           Padding(
             padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 0),
             child: Row(
               children: [
                 Expanded(
-                  child: Text(
-                    '개인 기억',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          memory.title ?? memory.type.label,
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // 공개/개인 토글 — 잠금 상태에서도 항상 표시
+                      GestureDetector(
+                        onTap: onTogglePrivacy,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isPrivate
+                                ? AppColors.accent.withAlpha(25)
+                                : AppColors.primary.withAlpha(25),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isPrivate
+                                  ? AppColors.accent.withAlpha(80)
+                                  : AppColors.primary.withAlpha(80),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isPrivate ? Icons.lock_outline : Icons.public,
+                                size: 14,
+                                color: isPrivate ? AppColors.accent : AppColors.primary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                isPrivate ? '나만 보기' : '가족과 공유',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isPrivate ? AppColors.accent : AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 GestureDetector(
@@ -714,7 +771,16 @@ class _VideoContentState extends State<_VideoContent> {
     if (!file.existsSync()) return;
     final ctrl = VideoPlayerController.file(file);
     await ctrl.initialize();
-    await ctrl.seekTo(Duration.zero); // 첫 프레임 강제 렌더링
+
+    // iOS 첫 프레임 강제 렌더링: play → 100ms → pause → seekTo(0)
+    try {
+      await ctrl.setVolume(0.0);
+      await ctrl.play();
+      await Future.delayed(const Duration(milliseconds: 100));
+      await ctrl.pause();
+      await ctrl.seekTo(Duration.zero);
+    } catch (_) {}
+
     ctrl.addListener(() {
       if (mounted) setState(() {});
     });
@@ -760,10 +826,12 @@ class _VideoContentState extends State<_VideoContent> {
         children: [
           // 영상 화면
           GestureDetector(
-            onTap: () {
+            onTap: () async {
               if (isPlaying) {
                 _ctrl!.pause();
               } else {
+                // 첫 프레임 트릭 시 소거된 음량 복원 후 재생
+                await _ctrl!.setVolume(1.0);
                 _ctrl!.play();
               }
             },

@@ -4,7 +4,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
-import 'package:video_player/video_player.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -149,44 +148,30 @@ class MediaService {
   // ── 영상 선택/촬영 + 저장 ────────────────────────────────────────────────
 
   /// 갤러리에서 영상 선택 후 로컬 저장
-  /// maxSeconds: 플랜 제한 초 (0이면 제한 없음)
-  /// 반환: (videoPath, durationSeconds) 또는 null
-  Future<({String videoPath, int durationSeconds})?> pickAndSaveVideo({required int maxSeconds}) async {
-    final picked = await _picker.pickVideo(
-      source: ImageSource.gallery,
-      maxDuration: maxSeconds > 0 ? Duration(seconds: maxSeconds) : null,
-    );
+  /// 반환: 복사된 파일 경로 또는 null (취소)
+  Future<String?> pickAndSaveVideo() async {
+    final picked = await _picker.pickVideo(source: ImageSource.gallery);
     if (picked == null) return null;
-    return _saveVideoFile(File(picked.path), maxSeconds: maxSeconds);
+    return _saveVideoFile(File(picked.path));
   }
 
   /// 카메라로 영상 촬영 후 로컬 저장
-  Future<({String videoPath, int durationSeconds})?> captureAndSaveVideo({required int maxSeconds}) async {
+  Future<String?> captureAndSaveVideo({required int maxSeconds}) async {
     final picked = await _picker.pickVideo(
       source: ImageSource.camera,
       maxDuration: maxSeconds > 0 ? Duration(seconds: maxSeconds) : null,
     );
     if (picked == null) return null;
-    return _saveVideoFile(File(picked.path), maxSeconds: maxSeconds);
+    return _saveVideoFile(File(picked.path));
   }
 
-  Future<({String videoPath, int durationSeconds})?> _saveVideoFile(File src, {required int maxSeconds}) async {
-    // 영상 길이 확인
-    final controller = VideoPlayerController.file(src);
-    try {
-      await controller.initialize();
-      final duration = controller.value.duration.inSeconds;
-      if (maxSeconds > 0 && duration > maxSeconds) {
-        return null; // 제한 초과 → null 반환 (호출측에서 에러 처리)
-      }
-      final dir = await _videoDir;
-      final uuid = _uuid.v4();
-      final dest = File(p.join(dir.path, '$uuid.mp4'));
-      await src.copy(dest.path);
-      return (videoPath: dest.path, durationSeconds: duration);
-    } finally {
-      await controller.dispose();
-    }
+  /// 영상 파일을 Documents/media/videos/에 복사 후 경로 반환
+  Future<String?> _saveVideoFile(File src) async {
+    final dir = await _videoDir;
+    final uuid = _uuid.v4();
+    final dest = File(p.join(dir.path, '$uuid.mp4'));
+    await src.copy(dest.path);
+    return dest.path;
   }
 
   // ── 삭제 ─────────────────────────────────────────────────────────────────

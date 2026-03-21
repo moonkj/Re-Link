@@ -536,18 +536,27 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
       if (!plan.hasVideo) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('영상은 플러스 플랜부터 사용 가능합니다'),
-            backgroundColor: AppColors.error,
-          ),
+          SnackBar(content: const Text('영상은 플러스 플랜부터 사용 가능합니다'), backgroundColor: AppColors.error),
         );
         return;
       }
 
       final media = ref.read(mediaServiceProvider);
-      final result = await media.pickAndSaveVideo(maxSeconds: plan.maxVideoSeconds);
-      if (!mounted) return;
-      if (result == null) {
+      final videoPath = await media.pickAndSaveVideo();
+      if (!mounted || videoPath == null) return;
+
+      // 단일 컨트롤러로 duration 체크 + 프리뷰 렌더링
+      await _videoCtrl?.dispose();
+      final ctrl = VideoPlayerController.file(File(videoPath));
+      await ctrl.initialize();
+
+      final duration = ctrl.value.duration.inSeconds;
+
+      // 플랜 초 제한 초과 시 파일 삭제 후 에러
+      if (plan.maxVideoSeconds > 0 && duration > plan.maxVideoSeconds) {
+        await ctrl.dispose();
+        try { File(videoPath).deleteSync(); } catch (_) {}
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('영상이 너무 깁니다 (최대 ${plan.maxVideoSeconds}초)'),
@@ -557,22 +566,22 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
         return;
       }
 
-      await _videoCtrl?.dispose();
-      final ctrl = VideoPlayerController.file(File(result.videoPath));
-      await ctrl.initialize();
-
       setState(() {
-        _videoPath = result.videoPath;
-        _durationSeconds = result.durationSeconds;
+        _videoPath = videoPath;
+        _durationSeconds = duration;
         _videoCtrl = ctrl;
       });
 
-      // 위젯이 트리에 마운트된 후 seekTo 호출
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // iOS 첫 프레임 강제 렌더링: play → 100ms → pause → seekTo(0)
+      if (mounted && _videoCtrl != null) {
+        await _videoCtrl!.setVolume(0.0);
+        await _videoCtrl!.play();
+        await Future.delayed(const Duration(milliseconds: 100));
         if (mounted && _videoCtrl != null) {
+          await _videoCtrl!.pause();
           await _videoCtrl!.seekTo(Duration.zero);
         }
-      });
+      }
     } finally {
       if (mounted) setState(() => _picking = false);
     }
@@ -585,33 +594,36 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
       if (!plan.hasVideo) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('영상은 플러스 플랜부터 사용 가능합니다'),
-            backgroundColor: AppColors.error,
-          ),
+          SnackBar(content: const Text('영상은 플러스 플랜부터 사용 가능합니다'), backgroundColor: AppColors.error),
         );
         return;
       }
       final media = ref.read(mediaServiceProvider);
-      final result = await media.captureAndSaveVideo(maxSeconds: plan.maxVideoSeconds);
-      if (!mounted || result == null) return;
+      final videoPath = await media.captureAndSaveVideo(maxSeconds: plan.maxVideoSeconds);
+      if (!mounted || videoPath == null) return;
 
       await _videoCtrl?.dispose();
-      final ctrl = VideoPlayerController.file(File(result.videoPath));
+      final ctrl = VideoPlayerController.file(File(videoPath));
       await ctrl.initialize();
 
+      final duration = ctrl.value.duration.inSeconds;
+
       setState(() {
-        _videoPath = result.videoPath;
-        _durationSeconds = result.durationSeconds;
+        _videoPath = videoPath;
+        _durationSeconds = duration;
         _videoCtrl = ctrl;
       });
 
-      // 위젯이 트리에 마운트된 후 seekTo 호출
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // iOS 첫 프레임 강제 렌더링: play → 100ms → pause → seekTo(0)
+      if (mounted && _videoCtrl != null) {
+        await _videoCtrl!.setVolume(0.0);
+        await _videoCtrl!.play();
+        await Future.delayed(const Duration(milliseconds: 100));
         if (mounted && _videoCtrl != null) {
+          await _videoCtrl!.pause();
           await _videoCtrl!.seekTo(Duration.zero);
         }
-      });
+      }
     } finally {
       if (mounted) setState(() => _picking = false);
     }
