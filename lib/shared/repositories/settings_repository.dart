@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 import '../../core/database/app_database.dart';
 import '../../core/database/tables/settings_table.dart';
 import '../../shared/models/user_plan.dart';
@@ -177,4 +178,38 @@ class SettingsRepository {
 
   Future<void> setStreakFreezeUsedMonth(String month) =>
       set(SettingsKey.streakFreezeUsedMonth, month);
+
+  // ── 인증 / 클라우드 동기화 ────────────────────────────────────────────────
+
+  Future<String?> getAuthUserId() async => get(SettingsKey.authUserId);
+  Future<void> setAuthUserId(String id) => set(SettingsKey.authUserId, id);
+
+  Future<String?> getFamilyGroupId() async => get(SettingsKey.familyGroupId);
+  Future<void> setFamilyGroupId(String id) => set(SettingsKey.familyGroupId, id);
+
+  /// 기기 고유 UUID — 최초 실행 시 자동 생성 후 영구 저장
+  Future<String?> getDeviceId() async {
+    var id = await get(SettingsKey.deviceId);
+    if (id == null || id.isEmpty) {
+      id = const Uuid().v4();
+      await set(SettingsKey.deviceId, id);
+    }
+    return id;
+  }
+
+  /// 인증 관련 데이터 초기화 (로그아웃 시 호출)
+  Future<void> clearAuthData() async {
+    await set(SettingsKey.authUserId, '');
+    await set(SettingsKey.familyGroupId, '');
+    await set(SettingsKey.lastSyncAt, '');
+  }
+
+  Future<DateTime?> getLastSyncAt() async {
+    final v = await get(SettingsKey.lastSyncAt);
+    if (v == null || v.isEmpty) return null;
+    return DateTime.tryParse(v);
+  }
+
+  Future<void> setLastSyncAt(DateTime dt) =>
+      set(SettingsKey.lastSyncAt, dt.toIso8601String());
 }

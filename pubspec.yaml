@@ -48,6 +48,12 @@ dependencies:
   video_player: ^2.9.2
   video_thumbnail: ^0.5.3
 
+  # ── 인증 (Apple / Google Sign-In + JWT) ──────────────────────────────────
+  sign_in_with_apple: ^6.1.4
+  flutter_secure_storage: ^9.2.4
+  app_links: ^6.4.0
+  connectivity_plus: ^6.1.4
+
   # ── 광고 / 수익화 ─────────────────────────────────────────────────────────
   google_mobile_ads: ^5.3.0
   in_app_purchase: ^3.2.0

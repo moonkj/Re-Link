@@ -1,16 +1,18 @@
 /// 환경변수 설정
 /// 실제 값은 .env 또는 빌드 시 --dart-define으로 주입
 abstract final class EnvConfig {
-  static const String supabaseUrl = String.fromEnvironment(
-    'SUPABASE_URL',
+  // ── Cloudflare Workers API ─────────────────────────────────────────────
+  static const String workersBaseUrl = String.fromEnvironment(
+    'WORKERS_BASE_URL',
+    defaultValue: 'https://api.relink.app',
+  );
+
+  static const String r2BucketUrl = String.fromEnvironment(
+    'R2_BUCKET_URL',
     defaultValue: '',
   );
 
-  static const String supabaseAnonKey = String.fromEnvironment(
-    'SUPABASE_ANON_KEY',
-    defaultValue: '',
-  );
-
+  // ── AdMob 앱 ID ────────────────────────────────────────────────────────
   static const String admobAppIdIos = String.fromEnvironment(
     'ADMOB_APP_ID_IOS',
     defaultValue: 'ca-app-pub-3940256099942544~1458002511', // 테스트 ID
@@ -31,6 +33,5 @@ abstract final class EnvConfig {
   static const String nativeAdUnitIdAndroid =
       'ca-app-pub-3940256099942544/2247696110';
 
-  static bool get isConfigured =>
-      supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
+  static bool get isApiConfigured => workersBaseUrl.isNotEmpty;
 }

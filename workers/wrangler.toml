@@ -1,0 +1,61 @@
+name            = "relink-api"
+main            = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# ── Account (fill in after `wrangler login`) ─────────────────
+# account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+
+# ── D1 Database ──────────────────────────────────────────────
+[[d1_databases]]
+binding       = "DB"
+database_name = "relink-db"
+database_id   = "YOUR_D1_DATABASE_ID"   # wrangler d1 create relink-db → paste ID here
+
+# ── R2 Bucket ────────────────────────────────────────────────
+[[r2_buckets]]
+binding     = "MEDIA_BUCKET"
+bucket_name = "relink-media"
+
+# ── Environment Variables (non-secret) ───────────────────────
+[vars]
+ENVIRONMENT = "production"
+
+# ── Secrets (set via CLI — never commit to VCS) ──────────────
+# wrangler secret put JWT_SECRET
+# wrangler secret put R2_ACCOUNT_ID
+# wrangler secret put R2_ACCESS_KEY_ID
+# wrangler secret put R2_SECRET_ACCESS_KEY
+# wrangler secret put APPLE_CLIENT_ID      (e.g. com.relink)
+# wrangler secret put GOOGLE_CLIENT_ID
+
+# ── Development environment override ─────────────────────────
+[env.development]
+name = "relink-api-dev"
+vars = { ENVIRONMENT = "development" }
+
+[[env.development.d1_databases]]
+binding       = "DB"
+database_name = "relink-db-dev"
+database_id   = "YOUR_D1_DEV_DATABASE_ID"
+
+[[env.development.r2_buckets]]
+binding     = "MEDIA_BUCKET"
+bucket_name = "relink-media-dev"
+
+# ── Staging environment ───────────────────────────────────────
+[env.staging]
+name = "relink-api-staging"
+vars = { ENVIRONMENT = "staging" }
+
+[[env.staging.d1_databases]]
+binding       = "DB"
+database_name = "relink-db-staging"
+database_id   = "YOUR_D1_STAGING_DATABASE_ID"
+
+[[env.staging.r2_buckets]]
+binding     = "MEDIA_BUCKET"
+bucket_name = "relink-media-staging"
+
+# ── Workers limits ───────────────────────────────────────────
+[limits]
+cpu_ms = 50   # default; increase if sync push batches time out

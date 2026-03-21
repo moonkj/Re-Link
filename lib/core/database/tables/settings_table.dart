@@ -72,4 +72,13 @@ abstract final class SettingsKey {
   static const String adminPlanOverride = 'admin_plan_override';       // free / plus / family / familyPlus (null=실제 플랜)
   static const String adminAllBadges = 'admin_all_badges';             // true / false
   static const String adminDummyGenerated = 'admin_dummy_generated';   // true / false
+
+  // ── 인증 / 클라우드 동기화 ────────────────────────────────────────────
+  static const String authUserId     = 'auth_user_id';       // 인증된 사용자 UUID
+  static const String authEmail      = 'auth_email';         // 인증 이메일
+  static const String authProvider   = 'auth_provider';      // 'apple' | 'google'
+  static const String familyGroupId  = 'family_group_id';    // 가족 그룹 UUID
+  static const String deviceId       = 'device_id';          // 기기 고유 UUID
+  static const String lastSyncAt     = 'last_sync_at';       // ISO8601
+  static const String cloudPlan      = 'cloud_plan';         // 'family' | 'familyPlus'
 }

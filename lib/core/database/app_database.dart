@@ -17,6 +17,7 @@ import 'tables/node_locations_table.dart';
 import 'tables/voice_legacy_table.dart';
 import 'tables/then_now_table.dart';
 import 'tables/family_events_table.dart';
+import 'tables/sync_queue_table.dart';
 
 part 'app_database.g.dart';
 
@@ -36,6 +37,7 @@ part 'app_database.g.dart';
   VoiceLegacyTable,
   ThenNowTable,
   FamilyEventsTable,
+  SyncQueueTable,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -48,7 +50,7 @@ class AppDatabase extends _$AppDatabase {
       : super(NativeDatabase(File(path)));
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -97,6 +99,10 @@ class AppDatabase extends _$AppDatabase {
           // v6 → v7: family_events (가족 일정)
           if (from < 7) {
             await m.createTable(familyEventsTable);
+          }
+          // v7 → v8: sync_queue (클라우드 동기화 대기열)
+          if (from < 8) {
+            await m.createTable(syncQueueTable);
           }
         },
       );
@@ -533,6 +539,61 @@ class AppDatabase extends _$AppDatabase {
     final memories = await memoriesTable.count().getSingle();
     return {'nodes': nodes, 'memories': memories};
   }
+
+  // ── SyncQueue (클라우드 동기화 대기열) ────────────────────────────────────
+
+  /// 미전송 항목 조회 (최대 limit개, createdAtMs 오름차순)
+  Future<List<SyncQueueEntry>> getPendingSyncItems({int limit = 50}) =>
+      (select(syncQueueTable)
+            ..where((t) => t.isSynced.equals(false))
+            ..orderBy([(t) => OrderingTerm.asc(t.createdAtMs)])
+            ..limit(limit))
+          .get();
+
+  /// 항목 삽입
+  Future<void> enqueueSyncItem({
+    required String targetTable,
+    required String recordId,
+    required String operation,
+    required String payloadJson,
+  }) async {
+    final id = DateTime.now().microsecondsSinceEpoch.toString() +
+        '_' +
+        recordId.replaceAll('-', '').substring(0, 8);
+    await into(syncQueueTable).insertOnConflictUpdate(
+      SyncQueueTableCompanion.insert(
+        id: id,
+        targetTable: targetTable,
+        recordId: recordId,
+        operation: operation,
+        payloadJson: payloadJson,
+        createdAtMs: DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+  }
+
+  /// 전송 완료 표시 (isSynced = true)
+  Future<void> markSyncedItems(List<String> ids) async {
+    if (ids.isEmpty) return;
+    await (update(syncQueueTable)
+          ..where((t) => t.id.isIn(ids)))
+        .write(const SyncQueueTableCompanion(isSynced: Value(true)));
+  }
+
+  /// 재시도 횟수 1 증가
+  Future<void> incrementRetryCount(String id) async {
+    final entry = await (select(syncQueueTable)
+          ..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
+    if (entry == null) return;
+    await (update(syncQueueTable)..where((t) => t.id.equals(id))).write(
+      SyncQueueTableCompanion(retryCount: Value(entry.retryCount + 1)),
+    );
+  }
+
+  /// 완료 항목 정리 (isSynced = true 인 항목 삭제)
+  Future<void> cleanSyncedItems() =>
+      (delete(syncQueueTable)..where((t) => t.isSynced.equals(true))).go();
 
   // ── Node Locations (가족 지도) ──────────────────────────────────────────────
 

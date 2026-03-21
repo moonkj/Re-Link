@@ -40,6 +40,10 @@ import '../../features/bouquet/presentation/bouquet_wrapped_screen.dart';
 import '../../features/holiday/presentation/ritual_guide_screen.dart';
 import '../../features/family_hub/presentation/family_hub_screen.dart';
 import '../../features/explore_hub/presentation/explore_hub_screen.dart';
+import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/providers/auth_notifier.dart';
+import '../../features/family_sync/presentation/family_members_screen.dart';
+import '../../features/family_sync/presentation/accept_invite_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
 import '../../design/tokens/screen_mood.dart';
 import '../../shared/widgets/ad_banner_widget.dart';
@@ -84,6 +88,9 @@ abstract final class AppRoutes {
   static const String familyHub = '/family-hub';
   static const String exploreHub = '/explore-hub';
   static const String adminConsole = '/admin-console';
+  static const String login = '/login';
+  static const String familyMembers = '/family-members';
+  static const String acceptInvite = '/invite/accept';
 
   static String memoryPath(String nodeId) => '/memory/$nodeId';
   static String temperatureDiaryPath(String nodeId) =>
@@ -95,6 +102,21 @@ abstract final class AppRoutes {
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: AppRoutes.splash,
+    redirect: (BuildContext context, GoRouterState state) {
+      final location = state.matchedLocation;
+      // 패밀리 전용 보호 라우트
+      const protectedRoutes = [AppRoutes.familyMembers];
+      if (!protectedRoutes.any((r) => location.startsWith(r))) return null;
+
+      final authState = ref.read(authNotifierProvider);
+      // 로딩 중이면 통과
+      if (authState.isLoading) return null;
+      // 미로그인 → 로그인 화면 (redirect 쿼리파람으로 원래 경로 보존)
+      if (authState.valueOrNull == null) {
+        return '${AppRoutes.login}?redirect=${Uri.encodeComponent(location)}';
+      }
+      return null;
+    },
     routes: [
       GoRoute(
         path: AppRoutes.splash,
@@ -285,6 +307,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.adminConsole,
         builder: (_, s) => const AdminConsoleScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.login,
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.familyMembers,
+        builder: (context, state) => const FamilyMembersScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.acceptInvite,
+        builder: (context, state) {
+          final token = state.uri.queryParameters['token'] ?? '';
+          return AcceptInviteScreen(token: token);
+        },
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
