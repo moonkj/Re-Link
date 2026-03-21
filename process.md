@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-22
-> 현재 단계: Phase 10 — 로그인/클라우드 동기화 완전 구현
+> 현재 단계: Phase 11 — UI 연동 + 자동 동기화 완성 (런치 준비)
 > v2.0 계획: Phase 5a~5g 전체 26개 기능 계획 완료 (v1.0 런치 후 착수)
 
 ---
@@ -3091,3 +3091,64 @@
 - [ ] `--dart-define=WORKERS_BASE_URL=https://실제URL.workers.dev` 빌드 파라미터 설정
 - [ ] Apple Developer Console: Sign In with Apple 활성화
 - [ ] Google Cloud Console: OAuth 2.0 클라이언트 ID 발급
+
+---
+
+## Phase 11 — UI 연동 + 자동 동기화 완성 (2026-03-22)
+
+---
+
+### 설정 화면 계정 섹션 ✅
+
+- [x] `lib/features/settings/presentation/settings_screen.dart` — `_AccountSection` 추가
+  - 미로그인: 로그인 버튼 → `/login`
+  - 로그인: 이메일/제공자 표시
+  - 패밀리 플랜: 가족 멤버 관리 버튼 → `/family-members`
+  - 로그아웃/계정 삭제 확인 다이얼로그 (`mounted` 체크)
+
+---
+
+### 가족 탭 클라우드 동기화 섹션 ✅
+
+- [x] `lib/features/family_hub/presentation/family_hub_screen.dart` — ConsumerWidget으로 전환
+  - 패밀리 플랜: `_CloudSyncCard` — 가족 멤버 관리 + 동기화 상태 타일
+  - 무료/플러스: `_CloudUpsellCard` — 업그레이드 유도 카드
+
+---
+
+### 딥링크 핸들러 ✅
+
+- [x] `lib/app.dart` — `app_links` 딥링크 핸들러 추가
+  - `relink://invite/accept?token=xxx` → `/invite/accept?token=...` 라우트
+  - 앱 종료 상태 (초기 링크) + 실행 중 수신 링크 모두 처리
+
+---
+
+### 구독 화면 로그인 유도 ✅
+
+- [x] `lib/features/subscription/presentation/subscription_screen.dart`
+  - 패밀리 플랜 구매 완료 후 미로그인 시 로그인 유도 다이얼로그 표시
+
+---
+
+### SyncService 실제 연동 ✅
+
+- [x] `lib/features/family_sync/providers/family_sync_notifier.dart`
+  - placeholder `Future.delayed` 제거 → `SyncService.sync()` 실제 호출
+  - 패밀리 플랜 + 로그인 + 온라인 상태 조건 체크 (connectivity_plus)
+- [x] `lib/app.dart` — `WidgetsBindingObserver` 추가
+  - 포그라운드 복귀 시 5분 쿨다운 후 자동 동기화
+
+---
+
+### 남은 작업 (사용자 직접 수행)
+
+| 항목 | 이유 |
+|------|------|
+| Cloudflare Workers 배포 | Cloudflare 계정/자격증명 필요 |
+| D1/R2/KV 프로비저닝 | Cloudflare 계정 필요 |
+| Apple Sign In 활성화 | Apple Developer Console 접근 필요 |
+| Google OAuth 클라이언트 ID | Google Cloud Console 접근 필요 |
+| TestFlight 업로드 | Apple Developer 계정 필요 |
+| 스크린샷 촬영 | 실기기 필요 |
+| App Store 심사 제출 | Apple Developer 계정 필요 |
