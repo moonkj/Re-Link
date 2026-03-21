@@ -2,6 +2,6 @@
 <!-- Re-Link 스플래시 배경 — 다크 네이비 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
-        <color android:color="#0A0A1A" />
+        <color android:color="#0D1117" />
     </item>
 </layer-list>

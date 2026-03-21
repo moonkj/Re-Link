@@ -126,7 +126,7 @@ class _ComparisonSliderState extends State<ComparisonSlider> {
                       ),
                     ],
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.swap_horiz_rounded,
                     size: 22,
                     color: AppColors.primary,

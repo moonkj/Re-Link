@@ -27,7 +27,7 @@ class _HeritageExportScreenState extends ConsumerState<HeritageExportScreen> {
   @override
   Widget build(BuildContext context) {
     final planAsync = ref.watch(planNotifierProvider);
-    final isPremium = planAsync.valueOrNull == UserPlan.premium;
+    final isPremium = (planAsync.valueOrNull?.index ?? 0) >= UserPlan.plus.index;
 
     return Scaffold(
       backgroundColor: AppColors.bgBase,
@@ -151,7 +151,7 @@ class _HeritageExportScreenState extends ConsumerState<HeritageExportScreen> {
                   ),
                 ),
 
-                // Premium 안내
+                // 유료 플랜 안내
                 if (!isPremium) ...[
                   const SizedBox(height: 8),
                   Center(
@@ -273,7 +273,7 @@ class _ExportPreview extends StatelessWidget {
                 'Re-Link',
                 style: TextStyle(
                   fontSize: 11,
-                  color: Colors.white.withAlpha(80),
+                  color: titleColor.withAlpha(80),
                 ),
               ),
             ),
@@ -345,11 +345,11 @@ class _ColorThemeChip extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  static const _previewColors = {
+  static final _previewColors = {
     ExportColorTheme.appTheme: AppColors.primary,
     ExportColorTheme.bw: Colors.white,
-    ExportColorTheme.sepia: Color(0xFFD7CCC8),
-    ExportColorTheme.custom: Color(0xFFBB86FC),
+    ExportColorTheme.sepia: const Color(0xFFD7CCC8),
+    ExportColorTheme.custom: const Color(0xFFBB86FC),
   };
 
   @override

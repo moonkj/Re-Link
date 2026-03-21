@@ -29,46 +29,38 @@ abstract final class AppShadows {
     ),
   ];
 
-  // ── Glass 그림자 (빛나는 효과) ────────────────────────────────────────────
+  // ── Card shadow (subtle elevation, no glow) ──────────────────────────────
   static const List<BoxShadow> glass = [
     BoxShadow(
-      color: Color(0x1A000000),
-      blurRadius: 20,
-      offset: Offset(0, 4),
-    ),
-    BoxShadow(
-      color: Color(0x0DFFFFFF),
-      blurRadius: 1,
-      offset: Offset(0, 1),
-      spreadRadius: -1,
+      color: Color(0x14000000), // 8% black — subtle
+      blurRadius: 12,
+      offset: Offset(0, 2),
     ),
   ];
 
-  // ── Primary Glow (Mint 기반) ────────────────────────────────────────────
+  // ── Primary shadow (neutral) ────────────────────────────────────────────
   static const List<BoxShadow> primaryGlow = [
     BoxShadow(
-      color: Color(0x4D6EC6CA), // primaryMint 30%
-      blurRadius: 20,
-      offset: Offset(0, 4),
-      spreadRadius: -2,
+      color: Color(0x26000000),
+      blurRadius: 12,
+      offset: Offset(0, 3),
     ),
   ];
 
-  // ── Node 그림자 (Mint 기반) ─────────────────────────────────────────────
+  // ── Node shadow (neutral) ─────────────────────────────────────────────
   static const List<BoxShadow> node = [
     BoxShadow(
-      color: Color(0x336EC6CA), // primaryMint 20%
-      blurRadius: 16,
-      offset: Offset(0, 4),
+      color: Color(0x1A000000), // 10% black
+      blurRadius: 10,
+      offset: Offset(0, 3),
     ),
   ];
 
   static const List<BoxShadow> nodeSelected = [
     BoxShadow(
-      color: Color(0x80FFD700),
-      blurRadius: 24,
-      offset: Offset(0, 4),
-      spreadRadius: 2,
+      color: Color(0x40000000),
+      blurRadius: 14,
+      offset: Offset(0, 3),
     ),
   ];
 }

@@ -240,12 +240,6 @@ class KoreaMapPainter extends CustomPainter {
       final isSelected = pin.id == selectedPinId;
       final radius = isSelected ? 14.0 : 10.0;
 
-      // 글로우 효과
-      final glowPaint = Paint()
-        ..color = AppColors.primaryMint.withAlpha(isSelected ? 80 : 40)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-      canvas.drawCircle(pos, radius + 4, glowPaint);
-
       // 핀 원 배경
       final bgPaint = Paint()
         ..color = isSelected

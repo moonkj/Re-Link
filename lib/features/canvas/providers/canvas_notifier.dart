@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show Offset;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../shared/models/node_model.dart';
@@ -172,6 +173,11 @@ class CanvasNotifier extends _$CanvasNotifier {
 
   Future<void> saveNodePosition(String id, double x, double y) async {
     await ref.read(nodeRepositoryProvider).updatePosition(id, x, y);
+  }
+
+  /// 여러 노드 위치를 단일 트랜잭션으로 일괄 저장 (리빌드 1회)
+  Future<void> batchSavePositions(Map<String, Offset> positions) async {
+    await ref.read(nodeRepositoryProvider).batchUpdatePositions(positions);
   }
 }
 

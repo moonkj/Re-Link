@@ -15,7 +15,7 @@ class SettingsTable extends Table {
 
 /// 설정 키 상수
 abstract final class SettingsKey {
-  static const String userPlan = 'user_plan';           // free / basic / premium
+  static const String userPlan = 'user_plan';           // free / plus / family / familyPlus
   static const String autoBackup = 'auto_backup';       // true / false
   static const String backupFrequency = 'backup_freq';  // daily / weekly
   static const String lastBackupAt = 'last_backup_at';  // ISO8601
@@ -66,4 +66,10 @@ abstract final class SettingsKey {
   static const String welcomeCapsulePlayed = 'welcome_capsule_played'; // true / false
   static const String welcomeMessage = 'welcome_message';             // 환영 텍스트 (max 200)
   static const String welcomeAudioPath = 'welcome_audio_path';        // 환영 음성 파일 경로
+
+  // ── 관리자 모드 ─────────────────────────────────────────────────────────
+  static const String adminModeEnabled = 'admin_mode_enabled';         // true / false
+  static const String adminPlanOverride = 'admin_plan_override';       // free / plus / family / familyPlus (null=실제 플랜)
+  static const String adminAllBadges = 'admin_all_badges';             // true / false
+  static const String adminDummyGenerated = 'admin_dummy_generated';   // true / false
 }

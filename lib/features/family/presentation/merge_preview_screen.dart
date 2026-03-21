@@ -41,7 +41,7 @@ class _MergePreviewScreenState extends ConsumerState<MergePreviewScreen> {
         iconTheme: IconThemeData(color: AppColors.textPrimary),
       ),
       body: state.isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          ? Center(child: CircularProgressIndicator(color: AppColors.primary))
           : state.error != null
               ? _ErrorView(error: state.error!)
               : _PreviewBody(state: state),
@@ -178,8 +178,8 @@ class _PreviewBody extends ConsumerWidget {
                         if (!context.mounted) return;
                         if (ok) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('병합 완료!'),
+                            SnackBar(
+                              content: const Text('병합 완료!'),
                               backgroundColor: AppColors.primary,
                             ),
                           );

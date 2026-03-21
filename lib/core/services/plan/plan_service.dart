@@ -5,11 +5,37 @@ import '../../../shared/models/user_plan.dart';
 
 /// 인앱 구매 상품 ID
 class PlanProductIds {
-  static const String basic = 'com.relink.basic';
-  static const String premium = 'com.relink.premium';
-  static const String upgradeToPremium = 'com.relink.upgrade_to_premium';
+  // 1회성 구매
+  static const String plus = 'com.relink.plus';
 
-  static const Set<String> all = {basic, premium, upgradeToPremium};
+  // 자동 갱신 구독
+  static const String familyMonthly = 'com.relink.family_monthly';
+  static const String familyAnnual = 'com.relink.family_annual';
+  static const String familyPlusMonthly = 'com.relink.family_plus_monthly';
+  static const String familyPlusAnnual = 'com.relink.family_plus_annual';
+
+  static const Set<String> all = {
+    plus,
+    familyMonthly,
+    familyAnnual,
+    familyPlusMonthly,
+    familyPlusAnnual,
+  };
+
+  /// 구독 상품 ID 목록
+  static const Set<String> subscriptions = {
+    familyMonthly,
+    familyAnnual,
+    familyPlusMonthly,
+    familyPlusAnnual,
+  };
+
+  /// 비소모성 (1회 구매) 상품 ID 목록
+  static const Set<String> nonConsumables = {plus};
+
+  /// 상품 ID가 구독인지 여부
+  static bool isSubscription(String productId) =>
+      subscriptions.contains(productId);
 }
 
 /// 구매 결과
@@ -55,9 +81,14 @@ class PlanService {
   Future<void> completePurchase(PurchaseDetails details) =>
       _iap.completePurchase(details);
 
-  /// 상품 구매 요청
+  /// 상품 구매 요청 (구독 / 비소모성 자동 구분)
   Future<bool> buy(ProductDetails product) {
     final param = PurchaseParam(productDetails: product);
+    if (PlanProductIds.isSubscription(product.id)) {
+      // 자동 갱신 구독 (family, familyPlus)
+      return _iap.buyNonConsumable(purchaseParam: param);
+    }
+    // 1회성 비소모성 구매 (plus)
     return _iap.buyNonConsumable(purchaseParam: param);
   }
 
@@ -67,9 +98,11 @@ class PlanService {
   /// PurchaseDetails → UserPlan 매핑
   static UserPlan planFromProductId(String productId) {
     return switch (productId) {
-      PlanProductIds.basic => UserPlan.basic,
-      PlanProductIds.premium => UserPlan.premium,
-      PlanProductIds.upgradeToPremium => UserPlan.premium,
+      PlanProductIds.plus => UserPlan.plus,
+      PlanProductIds.familyMonthly => UserPlan.family,
+      PlanProductIds.familyAnnual => UserPlan.family,
+      PlanProductIds.familyPlusMonthly => UserPlan.familyPlus,
+      PlanProductIds.familyPlusAnnual => UserPlan.familyPlus,
       _ => UserPlan.free,
     };
   }

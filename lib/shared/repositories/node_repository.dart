@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui' show Offset;
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -97,6 +98,22 @@ class NodeRepository {
     final node = await getById(id);
     if (node == null) return;
     await update(node.copyWith(positionX: x, positionY: y));
+  }
+
+  /// 여러 노드의 위치를 단일 트랜잭션으로 일괄 저장
+  /// (매번 stream emit 하지 않고, 트랜잭션 완료 후 1회만 emit)
+  Future<void> batchUpdatePositions(Map<String, Offset> positions) async {
+    if (positions.isEmpty) return;
+    await _db.transaction(() async {
+      for (final entry in positions.entries) {
+        final node = await getById(entry.key);
+        if (node == null) continue;
+        await update(node.copyWith(
+          positionX: entry.value.dx,
+          positionY: entry.value.dy,
+        ));
+      }
+    });
   }
 
   Future<void> updateTemperature(String id, int level) async {

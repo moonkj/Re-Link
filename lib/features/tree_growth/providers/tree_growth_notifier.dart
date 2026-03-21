@@ -42,7 +42,7 @@ class TreeGrowthState {
 ///
 /// 노드 수, 기억 수, 스트릭 카운트를 기반으로 성장 점수를 계산하고
 /// 해당하는 성장 단계와 현재 계절을 반환한다.
-@riverpod
+@Riverpod(keepAlive: true)
 class TreeGrowthNotifier extends _$TreeGrowthNotifier {
   @override
   Future<TreeGrowthState> build() async {

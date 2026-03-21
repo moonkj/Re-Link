@@ -46,7 +46,7 @@ class _ArtCardScreenState extends ConsumerState<ArtCardScreen> {
   Widget build(BuildContext context) {
     final canvasState = ref.watch(canvasNotifierProvider);
     final planAsync = ref.watch(planNotifierProvider);
-    final isPremium = planAsync.valueOrNull == UserPlan.premium;
+    final isPremium = (planAsync.valueOrNull?.index ?? 0) >= UserPlan.plus.index;
     final palette = ArtPalette.forStyle(_style);
 
     return Scaffold(
@@ -146,7 +146,7 @@ class _ArtCardScreenState extends ConsumerState<ArtCardScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          'Premium: 워터마크 제거',
+                          '플러스: 워터마크 제거',
                           style: TextStyle(
                             fontSize: 10,
                             color: AppColors.primary,

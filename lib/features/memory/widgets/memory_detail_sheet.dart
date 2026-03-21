@@ -108,7 +108,7 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
     if (_privacyLoading) {
       return GlassBottomSheet(
         padding: EdgeInsets.zero,
-        child: const SizedBox(
+        child: SizedBox(
           height: 200,
           child: Center(
             child: CircularProgressIndicator(color: AppColors.primary),
@@ -199,7 +199,7 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
                   child: Row(
                     children: [
-                      const Icon(Icons.compare_rounded, size: 20, color: AppColors.primary),
+                      Icon(Icons.compare_rounded, size: 20, color: AppColors.primary),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Column(
@@ -465,14 +465,14 @@ class _BlurredPreview extends StatelessWidget {
       case MemoryType.voice:
         return Container(
           color: AppColors.accent.withAlpha(20),
-          child: const Center(
+          child: Center(
             child: Icon(Icons.mic_rounded, size: 48, color: AppColors.accent),
           ),
         );
       case MemoryType.note:
         return Container(
           color: AppColors.primary.withAlpha(20),
-          child: const Center(
+          child: Center(
             child: Icon(Icons.notes_rounded, size: 48, color: AppColors.primary),
           ),
         );
@@ -568,7 +568,7 @@ class _VoiceContent extends StatelessWidget {
                 ),
               )
             else
-              const SizedBox(
+              SizedBox(
                 height: 60,
                 child: Center(
                   child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
@@ -591,7 +591,7 @@ class _VoiceContent extends StatelessWidget {
                       playerCtrl?.playerState == PlayerState.playing
                           ? Icons.pause_rounded
                           : Icons.play_arrow_rounded,
-                      color: Colors.white,
+                      color: playerReady ? AppColors.onPrimary : AppColors.textPrimary,
                       size: 28,
                     ),
                   ),

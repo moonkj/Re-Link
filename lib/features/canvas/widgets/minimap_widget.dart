@@ -38,7 +38,9 @@ class MinimapWidget extends StatelessWidget {
             height: minimapH,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              color: const Color(0xCC0D1117),
+              color: AppColors.isDark
+                  ? const Color(0xCC0F0F1A)
+                  : const Color(0xCCF8FAFC),
               border: Border.all(color: AppColors.glassBorder, width: 1),
             ),
             child: ClipRRect(
@@ -85,6 +87,21 @@ class _MinimapPainter extends CustomPainter {
       canvas.drawCircle(Offset(x, y), node.isGhost ? 2.0 : 3.0, nodePaint);
     }
 
+    // ── 나무 성장 표시 (캔버스 중앙) ──
+    // Tree is positioned at: top: 1700 of 4000x4000 canvas → Y ≈ 2000 (중앙)
+    final treeX = (_canvasSize / 2) * scaleX; // 캔버스 수평 중앙
+    final treeY = 2000.0 * scaleY; // 캔버스 수직 중앙
+    // 캐노피 (작은 원)
+    final treePaint = Paint()
+      ..color = const Color(0xFF34D399) // 에메랄드 그린
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(treeX, treeY - 3), 4.0, treePaint);
+    // 줄기 (작은 사각형)
+    canvas.drawRect(
+      Rect.fromCenter(center: Offset(treeX, treeY), width: 2, height: 4),
+      Paint()..color = const Color(0xFF8B6F47),
+    );
+
     // 뷰포트 사각형 그리기 — 실제 화면 크기 사용
     final matrix = transform;
     final scale = matrix.getMaxScaleOnAxis();
@@ -106,11 +123,15 @@ class _MinimapPainter extends CustomPainter {
     );
 
     final vpPaint = Paint()
-      ..color = Colors.white.withAlpha(50)
+      ..color = AppColors.isDark
+          ? Colors.white.withAlpha(50)
+          : Colors.black.withAlpha(30)
       ..style = PaintingStyle.fill;
 
     final vpBorderPaint = Paint()
-      ..color = Colors.white.withAlpha(120)
+      ..color = AppColors.isDark
+          ? Colors.white.withAlpha(120)
+          : Colors.black.withAlpha(80)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
 

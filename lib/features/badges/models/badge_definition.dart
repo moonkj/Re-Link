@@ -122,13 +122,6 @@ enum BadgeDefinition {
     icon: Icons.lock_clock,
     rarity: BadgeRarity.common,
   ),
-  firstGlossary(
-    id: 'firstGlossary',
-    name: '언어학자',
-    description: '첫 가족 단어 등록',
-    icon: Icons.menu_book,
-    rarity: BadgeRarity.common,
-  ),
   firstMemorial(
     id: 'firstMemorial',
     name: '추모자',

@@ -12,7 +12,6 @@ import 'tables/temperature_logs_table.dart';
 import 'tables/bouquets_table.dart';
 import 'tables/capsules_table.dart';
 import 'tables/memorial_messages_table.dart';
-import 'tables/glossary_table.dart';
 import 'tables/recipes_table.dart';
 import 'tables/node_locations_table.dart';
 import 'tables/voice_legacy_table.dart';
@@ -31,7 +30,6 @@ part 'app_database.g.dart';
   CapsulesTable,
   CapsuleItemsTable,
   MemorialMessagesTable,
-  GlossaryTable,
   RecipesTable,
   NodeLocationsTable,
   VoiceLegacyTable,
@@ -71,7 +69,18 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(capsulesTable);
             await m.createTable(capsuleItemsTable);
             await m.createTable(memorialMessagesTable);
-            await m.createTable(glossaryTable);
+            // glossary table removed from app but kept in migration for existing DBs
+            await customStatement('''
+              CREATE TABLE IF NOT EXISTS glossary (
+                id TEXT NOT NULL PRIMARY KEY,
+                word TEXT NOT NULL,
+                meaning TEXT NOT NULL,
+                example TEXT,
+                voice_path TEXT,
+                node_id TEXT,
+                created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+              )
+            ''');
           }
           // v4 → v5: recipes + node_locations + voice_legacy
           if (from < 5) {
@@ -356,26 +365,6 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteMemorialMessage(String id) =>
       (delete(memorialMessagesTable)..where((t) => t.id.equals(id))).go();
 
-  // ── Glossary (Family Glossary) ──────────────────────────────────────────
-
-  Future<void> upsertGlossaryEntry(GlossaryTableCompanion entry) =>
-      into(glossaryTable).insertOnConflictUpdate(entry);
-
-  Stream<List<GlossaryTableData>> watchAllGlossary() =>
-      (select(glossaryTable)
-            ..orderBy([(t) => OrderingTerm.asc(t.word)]))
-          .watch();
-
-  Future<List<GlossaryTableData>> searchGlossary(String query) =>
-      (select(glossaryTable)
-            ..where((t) =>
-                t.word.like('%$query%') | t.meaning.like('%$query%'))
-            ..orderBy([(t) => OrderingTerm.asc(t.word)]))
-          .get();
-
-  Future<int> deleteGlossaryEntry(String id) =>
-      (delete(glossaryTable)..where((t) => t.id.equals(id))).go();
-
   // ── Recipes (Family Recipe Book) ──────────────────────────────────────────
 
   Future<void> upsertRecipe(RecipesTableCompanion recipe) =>
@@ -455,9 +444,6 @@ class AppDatabase extends _$AppDatabase {
         .get();
     return rows.length;
   }
-
-  /// 용어집 항목 수
-  Future<int> glossaryCount() => glossaryTable.count().getSingle();
 
   /// 추모 메시지 수
   Future<int> memorialMessageCount() =>

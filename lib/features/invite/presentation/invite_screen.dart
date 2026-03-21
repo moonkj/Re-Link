@@ -55,9 +55,9 @@ class InviteScreen extends ConsumerWidget {
                       end: Alignment.bottomRight,
                     ),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.family_restroom,
-                    color: Colors.white,
+                    color: AppColors.onPrimary,
                     size: 32,
                   ),
                 ),
@@ -98,7 +98,7 @@ class InviteScreen extends ConsumerWidget {
               width: double.infinity,
               child: PrimaryGlassButton(
                 label: '초대 코드 생성',
-                icon: const Icon(Icons.vpn_key_rounded, color: Colors.white, size: 20),
+                icon: Icon(Icons.vpn_key_rounded, color: AppColors.onPrimary, size: 20),
                 isLoading: inviteState.isGenerating,
                 onPressed: () {
                   HapticService.medium();
@@ -188,7 +188,7 @@ class InviteScreen extends ConsumerWidget {
             width: double.infinity,
             child: PrimaryGlassButton(
               label: '가족 트리 공유하기',
-              icon: const Icon(Icons.share_rounded, color: Colors.white, size: 20),
+              icon: Icon(Icons.share_rounded, color: AppColors.onPrimary, size: 20),
               isLoading: inviteState.isSharing,
               onPressed: hasCode
                   ? () {
@@ -412,13 +412,13 @@ class _StepHeader extends StatelessWidget {
           ),
           child: Center(
             child: isCompleted
-                ? const Icon(Icons.check, color: Colors.white, size: 16)
+                ? Icon(Icons.check, color: AppColors.onPrimary, size: 16)
                 : Text(
                     number,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: AppColors.onPrimary,
                     ),
                   ),
           ),
@@ -462,7 +462,7 @@ class _InstructionRow extends StatelessWidget {
           child: Center(
             child: Text(
               number,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primary,

@@ -515,15 +515,6 @@ class _MiniCanvasPainter extends CustomPainter {
   }) {
     final r = isSelf ? 32.0 : 28.0;
 
-    // 글로우
-    canvas.drawCircle(
-      pos,
-      r + 8,
-      Paint()
-        ..color = color.withAlpha((40 * opacity).toInt())
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
-    );
-
     // 원 배경
     final nodeBg = isDark ? const Color(0xFF1E2840) : const Color(0xFFE8ECF0);
     canvas.drawCircle(

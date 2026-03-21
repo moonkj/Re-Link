@@ -6,7 +6,7 @@ import '../../design/tokens/app_colors.dart';
 import '../models/user_plan.dart';
 import '../../features/subscription/providers/plan_notifier.dart';
 
-/// AdMob 배너 광고 위젯 (Free/Basic 플랜만 표시)
+/// AdMob 배너 광고 위젯 (Free 플랜만 표시)
 ///
 /// 사용법: 화면 하단에 배치
 /// ```dart
@@ -67,7 +67,7 @@ class _AdBannerWidgetState extends ConsumerState<AdBannerWidget> {
     final planAsync = ref.watch(planNotifierProvider);
     final plan = planAsync.valueOrNull ?? UserPlan.free;
 
-    // Premium: 광고 없음
+    // 유료 플랜(플러스 이상): 광고 없음
     if (!plan.hasAds) return const SizedBox.shrink();
 
     if (!_adLoaded || _bannerAd == null) {

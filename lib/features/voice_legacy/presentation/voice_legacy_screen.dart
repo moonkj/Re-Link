@@ -44,7 +44,7 @@ class VoiceLegacyScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showRecordSheet(context),
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.mic, color: Colors.white),
+        child: Icon(Icons.mic, color: AppColors.onPrimary),
       ),
       body: legaciesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),

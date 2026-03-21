@@ -270,7 +270,7 @@ class NodeNotifier extends _$NodeNotifier {
       throw PlanLimitError(
         feature: '노드 추가',
         currentPlan: plan.displayName,
-        requiredPlan: plan == UserPlan.free ? 'Basic' : 'Premium',
+        requiredPlan: plan == UserPlan.free ? '플러스' : '패밀리',
       );
     }
   }

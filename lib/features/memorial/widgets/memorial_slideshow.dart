@@ -229,7 +229,9 @@ class _MemorialSlideshowState extends ConsumerState<MemorialSlideshow>
                         vertical: AppSpacing.xs,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black38,
+                        color: AppColors.isDark
+                            ? Colors.black38
+                            : Colors.black54,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -254,7 +256,9 @@ class _MemorialSlideshowState extends ConsumerState<MemorialSlideshow>
                         vertical: AppSpacing.xs,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black38,
+                        color: AppColors.isDark
+                            ? Colors.black38
+                            : Colors.black54,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Row(
@@ -322,7 +326,7 @@ class _SlideshowPage extends StatelessWidget {
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => Container(
           color: AppColors.glassSurface,
-          child: const Center(
+          child: Center(
             child: Icon(
               Icons.broken_image_outlined,
               color: AppColors.primary,

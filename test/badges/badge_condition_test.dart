@@ -284,7 +284,7 @@ void main() {
     });
 
     test('special activity badges', () {
-      final specialIds = ['firstCapsule', 'firstGlossary', 'firstMemorial'];
+      final specialIds = ['firstCapsule', 'firstMemorial'];
       for (final id in specialIds) {
         expect(BadgeDefinition.fromId(id), isNotNull,
             reason: '$id should exist');

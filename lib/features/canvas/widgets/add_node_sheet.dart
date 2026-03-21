@@ -96,7 +96,7 @@ class _AddNodeSheetState extends ConsumerState<AddNodeSheet> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.cake_outlined, color: AppColors.primary, size: 20),
+                Icon(Icons.cake_outlined, color: AppColors.primary, size: 20),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
                   _birthDate == null
@@ -155,7 +155,7 @@ class _AddNodeSheetState extends ConsumerState<AddNodeSheet> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.account_tree_outlined, color: AppColors.secondary, size: 20),
+                Icon(Icons.account_tree_outlined, color: AppColors.secondary, size: 20),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Column(
@@ -207,7 +207,7 @@ class _AddNodeSheetState extends ConsumerState<AddNodeSheet> {
       helpText: '생년월일 선택',
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.dark(primary: AppColors.primary),
+          colorScheme: ColorScheme.dark(primary: AppColors.primary),
         ),
         child: child!,
       ),
@@ -279,11 +279,11 @@ class _PhotoButton extends StatelessWidget {
             : null,
       ),
       child: photoPath == null
-          ? const Column(
+          ? Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.add_a_photo_outlined, color: AppColors.primary, size: 22),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text('사진', style: TextStyle(fontSize: 10, color: AppColors.primary)),
               ],
             )

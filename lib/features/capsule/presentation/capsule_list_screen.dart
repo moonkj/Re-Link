@@ -45,7 +45,7 @@ class CapsuleListScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showCreateSheet(context),
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: Icon(Icons.add, color: AppColors.onPrimary),
       ),
       body: capsulesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),

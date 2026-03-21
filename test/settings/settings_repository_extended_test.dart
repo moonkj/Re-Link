@@ -87,14 +87,19 @@ void main() {
       expect(await repo.getUserPlan(), UserPlan.free);
     });
 
-    test('basic 설정 후 getUserPlan → basic', () async {
-      await repo.setUserPlan(UserPlan.basic);
-      expect(await repo.getUserPlan(), UserPlan.basic);
+    test('plus 설정 후 getUserPlan → plus', () async {
+      await repo.setUserPlan(UserPlan.plus);
+      expect(await repo.getUserPlan(), UserPlan.plus);
     });
 
-    test('premium 설정 후 getUserPlan → premium', () async {
-      await repo.setUserPlan(UserPlan.premium);
-      expect(await repo.getUserPlan(), UserPlan.premium);
+    test('family 설정 후 getUserPlan → family', () async {
+      await repo.setUserPlan(UserPlan.family);
+      expect(await repo.getUserPlan(), UserPlan.family);
+    });
+
+    test('familyPlus 설정 후 getUserPlan → familyPlus', () async {
+      await repo.setUserPlan(UserPlan.familyPlus);
+      expect(await repo.getUserPlan(), UserPlan.familyPlus);
     });
 
     test('unknown 값 → free (fallback)', () async {

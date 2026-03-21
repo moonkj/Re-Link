@@ -206,7 +206,8 @@ class StreakNotifier extends _$StreakNotifier {
   /// 플랜별 프리즈 제한
   static int _freezeLimitForPlan(UserPlan plan) => switch (plan) {
         UserPlan.free => 0,
-        UserPlan.basic => 3,
-        UserPlan.premium => 99, // 사실상 무제한
+        UserPlan.plus => 3,
+        UserPlan.family => 10,
+        UserPlan.familyPlus => 99, // 사실상 무제한
       };
 }

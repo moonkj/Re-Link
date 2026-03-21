@@ -6,7 +6,7 @@ part of 'badge_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$badgeNotifierHash() => r'fe45f4113b82bdc761592d67af34441bf193cb13';
+String _$badgeNotifierHash() => r'a208ac366449b56fd48a99cdec9562b2ccc57ad6';
 
 /// 배지 시스템 상태 관리
 ///

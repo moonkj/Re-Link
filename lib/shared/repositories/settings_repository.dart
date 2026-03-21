@@ -33,8 +33,18 @@ class SettingsRepository {
 
   Future<UserPlan> getUserPlan() async {
     final v = await get(SettingsKey.userPlan);
+    // 기존 3-tier 값 마이그레이션: basic→plus, premium→familyPlus
+    final migrated = switch (v) {
+      'basic' => 'plus',
+      'premium' => 'familyPlus',
+      _ => v,
+    };
+    // 마이그레이션된 값이 다르면 DB 업데이트
+    if (migrated != v && migrated != null) {
+      await set(SettingsKey.userPlan, migrated);
+    }
     return UserPlan.values.firstWhere(
-      (e) => e.name == v,
+      (e) => e.name == migrated,
       orElse: () => UserPlan.free,
     );
   }

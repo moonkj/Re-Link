@@ -135,10 +135,10 @@ class _StoryCard extends StatelessWidget {
                       ? Center(
                           child: Text(
                             item.nodeName.isNotEmpty ? item.nodeName[0] : '?',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                              color: AppColors.onPrimary,
                             ),
                           ),
                         )
@@ -227,10 +227,10 @@ class _PrivateStoryCard extends StatelessWidget {
                       ? Center(
                           child: Text(
                             item.nodeName.isNotEmpty ? item.nodeName[0] : '?',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                              color: AppColors.onPrimary,
                             ),
                           ),
                         )

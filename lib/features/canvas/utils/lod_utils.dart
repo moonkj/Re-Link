@@ -17,9 +17,10 @@ enum LodLevel {
 }
 
 /// 현재 줌 스케일에서 LOD 레벨 결정
+/// 카드가 더 작은 배율에서도 유지되도록 임계값 하향 조정
 LodLevel lodFromScale(double scale) {
-  if (scale < 0.5) return LodLevel.birdEye;
-  if (scale < 1.0) return LodLevel.overview;
+  if (scale < 0.25) return LodLevel.birdEye;
+  if (scale < 0.45) return LodLevel.overview;
   if (scale < 2.0) return LodLevel.detail;
   return LodLevel.zoom;
 }

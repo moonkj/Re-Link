@@ -15,7 +15,7 @@ void showPlanLimitSnackBar(BuildContext context, PlanLimitError error) {
     'voice' => '음성',
     _ => error.feature,
   };
-  final requiredPlanName = error.requiredPlan.toUpperCase();
+  final requiredPlanName = error.requiredPlan;
 
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
@@ -41,7 +41,7 @@ void showPlanLimitSnackBar(BuildContext context, PlanLimitError error) {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
               context.push(AppRoutes.subscription);
             },
-            child: const Text('업그레이드', style: TextStyle(color: AppColors.primary, fontSize: 13)),
+            child: Text('업그레이드', style: TextStyle(color: AppColors.primary, fontSize: 13)),
           ),
         ],
       ),

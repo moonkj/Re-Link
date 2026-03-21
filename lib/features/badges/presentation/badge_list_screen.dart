@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
+import '../../../design/tokens/badge_colors.dart';
 import '../models/badge_definition.dart';
 import '../providers/badge_notifier.dart';
 import '../widgets/badge_earned_dialog.dart';
@@ -161,7 +162,7 @@ class _ProgressHeader extends StatelessWidget {
               minHeight: 8,
               backgroundColor: AppColors.glassSurface,
               valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  AlwaysStoppedAnimation<Color>(AppColors.primary),
             ),
           ),
         ],
@@ -183,135 +184,130 @@ class _BadgeCard extends StatelessWidget {
   final bool isEarned;
   final VoidCallback? onTap;
 
-  Color _rarityColor(BadgeRarity rarity) => switch (rarity) {
-        BadgeRarity.common => AppColors.textSecondary,
-        BadgeRarity.rare => AppColors.secondary,
-        BadgeRarity.epic => AppColors.primary,
-        BadgeRarity.legendary => AppColors.accent,
-      };
+  // ── Rarity color (MZ-style from BadgeColors) ─────────────────────────────
+
+  Color _rarityColor(BadgeRarity rarity) =>
+      BadgeColors.rarityAccent(rarity);
+
+  // ── Build ───────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final rarityColor = _rarityColor(badge.rarity);
 
-    final cardContent = Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // 배지 아이콘 + 잠금 오버레이
-          SizedBox(
-            width: 48,
-            height: 48,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // 아이콘 (글로우 효과 — 획득 시)
-                if (isEarned)
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: rarityColor.withAlpha(140),
-                          blurRadius: 24,
-                          spreadRadius: 4,
-                        ),
-                        BoxShadow(
-                          color: rarityColor.withAlpha(60),
-                          blurRadius: 32,
-                          spreadRadius: 8,
-                        ),
-                      ],
-                    ),
-                  ),
-                Icon(
-                  badge.icon,
-                  size: 32,
-                  color: isEarned
-                      ? rarityColor
-                      : AppColors.textDisabled,
-                ),
-                // 잠금 오버레이
-                if (!isEarned)
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: 22,
-                      height: 22,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: isEarned
+              ? BadgeColors.earnedGradient(badge.rarity)
+              : null,
+          color: isEarned ? null : BadgeColors.unearnedBg,
+          border: isEarned
+              ? BadgeColors.earnedBorder(badge.rarity)
+              : Border.all(color: BadgeColors.unearnedBorder, width: 1),
+          boxShadow: isEarned
+              ? BadgeColors.earnedGlow(badge.rarity)
+              : null,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // ── 아이콘 영역 (56×56) ──
+            SizedBox(
+              width: 56,
+              height: 56,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // 메달리온 배경 (earned only)
+                  if (isEarned)
+                    Container(
+                      width: 56,
+                      height: 56,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.accent,
-                      ),
-                      child: Icon(
-                        Icons.lock,
-                        size: 12,
-                        color: Colors.white,
+                        color: BadgeColors.medallionBg(badge.rarity),
+                        boxShadow: BadgeColors.earnedGlow(badge.rarity),
                       ),
                     ),
+                  // 아이콘
+                  Icon(
+                    badge.icon,
+                    size: 32,
+                    color: isEarned
+                        ? rarityColor
+                        : BadgeColors.unearnedIcon,
                   ),
-              ],
+                  // 잠금 오버레이
+                  if (!isEarned)
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: BadgeColors.lockBadgeBg,
+                        ),
+                        child: const Icon(
+                          Icons.lock,
+                          size: 12,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          // 배지 이름
-          Text(
-            badge.name,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: isEarned
-                  ? AppColors.textPrimary
-                  : AppColors.textDisabled,
-            ),
-          ),
-          const SizedBox(height: 2),
-          // 희귀도 표시
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
-              color: isEarned
-                  ? rarityColor.withAlpha(25)
-                  : Colors.transparent,
-            ),
-            child: Text(
-              badge.rarity.label,
+            const SizedBox(height: 8),
+            // ── 배지 이름 ──
+            Text(
+              badge.name,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w500,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
                 color: isEarned
-                    ? rarityColor
-                    : AppColors.textDisabled,
+                    ? AppColors.textPrimary
+                    : BadgeColors.unearnedName,
               ),
             ),
-          ),
-        ],
-      );
-
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: isEarned
-            ? Border.all(color: rarityColor.withAlpha(120), width: 1.5)
-            : null,
-      ),
-      child: GlassCard(
-        onTap: onTap,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.md,
-        ),
-        child: isEarned
-            ? cardContent
-            : Opacity(
-                opacity: 0.5,
-                child: cardContent,
+            const SizedBox(height: 2),
+            // ── 희귀도 필 (earned only) ──
+            if (isEarned)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  color: rarityColor.withAlpha(30),
+                ),
+                child: Text(
+                  badge.rarity.label,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w500,
+                    color: rarityColor,
+                  ),
+                ),
+              )
+            else
+              Text(
+                badge.rarity.label,
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w500,
+                  color: BadgeColors.unearnedRarity,
+                ),
               ),
+          ],
+        ),
       ),
     );
   }

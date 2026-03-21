@@ -44,8 +44,15 @@ class CanvasScreen extends ConsumerStatefulWidget {
 /// 뷰포트 여백 — 카드가 경계 근처에서 팝인되지 않도록 버퍼
 const double _kViewportMargin = 200.0;
 
-class _CanvasScreenState extends ConsumerState<CanvasScreen> {
+class _CanvasScreenState extends ConsumerState<CanvasScreen>
+    with SingleTickerProviderStateMixin {
   final TransformationController _transformCtrl = TransformationController();
+
+  /// FAB 브리딩 애니메이션 컨트롤러
+  late final AnimationController _fabBreathCtrl = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 2),
+  )..repeat(reverse: true);
 
   /// 드래그 중인 노드 ID
   String? _draggingId;
@@ -55,6 +62,9 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
 
   /// 겹치는 노드 자동 분산 — 마지막으로 분산 처리한 노드 수
   int _lastSpreadNodeCount = 0;
+
+  /// spread 디바운스 타이머 (일괄 삽입 시 연속 호출 방지)
+  Timer? _spreadDebouncer;
 
   /// Time Slider 이벤트 토스트 메시지
   String? _timeEventMessage;
@@ -106,6 +116,8 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
 
   @override
   void dispose() {
+    _spreadDebouncer?.cancel();
+    _fabBreathCtrl.dispose();
     _transformCtrl.dispose();
     super.dispose();
   }
@@ -158,9 +170,10 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     // 위치 복사
     final pos = {for (final n in nodes) n.id: Offset(n.positionX, n.positionY)};
 
-    // 최대 20라운드 반복하며 겹침 해소
+    // 노드 수에 따라 라운드 제한 (성능 최적화)
+    final maxRounds = nodes.length > 30 ? 5 : (nodes.length > 15 ? 10 : 20);
     bool changed = false;
-    for (int round = 0; round < 20; round++) {
+    for (int round = 0; round < maxRounds; round++) {
       bool roundMoved = false;
       for (int i = 0; i < nodes.length; i++) {
         for (int j = i + 1; j < nodes.length; j++) {
@@ -206,13 +219,16 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
 
     if (!changed) return;
 
-    // 순차 저장 — 레이스컨디션 방지
-    final notifier = ref.read(canvasNotifierProvider.notifier);
+    // 일괄 저장 — 트랜잭션 1회로 리빌드 폭풍 방지
+    final batchPos = <String, Offset>{};
     for (final n in nodes) {
       final p = pos[n.id]!;
       if ((p.dx - n.positionX).abs() > 1 || (p.dy - n.positionY).abs() > 1) {
-        await notifier.saveNodePosition(n.id, p.dx, p.dy);
+        batchPos[n.id] = p;
       }
+    }
+    if (batchPos.isNotEmpty) {
+      await ref.read(canvasNotifierProvider.notifier).batchSavePositions(batchPos);
     }
   }
 
@@ -234,11 +250,14 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     // "나" 노드 ID
     final myNodeId = ref.watch(myNodeNotifierProvider).valueOrNull;
 
-    // 겹치는 노드 자동 분산 — 노드 수 변경 시마다 재실행
+    // 겹치는 노드 자동 분산 — 노드 수 변경 시 디바운스로 재실행
     if (nodes.length > 1 && nodes.length != _lastSpreadNodeCount) {
       _lastSpreadNodeCount = nodes.length;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _spreadOverlappingNodes(nodes);
+      _spreadDebouncer?.cancel();
+      _spreadDebouncer = Timer(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _spreadOverlappingNodes(ref.read(canvasNotifierProvider).nodes);
+        }
       });
     }
 
@@ -291,9 +310,9 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
               height: 4000,
               child: Stack(
                 children: [
-                  // 가족 나무 성장 배경 (캔버스 하단 중앙)
+                  // 가족 나무 성장 배경 (캔버스 중앙, 최하위 레이어)
                   const Positioned(
-                    bottom: 200,
+                    top: 1700,
                     left: 0,
                     right: 0,
                     child: Center(child: TreeGrowthOverlay()),
@@ -444,7 +463,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.lg, vertical: AppSpacing.sm,
                       ),
-                      child: const Text(
+                      child: Text(
                         'Re-Link',
                         style: TextStyle(
                           fontSize: 20,
@@ -492,7 +511,14 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                       message: '검색',
                       child: GlassCard(
                         padding: const EdgeInsets.all(AppSpacing.sm),
-                        onTap: () => context.push(AppRoutes.search),
+                        onTap: () async {
+                          final nodeId = await context.push<String>(AppRoutes.search);
+                          if (nodeId != null && mounted) {
+                            final state = ref.read(canvasNotifierProvider);
+                            final node = state.nodes.where((n) => n.id == nodeId).firstOrNull;
+                            if (node != null) _animateCameraToNode(node);
+                          }
+                        },
                         child: Icon(
                           Icons.search,
                           color: AppColors.textSecondary,
@@ -561,7 +587,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.link, color: AppColors.primary),
+                    Icon(Icons.link, color: AppColors.primary),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(
@@ -620,32 +646,46 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
 
           // ── FAB (노드 추가) ──────────────────────────────────────────────
           Positioned(
-            bottom: AppSpacing.xxl + 80, // 하단 네비게이션 위
+            bottom: canvasState.timeSliderVisible
+                ? AppSpacing.xxl + 230 // 타임슬라이더 위
+                : AppSpacing.xxl + 80,  // 하단 네비게이션 위
             right: AppSpacing.lg,
             child: GestureDetector(
               onTap: isConnectMode ? null : _showAddNodeSheet,
               child: AnimatedOpacity(
                 opacity: isConnectMode ? 0.3 : 1.0,
                 duration: const Duration(milliseconds: 200),
-                child: Container(
-                  width: AppSpacing.fabSize,
-                  height: AppSpacing.fabSize,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF6EC6CA), Color(0xFF4A9EBF)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0x4D6EC6CA),
-                        blurRadius: 20,
-                        offset: Offset(0, 4),
+                child: AnimatedBuilder(
+                  animation: _fabBreathCtrl,
+                  builder: (context, child) {
+                    final t = _fabBreathCtrl.value;
+                    final scale = 1.0 + 0.12 * t;
+                    final shadowOpacity = 0.35 + 0.35 * t;
+                    return Transform.scale(
+                      scale: scale,
+                      child: Container(
+                        width: AppSpacing.fabSize,
+                        height: AppSpacing.fabSize,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF6EC6CA), Color(0xFF4A9EBF)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color.fromRGBO(0, 0, 0, shadowOpacity),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: child,
                       ),
-                    ],
-                  ),
-                  child: const Icon(Icons.add, color: Colors.white, size: 28),
+                    );
+                  },
+                  child: Icon(Icons.add, color: AppColors.onPrimary, size: 28),
                 ),
               ),
             ),
@@ -884,31 +924,59 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     }
   }
 
+
   void _resetZoom() {
     final screenSize = MediaQuery.of(context).size;
     final nodes = ref.read(canvasNotifierProvider).nodes;
 
-    double centerX;
-    double centerY;
-
-    if (nodes.isNotEmpty) {
-      // 노드 중심점으로 이동
-      double sumX = 0, sumY = 0;
-      for (final node in nodes) {
-        sumX += node.positionX + kNodeCardWidth / 2;
-        sumY += node.positionY + kNodeCardHeight / 2;
-      }
-      centerX = sumX / nodes.length;
-      centerY = sumY / nodes.length;
-    } else {
+    if (nodes.isEmpty) {
       // 노드 없으면 캔버스 중앙
-      centerX = 2000;
-      centerY = 2000;
+      final dx = -(2000.0 - screenSize.width / 2);
+      final dy = -(2000.0 - screenSize.height / 2);
+      _transformCtrl.value = Matrix4.translationValues(dx, dy, 0);
+      return;
     }
 
-    final dx = -(centerX - screenSize.width / 2);
-    final dy = -(centerY - screenSize.height / 2);
-    _transformCtrl.value = Matrix4.translationValues(dx, dy, 0);
+    // 바운딩 박스 계산
+    double minX = double.infinity, maxX = double.negativeInfinity;
+    double minY = double.infinity, maxY = double.negativeInfinity;
+    for (final node in nodes) {
+      if (node.positionX < minX) minX = node.positionX;
+      if (node.positionX + kNodeCardWidth > maxX) maxX = node.positionX + kNodeCardWidth;
+      if (node.positionY < minY) minY = node.positionY;
+      if (node.positionY + kNodeCardHeight > maxY) maxY = node.positionY + kNodeCardHeight;
+    }
+
+    // 패딩 추가 (상단 앱바 + 하단 네비)
+    const padH = 100.0;
+    const padTop = 140.0;
+    const padBottom = 120.0;
+    minX -= padH;
+    maxX += padH;
+    minY -= padTop;
+    maxY += padBottom;
+
+    final contentW = maxX - minX;
+    final contentH = maxY - minY;
+
+    // 전체 노드가 화면에 들어오는 줌 레벨 계산
+    final scaleX = screenSize.width / contentW;
+    final scaleY = screenSize.height / contentH;
+    final scale = (scaleX < scaleY ? scaleX : scaleY).clamp(0.3, 1.0);
+
+    // 콘텐츠 중심 → 화면 중심
+    final centerX = (minX + maxX) / 2;
+    final centerY = (minY + maxY) / 2;
+    final dx = -centerX * scale + screenSize.width / 2;
+    final dy = -centerY * scale + screenSize.height / 2;
+
+    final m = Matrix4.identity();
+    m.storage[0] = scale;   // scaleX
+    m.storage[5] = scale;   // scaleY
+    m.storage[10] = scale;  // scaleZ
+    m.storage[12] = dx;     // translateX
+    m.storage[13] = dy;     // translateY
+    _transformCtrl.value = m;
   }
 }
 
@@ -1125,9 +1193,9 @@ class _DraggableNodeCardState extends State<_DraggableNodeCard> {
                     ? const BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                            color: Color(0x806EC6CA), // Mint glow 50%
-                            blurRadius: 24,
-                            spreadRadius: 4,
+                            color: Color(0x40000000),
+                            blurRadius: 10,
+                            spreadRadius: 0,
                           ),
                         ],
                       )
@@ -1167,7 +1235,7 @@ class _EmptyHint extends StatelessWidget {
         width: 800,
         child: Column(
           children: [
-            const Icon(Icons.account_tree_outlined, size: 64, color: AppColors.primary),
+            Icon(Icons.account_tree_outlined, size: 64, color: AppColors.primary),
             const SizedBox(height: 16),
             Text(
               '가족 트리를 시작해 보세요',
@@ -1191,12 +1259,77 @@ class _EmptyHint extends StatelessWidget {
   }
 }
 
-/// 배경 (그라디언트 + 그리드 점) — RepaintBoundary로 캔버스 재페인트와 분리
-class _CanvasBackground extends StatelessWidget {
+/// 배경 (오로라 그라디언트 + 그리드 점) — RepaintBoundary로 캔버스 재페인트와 분리
+class _CanvasBackground extends StatefulWidget {
+  @override
+  State<_CanvasBackground> createState() => _CanvasBackgroundState();
+}
+
+class _CanvasBackgroundState extends State<_CanvasBackground>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<Alignment> _center1;
+  late final Animation<Alignment> _center2;
+  late final Animation<Alignment> _center3;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 15),
+    )..repeat(reverse: true);
+
+    _center1 = AlignmentTween(
+      begin: const Alignment(-0.8, -0.6),
+      end: const Alignment(-0.3, 0.2),
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+
+    _center2 = AlignmentTween(
+      begin: const Alignment(0.6, -0.4),
+      end: const Alignment(0.2, 0.5),
+    ).animate(CurvedAnimation(
+      parent: _ctrl,
+      curve: const Interval(0.1, 0.9, curve: Curves.easeInOut),
+    ));
+
+    _center3 = AlignmentTween(
+      begin: const Alignment(0.0, 0.8),
+      end: const Alignment(-0.5, -0.3),
+    ).animate(CurvedAnimation(
+      parent: _ctrl,
+      curve: const Interval(0.2, 1.0, curve: Curves.easeInOut),
+    ));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
-      child: _StaticBackground(),
+      child: Stack(
+        children: [
+          _StaticBackground(),
+          AnimatedBuilder(
+            animation: _ctrl,
+            builder: (context, _) {
+              return CustomPaint(
+                painter: _AuroraPainter(
+                  center1: _center1.value,
+                  center2: _center2.value,
+                  center3: _center3.value,
+                  isDark: Theme.of(context).brightness == Brightness.dark,
+                ),
+                child: const SizedBox.expand(),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1208,13 +1341,7 @@ class _StaticBackground extends StatelessWidget {
     return CustomPaint(
       painter: _GridPainter(isDark: isDark),
       child: Container(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.center,
-            radius: 1.5,
-            colors: [AppColors.bgSurface, AppColors.bgBase],
-          ),
-        ),
+        color: AppColors.bgBase,
       ),
     );
   }
@@ -1326,7 +1453,7 @@ class _FocusInfoPanel extends StatelessWidget {
               // 상세보기 버튼
               GestureDetector(
                 onTap: onDetail,
-                child: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.primary),
+                child: Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.primary),
               ),
               const SizedBox(width: AppSpacing.sm),
               // 닫기
@@ -1340,6 +1467,66 @@ class _FocusInfoPanel extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 오로라 배경 — 3개의 RadialGradient가 느리게 드리프트
+class _AuroraPainter extends CustomPainter {
+  const _AuroraPainter({
+    required this.center1,
+    required this.center2,
+    required this.center3,
+    required this.isDark,
+  });
+
+  final Alignment center1;
+  final Alignment center2;
+  final Alignment center3;
+  final bool isDark;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+
+    // Bloom 1: Mint — 부드러운 민트빛 (alpha 축소: 어두워짐 방지)
+    final paint1 = Paint()
+      ..shader = RadialGradient(
+        center: center1,
+        radius: 0.9,
+        colors: isDark
+            ? [const Color(0x4420B2AA), const Color(0x001B3A4A)]
+            : [const Color(0x5596D4D6), const Color(0x00B8E6E8)],
+        stops: const [0.0, 1.0],
+      ).createShader(rect);
+    canvas.drawRect(rect, paint1);
+
+    // Bloom 2: Violet — 부드러운 보라빛
+    final paint2 = Paint()
+      ..shader = RadialGradient(
+        center: center2,
+        radius: 0.85,
+        colors: isDark
+            ? [const Color(0x3D7B68EE), const Color(0x002A1F40)]
+            : [const Color(0x44B8A9E8), const Color(0x00E0D4F0)],
+        stops: const [0.0, 1.0],
+      ).createShader(rect);
+    canvas.drawRect(rect, paint2);
+
+    // Bloom 3: Warm coral — 부드러운 코랄빛
+    final paint3 = Paint()
+      ..shader = RadialGradient(
+        center: center3,
+        radius: 0.8,
+        colors: isDark
+            ? [const Color(0x33E8825A), const Color(0x003A2218)]
+            : [const Color(0x3DF0B4A0), const Color(0x00F0D4C8)],
+        stops: const [0.0, 1.0],
+      ).createShader(rect);
+    canvas.drawRect(rect, paint3);
+  }
+
+  @override
+  bool shouldRepaint(covariant _AuroraPainter old) =>
+      old.center1 != center1 || old.center2 != center2 || old.center3 != center3 || old.isDark != isDark;
 }
 
 /// 배경 그리드 점

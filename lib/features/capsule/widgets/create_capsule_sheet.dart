@@ -159,8 +159,8 @@ class _CreateCapsuleSheetState extends ConsumerState<CreateCapsuleSheet> {
               width: double.infinity,
               child: PrimaryGlassButton(
                 label: '캡슐 봉인하기',
-                icon: const Icon(Icons.lock_outlined,
-                    color: Colors.white, size: 18),
+                icon: Icon(Icons.lock_outlined,
+                    color: AppColors.onPrimary, size: 18),
                 isLoading: _saving,
                 onPressed: _canSave ? _save : null,
               ),

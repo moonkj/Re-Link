@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -152,25 +151,22 @@ class _WelcomePlaybackState extends ConsumerState<WelcomePlayback>
         opacity: _fadeAnim,
         child: Stack(
           children: [
-            // ── Glassmorphism 배경 ─────────────────────────────────────────────
+            // ── 배경 ─────────────────────────────────────────────
             Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: isDark
-                          ? [
-                              const Color(0xE60D1117),
-                              const Color(0xF01E2840),
-                            ]
-                          : [
-                              const Color(0xE6F5F7FA),
-                              const Color(0xF0FFFFFF),
-                            ],
-                    ),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: isDark
+                        ? [
+                            const Color(0xF00D1117),
+                            const Color(0xF01E2840),
+                          ]
+                        : [
+                            const Color(0xF0F5F7FA),
+                            const Color(0xF8FFFFFF),
+                          ],
                   ),
                 ),
               ),
@@ -199,17 +195,17 @@ class _WelcomePlaybackState extends ConsumerState<WelcomePlayback>
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
-                              color: AppColors.primaryMint.withAlpha(80),
-                              blurRadius: 30,
-                              spreadRadius: 4,
+                              color: Color(0x30000000),
+                              blurRadius: 20,
+                              offset: Offset(0, 4),
                             ),
                           ],
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.favorite_rounded,
-                          color: Colors.white,
+                          color: AppColors.onPrimary,
                           size: 36,
                         ),
                       ),
@@ -338,9 +334,9 @@ class _WelcomePlaybackState extends ConsumerState<WelcomePlayback>
                             width: double.infinity,
                             child: PrimaryGlassButton(
                               label: '가족 트리 보러 가기',
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.account_tree_rounded,
-                                color: Colors.white,
+                                color: AppColors.onPrimary,
                                 size: 20,
                               ),
                               onPressed: _showCta ? _goToCanvas : null,

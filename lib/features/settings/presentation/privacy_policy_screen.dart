@@ -101,10 +101,10 @@ class _PrivacyContent extends StatelessWidget {
 
         _SubHeading('3. 광고'),
         _Body(
-          'Free 및 Basic 플랜에서는 Google AdMob 광고가 표시됩니다. '
+          '무료 플랜에서는 Google AdMob 광고가 표시됩니다. '
           'AdMob은 광고 최적화를 위해 기기 식별자를 사용할 수 있습니다. '
           'AdMob의 데이터 수집에 대한 자세한 내용은 Google의 개인정보 처리방침을 참조하세요. '
-          'Premium 플랜에서는 광고가 표시되지 않습니다.',
+          '플러스 이상 플랜에서는 광고가 표시되지 않습니다.',
         ),
         SizedBox(height: AppSpacing.md),
 
@@ -185,7 +185,7 @@ class _SubHeading extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w600,
           color: AppColors.primary,

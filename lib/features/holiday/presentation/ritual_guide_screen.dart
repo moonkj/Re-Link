@@ -159,7 +159,7 @@ class RitualGuideScreen extends StatelessWidget {
                       child: Center(
                         child: Text(
                           '${step.order}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary,

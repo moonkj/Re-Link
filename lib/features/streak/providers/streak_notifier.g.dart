@@ -6,7 +6,7 @@ part of 'streak_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$streakNotifierHash() => r'650907ce80bf44ceac33be2e686029561d2e8b79';
+String _$streakNotifierHash() => r'c0d52d8f4b06809ad574c0280e58903e38eb2133';
 
 /// 기억 스트릭 노티파이어
 ///

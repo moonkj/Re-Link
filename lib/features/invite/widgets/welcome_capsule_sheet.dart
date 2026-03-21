@@ -257,17 +257,17 @@ class _WelcomeCapsuleSheetState extends ConsumerState<WelcomeCapsuleSheet>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppColors.primary,
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
-                    color: AppColors.primary.withAlpha(80),
-                    blurRadius: 20,
-                    spreadRadius: 2,
+                    color: Color(0x30000000),
+                    blurRadius: 16,
+                    offset: Offset(0, 4),
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.mic_rounded,
-                color: Colors.white,
+                color: AppColors.onPrimary,
                 size: 28,
               ),
             ),
@@ -298,7 +298,7 @@ class _WelcomeCapsuleSheetState extends ConsumerState<WelcomeCapsuleSheet>
               child: AudioWaveforms(
                 recorderController: _recorderCtrl,
                 size: Size(MediaQuery.of(context).size.width - 120, 60),
-                waveStyle: const WaveStyle(
+                waveStyle: WaveStyle(
                   waveColor: AppColors.primary,
                   extendWaveform: true,
                   showMiddleLine: false,
@@ -337,17 +337,17 @@ class _WelcomeCapsuleSheetState extends ConsumerState<WelcomeCapsuleSheet>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.error,
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
-                      color: AppColors.error.withAlpha(80),
-                      blurRadius: 30,
-                      spreadRadius: 4,
+                      color: Color(0x30000000),
+                      blurRadius: 16,
+                      offset: Offset(0, 4),
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.stop_rounded,
-                  color: Colors.white,
+                  color: AppColors.onPrimary,
                   size: 28,
                 ),
               ),

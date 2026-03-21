@@ -176,7 +176,7 @@ class _AddMemorySheetState extends ConsumerState<AddMemorySheet> {
         throw PlanLimitError(
           feature: '사진 추가',
           currentPlan: plan.displayName,
-          requiredPlan: plan == UserPlan.free ? 'Basic' : 'Premium',
+          requiredPlan: plan == UserPlan.free ? '플러스' : '패밀리',
         );
       }
       // 파일은 이미 선택/저장됨 → 바로 DB 저장
@@ -377,10 +377,10 @@ class _PhotoForm extends StatelessWidget {
                 child: GlassCard(
                   onTap: onPickGallery,
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                  child: const Column(
+                  child: Column(
                     children: [
                       Icon(Icons.photo_library_outlined, color: AppColors.secondary, size: 28),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text('갤러리', style: TextStyle(fontSize: 12, color: AppColors.secondary)),
                     ],
                   ),
@@ -391,10 +391,10 @@ class _PhotoForm extends StatelessWidget {
                 child: GlassCard(
                   onTap: onPickCamera,
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                  child: const Column(
+                  child: Column(
                     children: [
                       Icon(Icons.camera_alt_outlined, color: AppColors.secondary, size: 28),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text('카메라', style: TextStyle(fontSize: 12, color: AppColors.secondary)),
                     ],
                   ),
@@ -426,7 +426,7 @@ class _PhotoForm extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
           child: Row(
             children: [
-              const Icon(Icons.title, color: AppColors.primary, size: 18),
+              Icon(Icons.title, color: AppColors.primary, size: 18),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: TextField(
@@ -502,7 +502,7 @@ class _NoteForm extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
           child: Row(
             children: [
-              const Icon(Icons.title, color: AppColors.primary, size: 18),
+              Icon(Icons.title, color: AppColors.primary, size: 18),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: TextField(
@@ -527,8 +527,8 @@ class _NoteForm extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 10),
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
                 child: Icon(Icons.notes_outlined, color: AppColors.primary, size: 18),
               ),
               const SizedBox(width: AppSpacing.sm),

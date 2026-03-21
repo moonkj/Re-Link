@@ -120,7 +120,7 @@ class _SnapshotShareScreenState extends ConsumerState<SnapshotShareScreen> {
         centerTitle: true,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          ? Center(child: CircularProgressIndicator(color: AppColors.primary))
           : _error != null
               ? Center(
                   child: Text(
@@ -203,7 +203,7 @@ class _SnapshotShareScreenState extends ConsumerState<SnapshotShareScreen> {
             width: double.infinity,
             child: PrimaryGlassButton(
               label: '공유하기',
-              icon: const Icon(Icons.share_outlined, color: Colors.white, size: 18),
+              icon: Icon(Icons.share_outlined, color: AppColors.onPrimary, size: 18),
               isLoading: _isSharing,
               onPressed: _share,
             ),

@@ -278,7 +278,7 @@ class _GenerationInputStepState extends ConsumerState<GenerationInputStep> {
               enabledBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: AppColors.glassBorder),
               ),
-              focusedBorder: const UnderlineInputBorder(
+              focusedBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: AppColors.primary),
               ),
             ),
@@ -388,9 +388,9 @@ class _GenerationInputStepState extends ConsumerState<GenerationInputStep> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.add, color: AppColors.primary, size: 18),
+                  Icon(Icons.add, color: AppColors.primary, size: 18),
                   const SizedBox(width: AppSpacing.sm),
-                  const Text(
+                  Text(
                     '추가',
                     style: TextStyle(
                       fontSize: 15,

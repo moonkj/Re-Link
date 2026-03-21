@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../../../core/database/tables/settings_table.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/privacy/privacy_service.dart';
 import '../../../design/glass/app_glass.dart';
@@ -19,6 +22,12 @@ import '../providers/reduce_motion_notifier.dart';
 import '../providers/spouse_snap_notifier.dart';
 import '../../../shared/widgets/section_label.dart';
 import '../providers/theme_mode_notifier.dart';
+
+/// 관리자 모드 활성화 여부 (DB 연동)
+final _adminEnabledProvider = FutureProvider<bool>((ref) async {
+  return ref.read(settingsRepositoryProvider)
+      .getBool(SettingsKey.adminModeEnabled);
+});
 
 /// 설정 화면
 class SettingsScreen extends ConsumerWidget {
@@ -58,6 +67,8 @@ class SettingsScreen extends ConsumerWidget {
           _FeedbackSection(),
           SizedBox(height: AppSpacing.xl),
           _AppInfoSection(),
+          SizedBox(height: AppSpacing.xl),
+          _AdminModeSection(),
           SizedBox(height: AppSpacing.xxxl),
         ],
       ),
@@ -107,10 +118,10 @@ class _ProfileSection extends ConsumerWidget {
                               profile?.name.isNotEmpty == true
                                   ? profile!.name[0]
                                   : '?',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           )
@@ -141,7 +152,7 @@ class _ProfileSection extends ConsumerWidget {
                   ),
                   GlassButton(
                     onPressed: () => _openEditProfile(context, ref),
-                    child: const Text(
+                    child: Text(
                       '편집',
                       style: TextStyle(
                           fontSize: 13,
@@ -249,12 +260,12 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
             child: GlassButton(
               onPressed: _loading ? null : _save,
               child: _loading
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: AppColors.primary))
-                  : const Text(
+                  : Text(
                       '저장',
                       style: TextStyle(
                           fontSize: 16,
@@ -303,14 +314,18 @@ class _PlanSection extends ConsumerWidget {
               child: Row(
                 children: [
                   Icon(
-                    plan == UserPlan.premium
+                    plan == UserPlan.familyPlus
                         ? Icons.workspace_premium
-                        : plan == UserPlan.basic
-                            ? Icons.star_outline
-                            : Icons.person_outline,
-                    color: plan == UserPlan.premium
-                        ? AppColors.accent
-                        : AppColors.primary,
+                        : plan == UserPlan.family
+                            ? Icons.family_restroom
+                            : plan == UserPlan.plus
+                                ? Icons.star_outline
+                                : Icons.person_outline,
+                    color: plan == UserPlan.familyPlus
+                        ? AppColors.planFamilyPlus
+                        : plan == UserPlan.family
+                            ? AppColors.planFamily
+                            : AppColors.primary,
                     size: 28,
                   ),
                   const SizedBox(width: AppSpacing.md),
@@ -335,10 +350,10 @@ class _PlanSection extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  if (plan != UserPlan.premium)
+                  if (plan != UserPlan.familyPlus)
                     GlassButton(
                       onPressed: () => context.push(AppRoutes.subscription),
-                      child: const Text(
+                      child: Text(
                         '업그레이드',
                         style: TextStyle(
                             fontSize: 13,
@@ -375,7 +390,7 @@ class _BackupSection extends ConsumerWidget {
             children: [
               // 마지막 백업
               ListTile(
-                leading: const Icon(Icons.cloud_done_outlined,
+                leading: Icon(Icons.cloud_done_outlined,
                     color: AppColors.primary),
                 title: Text('마지막 백업',
                     style: TextStyle(
@@ -389,7 +404,7 @@ class _BackupSection extends ConsumerWidget {
                 ),
                 trailing: GlassButton(
                   onPressed: () => context.push(AppRoutes.backup),
-                  child: const Text(
+                  child: Text(
                     '백업 화면',
                     style: TextStyle(fontSize: 13, color: AppColors.primary),
                   ),
@@ -404,7 +419,7 @@ class _BackupSection extends ConsumerWidget {
                 builder: (context, snap) {
                   final enabled = snap.data ?? true;
                   return SwitchListTile(
-                    secondary: const Icon(Icons.schedule_outlined,
+                    secondary: Icon(Icons.schedule_outlined,
                         color: AppColors.primary),
                     title: Text('자동 백업',
                         style: TextStyle(
@@ -571,7 +586,7 @@ class _AccessibilitySection extends ConsumerWidget {
                 hint: '큰 글씨와 넓은 터치 영역을 사용합니다',
                 toggled: elderlyEnabled,
                 child: SwitchListTile(
-                  secondary: const Icon(Icons.accessibility_new,
+                  secondary: Icon(Icons.accessibility_new,
                       color: AppColors.secondary),
                   title: Text('어르신 모드',
                       style: TextStyle(
@@ -593,7 +608,7 @@ class _AccessibilitySection extends ConsumerWidget {
                 hint: '진동 피드백을 끄거나 켭니다',
                 toggled: hapticEnabled,
                 child: SwitchListTile(
-                  secondary: const Icon(Icons.vibration,
+                  secondary: Icon(Icons.vibration,
                       color: AppColors.primary),
                   title: Text('햅틱 피드백',
                       style: TextStyle(
@@ -615,7 +630,7 @@ class _AccessibilitySection extends ConsumerWidget {
                 hint: '모션 효과를 줄여 어지러움을 방지합니다',
                 toggled: reduceMotion,
                 child: SwitchListTile(
-                  secondary: const Icon(Icons.animation,
+                  secondary: Icon(Icons.animation,
                       color: AppColors.primary),
                   title: Text('애니메이션 줄이기',
                       style: TextStyle(
@@ -637,7 +652,7 @@ class _AccessibilitySection extends ConsumerWidget {
                 hint: '배우자 노드를 가까이 드래그하면 자동 정렬합니다',
                 toggled: spouseSnap,
                 child: SwitchListTile(
-                  secondary: const Icon(Icons.compare_arrows,
+                  secondary: Icon(Icons.compare_arrows,
                       color: AppColors.secondary),
                   title: Text('부부 자석 스냅',
                       style: TextStyle(
@@ -746,7 +761,7 @@ class _FeedbackSection extends StatelessWidget {
         GlassCard(
           padding: EdgeInsets.zero,
           child: ListTile(
-            leading: const Icon(Icons.chat_bubble_outline,
+            leading: Icon(Icons.chat_bubble_outline,
                 color: AppColors.primary),
             title: Text('개발자에게 직접 제안',
                 style: TextStyle(
@@ -766,8 +781,51 @@ class _FeedbackSection extends StatelessWidget {
 
 // ── 앱 정보 섹션 ──────────────────────────────────────────────────────────────
 
-class _AppInfoSection extends StatelessWidget {
+class _AppInfoSection extends ConsumerStatefulWidget {
   const _AppInfoSection();
+
+  @override
+  ConsumerState<_AppInfoSection> createState() => _AppInfoSectionState();
+}
+
+class _AppInfoSectionState extends ConsumerState<_AppInfoSection> {
+  int _tapCount = 0;
+  Timer? _tapTimer;
+
+  void _onVersionTap() {
+    _tapCount++;
+    _tapTimer?.cancel();
+    _tapTimer = Timer(const Duration(seconds: 3), () => _tapCount = 0);
+
+    if (_tapCount >= 7) {
+      _tapCount = 0;
+      _tapTimer?.cancel();
+      HapticFeedback.heavyImpact();
+      _enableAdminMode();
+    }
+  }
+
+  Future<void> _enableAdminMode() async {
+    final settings = ref.read(settingsRepositoryProvider);
+    await settings.set(SettingsKey.adminModeEnabled, 'true');
+    ref.invalidate(_adminEnabledProvider);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('개발자 모드 활성화됨'),
+        backgroundColor: AppColors.primary,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+    // 바로 Admin Console 열기
+    context.push(AppRoutes.adminConsole);
+  }
+
+  @override
+  void dispose() {
+    _tapTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -784,25 +842,28 @@ class _AppInfoSection extends StatelessWidget {
                 future: PackageInfo.fromPlatform(),
                 builder: (context, snap) {
                   final info = snap.data;
-                  return ListTile(
-                    leading: const Icon(Icons.info_outline,
-                        color: AppColors.primary),
-                    title: Text('버전',
+                  return GestureDetector(
+                    onTap: _onVersionTap,
+                    child: ListTile(
+                      leading: Icon(Icons.info_outline,
+                          color: AppColors.primary),
+                      title: Text('버전',
+                          style: TextStyle(
+                              fontSize: 15, color: AppColors.textPrimary)),
+                      trailing: Text(
+                        info != null
+                            ? '${info.version}+${info.buildNumber}'
+                            : '-',
                         style: TextStyle(
-                            fontSize: 15, color: AppColors.textPrimary)),
-                    trailing: Text(
-                      info != null
-                          ? '${info.version}+${info.buildNumber}'
-                          : '-',
-                      style: TextStyle(
-                          fontSize: 13, color: AppColors.textSecondary),
+                            fontSize: 13, color: AppColors.textSecondary),
+                      ),
                     ),
                   );
                 },
               ),
               Divider(color: AppColors.glassBorder, height: 1),
               ListTile(
-                leading: const Icon(Icons.privacy_tip_outlined,
+                leading: Icon(Icons.privacy_tip_outlined,
                     color: AppColors.primary),
                 title: Text('개인정보 처리방침',
                     style: TextStyle(
@@ -813,7 +874,7 @@ class _AppInfoSection extends StatelessWidget {
               ),
               Divider(color: AppColors.glassBorder, height: 1),
               ListTile(
-                leading: const Icon(Icons.description_outlined,
+                leading: Icon(Icons.description_outlined,
                     color: AppColors.primary),
                 title: Text('이용약관',
                     style: TextStyle(
@@ -824,7 +885,7 @@ class _AppInfoSection extends StatelessWidget {
               ),
               Divider(color: AppColors.glassBorder, height: 1),
               ListTile(
-                leading: const Icon(Icons.article_outlined,
+                leading: Icon(Icons.article_outlined,
                     color: AppColors.primary),
                 title: Text('오픈소스 라이선스',
                     style: TextStyle(
@@ -946,6 +1007,84 @@ class _PrivacyToggleState extends ConsumerState<_PrivacyToggle> {
         onChanged: _onChanged,
         activeThumbColor: AppColors.accent,
       ),
+    );
+  }
+}
+
+// ── 관리자 모드 섹션 (admin_mode_enabled 시만 표시) ─────────────────────
+
+class _AdminModeSection extends ConsumerWidget {
+  const _AdminModeSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final adminAsync = ref.watch(_adminEnabledProvider);
+    final enabled = adminAsync.valueOrNull ?? false;
+    if (!enabled) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionLabel(label: '개발자 모드'),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withAlpha(15),
+                  border: Border.all(
+                      color: AppColors.accent.withAlpha(60), width: 1),
+                  borderRadius: AppRadius.radiusSm,
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded,
+                        color: AppColors.accent, size: 18),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      '개발자 전용 도구',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.accent,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              SizedBox(
+                width: double.infinity,
+                child: GlassButton(
+                  onPressed: () =>
+                      context.push(AppRoutes.adminConsole),
+                  backgroundColor: AppColors.accent.withAlpha(15),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.admin_panel_settings,
+                          color: AppColors.accent, size: 18),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Admin Console 열기',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.accent,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

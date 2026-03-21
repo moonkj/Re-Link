@@ -117,11 +117,11 @@ class _VibeMeterSheetState extends ConsumerState<VibeMeterSheet> {
                       width: isSelected ? 2.0 : 1.0,
                     ),
                     boxShadow: isSelected
-                        ? [
+                        ? const [
                             BoxShadow(
-                              color: s.color.withAlpha(60),
-                              blurRadius: 12,
-                              spreadRadius: 2,
+                              color: Color(0x40000000),
+                              blurRadius: 8,
+                              spreadRadius: 0,
                             )
                           ]
                         : null,

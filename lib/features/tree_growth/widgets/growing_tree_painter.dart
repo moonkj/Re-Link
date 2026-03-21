@@ -6,6 +6,7 @@ import '../providers/tree_growth_notifier.dart';
 ///
 /// [GrowthStage]에 따라 나무 크기와 복잡도가 변하고,
 /// [Season]에 따라 캐노피 색상이 달라진다.
+/// `size` 파라미터에 맞게 자동 스케일링된다.
 class GrowingTreePainter extends CustomPainter {
   const GrowingTreePainter({
     required this.stage,
@@ -15,43 +16,60 @@ class GrowingTreePainter extends CustomPainter {
   final GrowthStage stage;
   final Season season;
 
-  /// 계절별 캐노피 색상
+  /// 계절별 캐노피 색상 (Gen Z 비비드 팔레트 — 어두운 배경에서도 선명)
   Color get _canopyColor => switch (season) {
-        Season.spring => const Color(0xFFFFB7C5), // 벚꽃 핑크
-        Season.summer => const Color(0xFF4CAF50), // 싱그러운 초록
+        Season.spring => const Color(0xFFFF9BD2), // 밝은 핑크 (벚꽃)
+        Season.summer => const Color(0xFF34D399), // 에메랄드 그린 (비비드)
         Season.autumn => const Color(0xFFFF8A65), // 단풍 오렌지
-        Season.winter => const Color(0xFFB0BEC5), // 겨울 회색
+        Season.winter => const Color(0xFFE2E8F0), // 밝은 슬레이트
       };
 
   /// 계절별 캐노피 내부 그라데이션 보조 색상
   Color get _canopySecondaryColor => switch (season) {
-        Season.spring => const Color(0xFFFF8FAB),
-        Season.summer => const Color(0xFF2E7D32),
+        Season.spring => const Color(0xFFFF6BA8),
+        Season.summer => const Color(0xFF10B981),
         Season.autumn => const Color(0xFFE64A19),
-        Season.winter => const Color(0xFF78909C),
+        Season.winter => const Color(0xFFCBD5E1),
       };
 
-  /// 줄기 색상 (모든 계절 동일)
-  static const Color _trunkColor = Color(0xFF5D4037);
-  static const Color _trunkDarkColor = Color(0xFF3E2723);
+  /// 줄기 색상 (모든 계절 동일, 어두운 배경에서 잘 보이도록 밝게)
+  static const Color _trunkColor = Color(0xFF8B6F47);
+  static const Color _trunkDarkColor = Color(0xFF6D5635);
+
+  /// 각 단계별 원본 디자인 높이 (스케일 기준)
+  double get _designHeight => switch (stage) {
+        GrowthStage.sprout => 60.0,
+        GrowthStage.sapling => 130.0,
+        GrowthStage.smallTree => 230.0,
+        GrowthStage.bigTree => 380.0,
+        GrowthStage.grandTree => 520.0,
+      };
 
   @override
   void paint(Canvas canvas, Size size) {
-    final centerX = size.width / 2;
-    final bottomY = size.height;
+    // size에 맞게 스케일링 — 원본 디자인 좌표를 size에 비례 확대
+    final s = size.height / _designHeight;
 
+    canvas.save();
+    // 하단 중앙을 원점으로 이동 후 스케일 적용
+    canvas.translate(size.width / 2, size.height);
+    canvas.scale(s, s);
+
+    // 모든 draw 메서드는 cx=0, by=0 (하단 중앙 기준) 좌표로 그림
     switch (stage) {
       case GrowthStage.sprout:
-        _drawSprout(canvas, centerX, bottomY);
+        _drawSprout(canvas, 0, 0);
       case GrowthStage.sapling:
-        _drawSapling(canvas, centerX, bottomY);
+        _drawSapling(canvas, 0, 0);
       case GrowthStage.smallTree:
-        _drawSmallTree(canvas, centerX, bottomY);
+        _drawSmallTree(canvas, 0, 0);
       case GrowthStage.bigTree:
-        _drawBigTree(canvas, centerX, bottomY);
+        _drawBigTree(canvas, 0, 0);
       case GrowthStage.grandTree:
-        _drawGrandTree(canvas, centerX, bottomY);
+        _drawGrandTree(canvas, 0, 0);
     }
+
+    canvas.restore();
   }
 
   /// sprout: 작은 새싹 — 줄기 + 잎 2개
@@ -136,8 +154,9 @@ class GrowingTreePainter extends CustomPainter {
     _drawBranch(canvas, cx, by - trunkHeight * 0.5, -30, 35, 3);
     _drawBranch(canvas, cx, by - trunkHeight * 0.65, 25, 30, 3);
 
-    // 캐노피 (약간 타원형)
     final canopyCenter = Offset(cx, by - trunkHeight - canopyRadius * 0.4);
+
+    // 캐노피 (약간 타원형)
     final canopyPaint = Paint()..color = _canopyColor;
     canvas.drawOval(
       Rect.fromCenter(
@@ -188,8 +207,10 @@ class GrowingTreePainter extends CustomPainter {
 
     // 캐노피 (다중 원으로 자연스럽게)
     final canopyCenterY = by - trunkHeight - canopyRadius * 0.3;
+
     final canopyPaint = Paint()..color = _canopyColor;
-    final darkCanopyPaint = Paint()..color = _canopySecondaryColor.withAlpha(50);
+    final darkCanopyPaint = Paint()
+      ..color = _canopySecondaryColor.withAlpha(50);
 
     // 메인 캐노피
     canvas.drawOval(
@@ -257,6 +278,7 @@ class GrowingTreePainter extends CustomPainter {
 
     // 다층 캐노피
     final canopyCenterY = by - trunkHeight - canopyRadius * 0.2;
+
     final canopyPaint = Paint()..color = _canopyColor;
     final darkPaint = Paint()..color = _canopySecondaryColor.withAlpha(45);
 

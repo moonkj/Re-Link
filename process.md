@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
 > 마지막 업데이트: 2026-03-21
-> 현재 단계: Phase 7 — 미구현 기능 구현 + "나 설정" + 메뉴 구조 개편 완료
+> 현재 단계: Phase 8 — UX/UI 전면 리디자인 + 버그 수정
 > v2.0 계획: Phase 5a~5g 전체 26개 기능 계획 완료 (v1.0 런치 후 착수)
 
 ---
@@ -2719,6 +2719,88 @@
 
 ---
 
+## Phase 8 — UX/UI 전면 리디자인 + 버그 수정 (2026-03-21)
+
+> Gen Z 타겟 디자인 리디자인 + 캔버스 버그 3건 수정 + 나무 성장 시스템 수정
+
+---
+
+### 디자인 시스템 전면 교체 ✅
+
+#### 색상 팔레트 (3회 반복 피드백)
+- [x] Tailwind 500-level 비비드 컬러: Violet-500(#8B5CF6) / Cyan-500(#06B6D4) / Rose-500(#F43F5E)
+- [x] 3-tier 다크모드 깊이: bgBase(#0F0F1A) → bgSurface/cards(#1E2040) → elevated(#2C2D52)
+- [x] 파스텔 → 비비드 전환 (사용자 피드백: "색상이 너무 파스텔")
+
+#### Glassmorphism → Solid 디자인 전환
+- [x] 앱 전체 `BackdropFilter` / `ImageFilter.blur` / `MaskFilter.blur` 제거 (14+ 파일)
+- [x] `GlassCard` → 솔리드 배경 (#1E2040 dark / #FFFFFF light)
+- [x] `GlassButton` → 솔리드 배경 (#2C2D52 dark / #F1F5F9 light)
+- [x] `GlassBottomSheet` → 솔리드 배경
+- [x] 앱 전체 glow 효과 제거 (badge_colors, app_shadows, screen_mood, subscription 등)
+
+#### 노드 카드 리디자인
+- [x] 컬러 그림자 → 중립 블랙 `Color(0x40000000)` 통일
+- [x] Ghost 투명도: 0.55 → 0.70 (가시성 향상)
+- [x] 카드 테두리 알파: 160 → 200
+
+---
+
+### 엣지(관계선) 수정 ✅
+
+#### 곡선 + 카드 부착
+- [x] cubicTo 수직 오프셋: `bow = len * 0.12` (직선 방지)
+- [x] clipPath 패딩: +8px → +2px (선이 카드에 밀착)
+- [x] `_borderPoint` 패딩: +4px → +1px (clipPath와 일치)
+- [x] bow 최대값 제한: `(len * 0.12).clamp(0.0, 40.0)` (원거리 과도한 곡선 방지)
+
+#### 배우자-자녀 선 연결
+- [x] `coupleMid` 오프셋: 직선 중점 → perp × bow × 0.75 (곡선 실제 중점 반영)
+- [x] 선 opacity: lightweight 140→200, normal 180→220
+- [x] strokeWidth: lightweight 1.2→1.5, normal 1.8→2.0
+
+#### 레이블 위치 수정
+- [x] 배우자/일반 레이블: 곡선 위쪽 → 아래쪽 카드 방향 60% 지점
+- [x] `_safeLabelPos`: 무조건 위로 밀기 → 가까운 방향(위/아래) 판단 후 이동
+
+---
+
+### 나무 성장 시스템 수정 ✅
+
+#### 근본 원인 수정
+- [x] `TreeGrowthNotifier` → `@Riverpod(keepAlive: true)` (AutoDispose → 영구 유지)
+  - 원인: `_MainShell`이 `body: child` 사용 → 탭 전환 시 캔버스 unmount → AutoDispose provider 해제 → `ref.invalidate()` 무효
+- [x] `_clearDummy()` / `_clearDummyMemories()`에 `ref.invalidate(treeGrowthNotifierProvider)` 추가
+- [x] Admin Console에 나무 성장 디버그 섹션 추가 (점수/단계/계절 실시간 표시 + 새로고침)
+
+#### 스케일링 수정
+- [x] `GrowingTreePainter.paint()` — `canvas.scale(size.height / designHeight)` 적용
+  - 원인: 원본 디자인 좌표 하드코딩(sprout 35px, grandTree 280px) → `size` 파라미터 무시
+- [x] 단계별 크기: sprout 400×500 / sapling 800×1000 / smallTree 1400×1800 / bigTree 2200×2800 / grandTree 3200×4000
+- [x] 나무 위치: `bottom: 200` → `top: 1700` (캔버스 중앙)
+- [x] Opacity: 0.3 → 0.7
+
+---
+
+### 미니맵 수정 ✅
+- [x] `LayoutBuilder` → `MediaQuery.sizeOf(context)` 복원
+  - 원인: LayoutBuilder가 Positioned의 제약(~80×120px)을 반환 → 뷰포트 사각형 위치 오류
+- [x] 미니맵에 나무 표시 아이콘 추가 (캔버스 중앙 위치)
+
+---
+
+### LOD 임계값 조정 ✅
+- [x] birdEye: `< 0.5x` → `< 0.25x` (극축소 시에만 점 표시)
+- [x] overview: `< 1.0x` → `< 0.45x` (카드가 훨씬 더 오래 유지)
+- [x] detail: `0.45x ~ 2.0x` (대부분 사용 범위에서 풀 카드)
+
+---
+
+### 실기기 배포 ✅ (2026-03-21)
+- [x] iPad Pro 12.9" — release 빌드 + 설치 + 실행 (6회 반복 배포)
+
+---
+
 ## v2.1 개발 우선순위 요약
 
 | 순위 | Phase | 기능 | 예상 기간 | 우선도 |
@@ -2795,3 +2877,4 @@
 | **v2.0 전체** | **26개 기능** | ✅ 전체 완료 |
 | Phase 6 v2.1 추가 기능 | 4개 | ✅ 4/4 완료 (타임머신/아트카드/웰컴캡슐/변경로그) |
 | Phase 7 미구현 구현 | 30+ 항목 | ✅ Batch1(코드) + Batch2(테스트352개) + UX수정 + "나 설정" + 메뉴개편 |
+| Phase 8 UX/UI 리디자인 | 20+ 항목 | ✅ Gen Z 디자인 + 엣지수정 + 나무성장 + 미니맵 + LOD |

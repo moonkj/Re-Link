@@ -3,6 +3,7 @@ import '../../../core/utils/haptic_service.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../design/tokens/app_radius.dart';
+import '../../../design/tokens/badge_colors.dart';
 import '../models/badge_definition.dart';
 
 /// 배지 획득 축하 다이얼로그
@@ -57,31 +58,11 @@ class _BadgeEarnedDialogState extends State<BadgeEarnedDialog>
     super.dispose();
   }
 
-  Color _rarityColor(BadgeRarity rarity) => switch (rarity) {
-        BadgeRarity.common => AppColors.textSecondary,
-        BadgeRarity.rare => AppColors.secondary,
-        BadgeRarity.epic => AppColors.primary,
-        BadgeRarity.legendary => AppColors.accent,
-      };
+  Color _rarityColor(BadgeRarity rarity) =>
+      BadgeColors.rarityAccent(rarity);
 
-  List<Color> _rarityGradient(BadgeRarity rarity) => switch (rarity) {
-        BadgeRarity.common => [
-            AppColors.textSecondary.withAlpha(60),
-            AppColors.textSecondary.withAlpha(30),
-          ],
-        BadgeRarity.rare => [
-            AppColors.secondary.withAlpha(80),
-            AppColors.secondary.withAlpha(40),
-          ],
-        BadgeRarity.epic => [
-            AppColors.primary.withAlpha(80),
-            AppColors.primary.withAlpha(40),
-          ],
-        BadgeRarity.legendary => [
-            AppColors.accent.withAlpha(100),
-            const Color(0xFFFFD700).withAlpha(60),
-          ],
-      };
+  List<Color> _rarityGradient(BadgeRarity rarity) =>
+      BadgeColors.dialogIconGradient(rarity);
 
   @override
   Widget build(BuildContext context) {
@@ -107,29 +88,9 @@ class _BadgeEarnedDialogState extends State<BadgeEarnedDialog>
           padding: const EdgeInsets.all(AppSpacing.xxl),
           decoration: BoxDecoration(
             borderRadius: AppRadius.dialog,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.isDark
-                    ? const Color(0xFF1E2840)
-                    : const Color(0xFFFAFBFC),
-                AppColors.isDark
-                    ? const Color(0xFF0D1117)
-                    : const Color(0xFFFFFFFF),
-              ],
-            ),
-            border: Border.all(
-              width: 2,
-              color: rarityColor.withAlpha(120),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: rarityColor.withAlpha(50),
-                blurRadius: 24,
-                spreadRadius: 4,
-              ),
-            ],
+            gradient: BadgeColors.dialogBgGradient(badge.rarity),
+            border: BadgeColors.earnedBorder(badge.rarity),
+            boxShadow: BadgeColors.earnedGlow(badge.rarity),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -158,13 +119,7 @@ class _BadgeEarnedDialogState extends State<BadgeEarnedDialog>
                     end: Alignment.bottomRight,
                     colors: gradientColors,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: rarityColor.withAlpha(80),
-                      blurRadius: 20,
-                      spreadRadius: 4,
-                    ),
-                  ],
+                  boxShadow: BadgeColors.earnedGlow(badge.rarity),
                 ),
                 child: Icon(
                   badge.icon,
@@ -227,7 +182,7 @@ class _BadgeEarnedDialogState extends State<BadgeEarnedDialog>
                 child: TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: TextButton.styleFrom(
-                    backgroundColor: rarityColor.withAlpha(20),
+                    backgroundColor: rarityColor.withAlpha(AppColors.isDark ? 30 : 35),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

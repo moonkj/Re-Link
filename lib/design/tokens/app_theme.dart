@@ -9,10 +9,10 @@ abstract final class AppTheme {
   static ThemeData get light => ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
-        colorScheme: const ColorScheme.light(
-          primary: AppColors.primary,
-          secondary: AppColors.secondary,
-          tertiary: AppColors.accent,
+        colorScheme: ColorScheme.light(
+          primary: AppColors.primary800,     // Violet-600
+          secondary: AppColors.primary900,   // Cyan-600
+          tertiary: AppColors.accentWarm,    // Rose-400
           surface: AppColors.daySurface,
           error: AppColors.error,
           onPrimary: Colors.white,
@@ -51,7 +51,7 @@ abstract final class AppTheme {
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: AppRadius.card),
         ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
           backgroundColor: Colors.transparent,
           elevation: 0,
           selectedItemColor: AppColors.primary,
@@ -79,7 +79,7 @@ abstract final class AppTheme {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: AppRadius.radiusMd,
-            borderSide: const BorderSide(color: AppColors.primary, width: 2),
+            borderSide: BorderSide(color: AppColors.primary, width: 2),
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
@@ -102,17 +102,17 @@ abstract final class AppTheme {
         useMaterial3: true,
         brightness: Brightness.dark,
         colorScheme: ColorScheme.dark(
-          primary: AppColors.primary,
-          secondary: AppColors.secondary,
-          tertiary: AppColors.accent,
-          surface: AppColors.bgSurface,
+          primary: AppColors.primaryMint,    // Violet-400
+          secondary: AppColors.primaryBlue,  // Cyan-400
+          tertiary: AppColors.accentWarm,    // Rose-400
+          surface: AppColors.nightSurface,
           error: AppColors.error,
           onPrimary: Colors.white,
           onSecondary: Colors.white,
-          onSurface: AppColors.textPrimary,
+          onSurface: AppColors.nightTextPrimary,
           onError: Colors.white,
         ),
-        scaffoldBackgroundColor: AppColors.bgBase,
+        scaffoldBackgroundColor: AppColors.nightBg,
         fontFamily: 'Pretendard',
         textTheme: TextTheme(
           displayLarge: AppTypography.displayLarge,
@@ -165,7 +165,7 @@ abstract final class AppTheme {
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
-            side: const BorderSide(color: AppColors.primary),
+            side: BorderSide(color: AppColors.primary),
             shape: const RoundedRectangleBorder(
               borderRadius: AppRadius.button,
             ),
@@ -185,7 +185,7 @@ abstract final class AppTheme {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: AppRadius.radiusMd,
-            borderSide: const BorderSide(color: AppColors.primary, width: 2),
+            borderSide: BorderSide(color: AppColors.primary, width: 2),
           ),
           hintStyle: AppTypography.bodyMedium.copyWith(
             color: AppColors.textTertiary,

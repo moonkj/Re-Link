@@ -5,23 +5,17 @@ abstract final class AppConstants {
   static const String appTagline = '가족의 기억을 잇다';
   static const String packageName = 'com.relink';
 
-  // ── 인앱 구매 상품 ID ─────────────────────────────────────────────────────
-  static const String iapBasicId = 'com.relink.basic';
-  static const String iapPremiumId = 'com.relink.premium';
-  static const String iapUpgradeId = 'com.relink.upgrade_basic_to_premium';
+  // ── 인앱 구매 상품 ID (PlanProductIds 참조) ──────────────────────────────
+  static const String iapPlusId = 'com.relink.plus';
+  static const String iapFamilyMonthlyId = 'com.relink.family_monthly';
+  static const String iapFamilyAnnualId = 'com.relink.family_annual';
+  static const String iapFamilyPlusMonthlyId = 'com.relink.family_plus_monthly';
+  static const String iapFamilyPlusAnnualId = 'com.relink.family_plus_annual';
 
-  // ── 플랜별 제한 ───────────────────────────────────────────────────────────
-  static const int freeMaxNodes = 30;
+  // ── 플랜별 제한 (UserPlan enum 참조) ────────────────────────────────────
+  static const int freeMaxNodes = 15;
   static const int freeMaxPhotos = 50;
-  static const int freeMaxAiCalls = 10; // 월
-  static const int basicMaxNodes = 200;
-  static const int basicMaxPhotos = 500;
-  static const int basicMaxAiCalls = 100; // 월
-  static const int basicMaxVoiceMinutes = 30;
-  static const int premiumMaxVoiceMinutes = 300;
-
-  // ── Supabase Realtime ─────────────────────────────────────────────────────
-  static const String realtimeChannel = 'family_sync';
+  static const int freeMaxVoiceMinutes = 5;
 
   // ── 캔버스 ────────────────────────────────────────────────────────────────
   static const double canvasDefaultScale = 1.0;

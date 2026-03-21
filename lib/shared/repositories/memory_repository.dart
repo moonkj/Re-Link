@@ -80,6 +80,26 @@ class MemoryRepository {
 
   Future<void> delete(String id) => _db.deleteMemory(id);
 
+  /// __ADMIN_DUMMY__ 태그가 포함된 모든 기억 삭제 (관리자 콘솔용)
+  Future<int> deleteDummyMemories() async {
+    final all = await _db.select(_db.memoriesTable).get();
+    int count = 0;
+    for (final row in all) {
+      try {
+        final tags = (jsonDecode(row.tagsJson) as List<dynamic>)
+            .map((e) => e as String)
+            .toList();
+        if (tags.contains('__ADMIN_DUMMY__')) {
+          await _db.deleteMemory(row.id);
+          count++;
+        }
+      } catch (_) {
+        // JSON 파싱 실패 시 스킵
+      }
+    }
+    return count;
+  }
+
   // ── 플랜 제한 체크용 ──────────────────────────────────────────────────────
 
   Future<int> totalPhotoCount() => _db.countMemoriesByType('photo');

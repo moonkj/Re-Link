@@ -123,7 +123,7 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen>
     return Scaffold(
       backgroundColor: Colors.black,
       body: asyncData.when(
-        loading: () => const Center(
+        loading: () => Center(
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
         error: (e, _) => Center(
@@ -140,7 +140,7 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen>
               const SizedBox(height: AppSpacing.sm),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('돌아가기',
+                child: Text('돌아가기',
                     style: TextStyle(color: AppColors.primary)),
               ),
             ],

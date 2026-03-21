@@ -94,7 +94,7 @@ class TodayMemoriesCard extends ConsumerWidget {
                     },
                     child: Text(
                       '더보기 (${memories.length - maxItems}개)',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: AppColors.primary,
@@ -171,7 +171,7 @@ class _TodayMemoryItem extends StatelessWidget {
               ),
               child: Text(
                 '${memory.yearsAgo}년 전',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: AppColors.primary,

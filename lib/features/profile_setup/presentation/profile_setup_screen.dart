@@ -94,11 +94,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         right: 0,
                         child: Container(
                           padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: AppColors.primary,
                           ),
-                          child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                          child: Icon(Icons.camera_alt, size: 16, color: AppColors.onPrimary),
                         ),
                       ),
                     ],

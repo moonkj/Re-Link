@@ -1,13 +1,10 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../tokens/app_colors.dart';
 import '../tokens/app_radius.dart';
 import '../tokens/app_shadows.dart';
 
-/// Re-Link Glassmorphism 2.0 / Liquid Glass 컴포넌트
-/// 디자인 문서 4.1:
-///   Light — blur:24, opacity:0.72, saturation:1.4, noise:3%
-///   Dark  — blur:32, opacity:0.60, saturation:1.2, noise:2%
+/// Re-Link Clean Card System
+/// Solid backgrounds, no blur, no glow — clean and sharp.
 class GlassCard extends StatelessWidget {
   const GlassCard({
     super.key,
@@ -35,47 +32,39 @@ class GlassCard extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
     final isLight = brightness == Brightness.light;
 
-    // Glassmorphism 2.0 specs
-    final blur = isLight ? 24.0 : 32.0;
-    final fillOpacity = isLight ? 0.72 : 0.60;
-    final borderOpacity = isLight ? 0.40 : 0.20;
+    final bgColor = isLight
+        ? const Color(0xFFFFFFFF)   // solid white
+        : const Color(0xFF1E2040);  // nightSurface
 
-    return Container(
+    final borderColor = isLight
+        ? const Color(0x1A000000)   // 10% black
+        : const Color(0x33FFFFFF);  // 20% white
+
+    final card = Container(
       margin: margin,
       width: width,
       height: height,
       decoration: BoxDecoration(
         borderRadius: borderRadius,
+        color: bgColor,
+        border: Border.all(
+          color: borderColor,
+          width: 1.0,
+        ),
         boxShadow: shadows,
       ),
-      child: ClipRRect(
-        borderRadius: borderRadius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-          child: GestureDetector(
-            onTap: onTap,
-            child: Container(
-              padding: padding,
-              decoration: BoxDecoration(
-                borderRadius: borderRadius,
-                color: isLight
-                    ? Color.fromRGBO(255, 255, 255, fillOpacity)
-                    : Color.fromRGBO(255, 255, 255, fillOpacity * 0.25),
-                border: Border.all(
-                  color: Color.fromRGBO(255, 255, 255, borderOpacity),
-                  width: 1.0,
-                ),
-              ),
-              child: child,
-            ),
-          ),
-        ),
-      ),
+      padding: padding,
+      child: child,
     );
+
+    if (onTap != null) {
+      return GestureDetector(onTap: onTap, child: card);
+    }
+    return card;
   }
 }
 
-/// 글래스 버튼 — 상태별(normal/pressed/disabled) 피드백 포함
+/// Clean solid button with press feedback
 class GlassButton extends StatefulWidget {
   const GlassButton({
     super.key,
@@ -102,41 +91,49 @@ class _GlassButtonState extends State<GlassButton> {
   @override
   Widget build(BuildContext context) {
     final isDisabled = widget.onPressed == null;
+    final isLight = Theme.of(context).brightness == Brightness.light;
+
+    final defaultBg = isLight
+        ? const Color(0xFFF1F5F9)   // dayElevated
+        : const Color(0xFF2C2D52);  // nightElevated
+
+    final pressedBg = isLight
+        ? const Color(0xFFE2E8F0)   // slightly darker
+        : const Color(0xFF363660);  // slightly lighter
+
+    final borderColor = isLight
+        ? const Color(0x1A000000)
+        : const Color(0x33FFFFFF);
+
     return GestureDetector(
       onTap: isDisabled ? null : widget.onPressed,
       onTapDown: isDisabled ? null : (_) => setState(() => _pressed = true),
       onTapUp: isDisabled ? null : (_) => setState(() => _pressed = false),
       onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedOpacity(
-        opacity: isDisabled ? 0.4 : (_pressed ? 0.65 : 1.0),
+        opacity: isDisabled ? 0.4 : 1.0,
         duration: const Duration(milliseconds: 80),
-        child: ClipRRect(
-          borderRadius: widget.borderRadius,
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: widget.padding,
-              decoration: BoxDecoration(
-                borderRadius: widget.borderRadius,
-                color: _pressed
-                    ? AppColors.glassBorder
-                    : (widget.backgroundColor ?? AppColors.glassSurface),
-                border: Border.all(
-                  color: AppColors.glassBorder,
-                  width: 1.0,
-                ),
-              ),
-              child: widget.child,
+        child: Container(
+          padding: widget.padding,
+          decoration: BoxDecoration(
+            borderRadius: widget.borderRadius,
+            color: _pressed
+                ? pressedBg
+                : (widget.backgroundColor ?? defaultBg),
+            border: Border.all(
+              color: borderColor,
+              width: 1.0,
             ),
           ),
+          child: widget.child,
         ),
       ),
     );
   }
 }
 
-/// Primary 글래스 버튼 (Mint→Blue 그라디언트)
-class PrimaryGlassButton extends StatelessWidget {
+/// Primary button — gradient with shimmer, NO glow
+class PrimaryGlassButton extends StatefulWidget {
   const PrimaryGlassButton({
     super.key,
     required this.label,
@@ -155,51 +152,150 @@ class PrimaryGlassButton extends StatelessWidget {
   final EdgeInsetsGeometry padding;
 
   @override
+  State<PrimaryGlassButton> createState() => _PrimaryGlassButtonState();
+}
+
+class _PrimaryGlassButtonState extends State<PrimaryGlassButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _shimmerCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _shimmerCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
+    _startShimmerLoop();
+  }
+
+  Future<void> _startShimmerLoop() async {
+    while (mounted) {
+      await _shimmerCtrl.forward(from: 0);
+      if (!mounted) break;
+      await Future.delayed(const Duration(seconds: 5));
+    }
+  }
+
+  @override
+  void dispose() {
+    _shimmerCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isDisabled = widget.onPressed == null;
+
     return GestureDetector(
-      onTap: isLoading ? null : onPressed,
-      child: Container(
-        padding: padding,
-        decoration: BoxDecoration(
-          borderRadius: borderRadius,
-          gradient: const LinearGradient(
-            colors: [AppColors.primaryMint, AppColors.primaryBlue],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: AppShadows.primaryGlow,
-        ),
-        child: isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation(Colors.white),
+      onTap: widget.isLoading ? null : widget.onPressed,
+      child: AnimatedOpacity(
+        opacity: isDisabled ? 0.5 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        child: AnimatedBuilder(
+          animation: _shimmerCtrl,
+          builder: (context, child) {
+            return Container(
+              padding: widget.padding,
+              decoration: BoxDecoration(
+                borderRadius: widget.borderRadius,
+                gradient: const LinearGradient(
+                  colors: [AppColors.primaryMint, AppColors.primaryBlue],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (icon != null) ...[icon!, const SizedBox(width: 8)],
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textAlign: TextAlign.center,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryMint.withValues(alpha: 0.20),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
                   ),
                 ],
               ),
+              child: ClipRRect(
+                borderRadius: widget.borderRadius,
+                child: Stack(
+                  children: [
+                    child!,
+                    if (!widget.isLoading)
+                      Positioned.fill(
+                        child: _ShimmerOverlay(progress: _shimmerCtrl.value),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
+          child: widget.isLoading
+              ? Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor:
+                          AlwaysStoppedAnimation(AppColors.onPrimary),
+                    ),
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (widget.icon != null) ...[
+                      widget.icon!,
+                      const SizedBox(width: 8),
+                    ],
+                    Text(
+                      widget.label,
+                      style: TextStyle(
+                        color: AppColors.onPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }
 }
 
-/// 글래스 바텀시트 래퍼
+/// Diagonal shimmer overlay for PrimaryGlassButton
+class _ShimmerOverlay extends StatelessWidget {
+  const _ShimmerOverlay({required this.progress});
+  final double progress;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalWidth = constraints.maxWidth + 80;
+        final offset = -40.0 + totalWidth * progress;
+        return Transform.translate(
+          offset: Offset(offset, 0),
+          child: Container(
+            width: 40,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white.withAlpha(0),
+                  Colors.white.withAlpha(38),
+                  Colors.white.withAlpha(0),
+                ],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Clean solid bottom sheet
 class GlassBottomSheet extends StatelessWidget {
   const GlassBottomSheet({
     super.key,
@@ -212,26 +308,28 @@ class GlassBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: AppRadius.bottomSheet,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.bottomSheet,
-            color: AppColors.isDark
-                ? const Color(0xE60D1117)
-                : const Color(0xF0FFFFFF),
-            border: Border(
-              top: BorderSide(color: AppColors.glassBorder, width: 1),
-              left: BorderSide(color: AppColors.glassBorder, width: 0.5),
-              right: BorderSide(color: AppColors.glassBorder, width: 0.5),
-            ),
-          ),
-          child: child,
+    final isLight = Theme.of(context).brightness == Brightness.light;
+
+    final bgColor = isLight
+        ? const Color(0xFFFFFFFF)
+        : const Color(0xFF1E2040);   // nightSurface
+
+    final borderColor = isLight
+        ? const Color(0x1A000000)
+        : const Color(0x33FFFFFF);
+
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.bottomSheet,
+        color: bgColor,
+        border: Border(
+          top: BorderSide(color: borderColor, width: 1),
+          left: BorderSide(color: borderColor, width: 0.5),
+          right: BorderSide(color: borderColor, width: 0.5),
         ),
       ),
+      child: child,
     );
   }
 }

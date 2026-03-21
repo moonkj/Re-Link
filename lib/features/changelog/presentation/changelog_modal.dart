@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -42,12 +40,7 @@ class ChangelogModal extends ConsumerWidget {
         color: Colors.transparent,
         child: ClipRRect(
           borderRadius: AppRadius.dialog,
-          child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: isLight ? 24.0 : 32.0,
-              sigmaY: isLight ? 24.0 : 32.0,
-            ),
-            child: Container(
+          child: Container(
               width: dialogWidth,
               constraints: BoxConstraints(
                 maxHeight: MediaQuery.sizeOf(context).height * 0.75,
@@ -114,7 +107,6 @@ class ChangelogModal extends ConsumerWidget {
                   ),
                 ],
               ),
-            ),
           ),
         ),
       ),
@@ -151,9 +143,9 @@ class _Header extends StatelessWidget {
                 end: Alignment.bottomRight,
               ),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.auto_awesome,
-              color: Colors.white,
+              color: AppColors.onPrimary,
               size: 24,
             ),
           ),
@@ -393,18 +385,17 @@ class _DismissButton extends StatelessWidget {
               ),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x4D6EC6CA),
-                  blurRadius: 20,
+                  color: Color(0x30000000),
+                  blurRadius: 16,
                   offset: Offset(0, 4),
-                  spreadRadius: -2,
                 ),
               ],
             ),
-            child: const Text(
+            child: Text(
               '확인',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.onPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),

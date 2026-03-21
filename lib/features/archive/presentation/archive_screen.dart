@@ -217,9 +217,9 @@ class _ArchiveGroup extends StatelessWidget {
                     ? Center(
                         child: Text(
                           group.node.name.isNotEmpty ? group.node.name[0] : '?',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: AppColors.onPrimary,
                           ),
                         ),
                       )
@@ -453,10 +453,10 @@ class _StoryFeedTab extends ConsumerWidget {
                                 item.nodeName.isNotEmpty
                                     ? item.nodeName[0]
                                     : '?',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: Colors.white,
+                                  color: AppColors.onPrimary,
                                 ),
                               ),
                             )

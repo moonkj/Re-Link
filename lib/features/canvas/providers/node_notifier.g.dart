@@ -6,7 +6,7 @@ part of 'node_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$nodeNotifierHash() => r'79805961b38188df9208d3d0122d8c7ca0fffca3';
+String _$nodeNotifierHash() => r'e28b92b4dfc229af895d1b43a9c253421ea256f3';
 
 /// See also [NodeNotifier].
 @ProviderFor(NodeNotifier)

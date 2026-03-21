@@ -126,8 +126,8 @@ class MemoryPickerSheet extends ConsumerWidget {
                 ),
               );
             },
-            loading: () => const Padding(
-              padding: EdgeInsets.all(AppSpacing.xxxl),
+            loading: () => Padding(
+              padding: const EdgeInsets.all(AppSpacing.xxxl),
               child: Center(
                 child: CircularProgressIndicator(
                   strokeWidth: 2,

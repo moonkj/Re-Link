@@ -517,7 +517,7 @@ class _TemperatureGraphPainter extends CustomPainter {
         canvas.drawCircle(
           Offset(x, y),
           4,
-          Paint()..color = Colors.white,
+          Paint()..color = AppColors.isDark ? Colors.white : AppColors.dayTextPrimary,
         );
       }
       return;
@@ -596,8 +596,8 @@ class _TemperatureGraphPainter extends CustomPainter {
       final tempColor = AppColors.tempColor(tempValues[i]);
       // 외곽 원
       canvas.drawCircle(points[i], 5, Paint()..color = tempColor);
-      // 내부 흰 점
-      canvas.drawCircle(points[i], 3, Paint()..color = Colors.white);
+      // 내부 점 (밝기 대응)
+      canvas.drawCircle(points[i], 3, Paint()..color = AppColors.isDark ? Colors.white : AppColors.dayTextPrimary);
     }
   }
 

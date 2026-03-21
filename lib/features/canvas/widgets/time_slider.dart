@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../design/glass/app_glass.dart';
+import '../../../shared/models/user_plan.dart';
+import '../../../features/subscription/providers/plan_notifier.dart';
 import '../providers/canvas_notifier.dart';
 
 /// 캔버스 Time Slider 위젯 (연도별 가족 타임라인 필터)
@@ -27,8 +29,13 @@ class _TimeSliderWidgetState extends ConsumerState<TimeSliderWidget> {
     final sliderValue = (selectedYear - _minYear).toDouble();
     final maxValue = (_currentYear - _minYear).toDouble();
 
+    // 광고 유무에 따라 bottom 위치 결정
+    final planAsync = ref.watch(planNotifierProvider);
+    final plan = planAsync.valueOrNull ?? UserPlan.free;
+    final adHeight = plan.hasAds ? 50.0 : 0.0;
+
     return Positioned(
-      bottom: 100,
+      bottom: AppSpacing.sm + adHeight,
       left: AppSpacing.lg,
       right: AppSpacing.lg,
       child: GlassCard(
@@ -41,7 +48,7 @@ class _TimeSliderWidgetState extends ConsumerState<TimeSliderWidget> {
           children: [
             Row(
               children: [
-                const Icon(Icons.timeline, color: AppColors.primary, size: 18),
+                Icon(Icons.timeline, color: AppColors.primary, size: 18),
                 const SizedBox(width: 8),
                 Text(
                   state.timeSliderYear == null ? '전체 기간' : '$selectedYear년',
@@ -58,7 +65,7 @@ class _TimeSliderWidgetState extends ConsumerState<TimeSliderWidget> {
                     onTap: () => ref
                         .read(canvasNotifierProvider.notifier)
                         .setTimeSliderYear(null),
-                    child: const Text(
+                    child: Text(
                       '전체',
                       style: TextStyle(fontSize: 12, color: AppColors.primary),
                     ),

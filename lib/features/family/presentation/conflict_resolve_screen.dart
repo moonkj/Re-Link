@@ -175,13 +175,13 @@ class _VersionCard extends StatelessWidget {
             width: 40, height: 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isSelected ? selectionColor.withAlpha(40) : Colors.white10,
+              color: isSelected ? selectionColor.withAlpha(40) : (AppColors.isDark ? Colors.white10 : Colors.black.withAlpha(15)),
               border: Border.all(
-                color: isSelected ? selectionColor : Colors.white24,
+                color: isSelected ? selectionColor : (AppColors.isDark ? Colors.white24 : Colors.black.withAlpha(30)),
                 width: isSelected ? 2 : 1,
               ),
             ),
-            child: const Icon(Icons.person, color: Colors.white70, size: 20),
+            child: Icon(Icons.person, color: AppColors.textSecondary, size: 20),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

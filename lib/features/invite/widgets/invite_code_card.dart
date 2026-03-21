@@ -61,7 +61,7 @@ class InviteCodeCard extends StatelessWidget {
             ),
             child: Text(
               formatted,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: '.SF Mono',
                 fontSize: 36,
                 fontWeight: FontWeight.w700,
@@ -88,7 +88,7 @@ class InviteCodeCard extends StatelessWidget {
                   color: AppColors.primary,
                 ),
                 const SizedBox(width: AppSpacing.sm),
-                const Text(
+                Text(
                   '코드 복사',
                   style: TextStyle(
                     fontSize: 14,

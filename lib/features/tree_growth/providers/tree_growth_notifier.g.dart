@@ -7,7 +7,7 @@ part of 'tree_growth_notifier.dart';
 // **************************************************************************
 
 String _$treeGrowthNotifierHash() =>
-    r'42ab896f4acc9f8d74354203ee18598aa0fffb36';
+    r'ac3c9b0125fb0615e1ac7ae1d86535a0d3c0d7bd';
 
 /// 가족 나무 성장 노티파이어
 ///
@@ -17,10 +17,7 @@ String _$treeGrowthNotifierHash() =>
 /// Copied from [TreeGrowthNotifier].
 @ProviderFor(TreeGrowthNotifier)
 final treeGrowthNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<
-      TreeGrowthNotifier,
-      TreeGrowthState
-    >.internal(
+    AsyncNotifierProvider<TreeGrowthNotifier, TreeGrowthState>.internal(
       TreeGrowthNotifier.new,
       name: r'treeGrowthNotifierProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -30,6 +27,6 @@ final treeGrowthNotifierProvider =
       allTransitiveDependencies: null,
     );
 
-typedef _$TreeGrowthNotifier = AutoDisposeAsyncNotifier<TreeGrowthState>;
+typedef _$TreeGrowthNotifier = AsyncNotifier<TreeGrowthState>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

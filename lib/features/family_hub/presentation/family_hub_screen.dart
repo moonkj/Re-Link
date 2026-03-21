@@ -56,14 +56,6 @@ class FamilyHubScreen extends StatelessWidget {
                 ),
                 const TileDivider(),
                 FeatureTile(
-                  icon: Icons.menu_book_outlined,
-                  iconColor: AppColors.primary,
-                  title: '가족 단어장',
-                  subtitle: '우리 가족만의 표현 모음',
-                  onTap: () => context.push(AppRoutes.glossary),
-                ),
-                const TileDivider(),
-                FeatureTile(
                   icon: Icons.restaurant_menu_outlined,
                   iconColor: AppColors.accent,
                   title: '가족 레시피',

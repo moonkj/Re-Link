@@ -236,7 +236,7 @@ class _RestoreDetectScreenState extends ConsumerState<RestoreDetectScreen>
             shape: BoxShape.circle,
             color: AppColors.primary.withAlpha(20),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.cloud_done_outlined,
             size: 32,
             color: AppColors.primary,
@@ -326,7 +326,7 @@ class _RestoreDetectScreenState extends ConsumerState<RestoreDetectScreen>
           width: double.infinity,
           child: PrimaryGlassButton(
             label: '복원하기',
-            icon: const Icon(Icons.restore, color: Colors.white, size: 18),
+            icon: Icon(Icons.restore, color: AppColors.onPrimary, size: 18),
             onPressed: () => _restore(latest),
           ),
         ),

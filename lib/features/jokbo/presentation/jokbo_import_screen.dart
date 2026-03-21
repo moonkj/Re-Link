@@ -73,7 +73,7 @@ class _JokboImportScreenState extends ConsumerState<JokboImportScreen> {
                   ),
                   child: Text(
                     '${jokboState.totalCount}명',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppColors.primary,
@@ -138,7 +138,7 @@ class _JokboImportScreenState extends ConsumerState<JokboImportScreen> {
               value: progress,
               minHeight: 4,
               backgroundColor: AppColors.glassSurface,
-              valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+              valueColor: AlwaysStoppedAnimation(AppColors.primary),
             ),
           ),
         ),
@@ -320,7 +320,7 @@ class _JokboImportScreenState extends ConsumerState<JokboImportScreen> {
           Container(
             width: 6,
             height: 6,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.primary,
             ),
@@ -422,7 +422,7 @@ class _JokboImportScreenState extends ConsumerState<JokboImportScreen> {
                         ),
                         child: Text(
                           '$gen세대',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: AppColors.primary,
@@ -534,7 +534,7 @@ class _JokboImportScreenState extends ConsumerState<JokboImportScreen> {
             Expanded(
               child: GlassButton(
                 onPressed: _goBack,
-                child: const Text(
+                child: Text(
                   '이전',
                   textAlign: TextAlign.center,
                   style: TextStyle(

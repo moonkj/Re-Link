@@ -412,7 +412,7 @@ class _ClanSurnameCard extends StatelessWidget {
                       child: Center(
                         child: Text(
                           surname.surname,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary,
@@ -554,7 +554,7 @@ class _ClanDetail extends StatelessWidget {
                 ),
                 child: Text(
                   clan.populationFormatted,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: AppColors.secondary,

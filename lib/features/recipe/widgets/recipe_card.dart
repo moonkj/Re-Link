@@ -104,7 +104,7 @@ class _RecipeCardState extends State<RecipeCard> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.person_outline,
                               size: 12,
                               color: AppColors.primary,
@@ -112,7 +112,7 @@ class _RecipeCardState extends State<RecipeCard> {
                             const SizedBox(width: 3),
                             Text(
                               widget.nodeName!,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w500,
                                 color: AppColors.primary,
@@ -230,7 +230,7 @@ class _RecipeCardState extends State<RecipeCard> {
                   child: Center(
                     child: Text(
                       '${i + 1}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: AppColors.primary,

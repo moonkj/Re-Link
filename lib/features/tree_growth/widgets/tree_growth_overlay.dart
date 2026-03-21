@@ -21,7 +21,7 @@ class TreeGrowthOverlay extends ConsumerWidget {
     return asyncState.when(
       data: (state) => RepaintBoundary(
         child: Opacity(
-          opacity: 0.3,
+          opacity: 0.7,
           child: CustomPaint(
             size: _sizeForStage(state.stage),
             painter: GrowingTreePainter(
@@ -37,12 +37,13 @@ class TreeGrowthOverlay extends ConsumerWidget {
   }
 
   /// 성장 단계별 페인터 영역 크기
+  /// sprout부터 카드 3개 크기(~400px), grandTree는 캔버스 대부분 차지
   Size _sizeForStage(GrowthStage stage) => switch (stage) {
-        GrowthStage.sprout => const Size(60, 60),
-        GrowthStage.sapling => const Size(100, 150),
-        GrowthStage.smallTree => const Size(200, 280),
-        GrowthStage.bigTree => const Size(320, 420),
-        GrowthStage.grandTree => const Size(500, 600),
+        GrowthStage.sprout => const Size(400, 500),
+        GrowthStage.sapling => const Size(800, 1000),
+        GrowthStage.smallTree => const Size(1400, 1800),
+        GrowthStage.bigTree => const Size(2200, 2800),
+        GrowthStage.grandTree => const Size(3200, 4000),
       };
 
   /// 나무 공유 시트를 표시한다 (설정 등에서 호출)

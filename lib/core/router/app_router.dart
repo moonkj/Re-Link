@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,7 +20,6 @@ import '../../features/family/presentation/merge_preview_screen.dart';
 import '../../features/temperature/presentation/temperature_diary_screen.dart';
 import '../../features/memorial/presentation/memorial_screen.dart';
 import '../../features/capsule/presentation/capsule_list_screen.dart';
-import '../../features/glossary/presentation/glossary_screen.dart';
 import '../../features/badges/presentation/badge_list_screen.dart';
 import '../../features/hyodo/presentation/hyodo_screen.dart';
 import '../../features/jokbo/presentation/jokbo_import_screen.dart';
@@ -32,6 +32,7 @@ import '../../features/wrapped/presentation/wrapped_screen.dart';
 import '../../features/recipe/presentation/recipe_list_screen.dart';
 import '../../features/family_map/presentation/family_map_screen.dart';
 import '../../features/voice_legacy/presentation/voice_legacy_screen.dart';
+import '../../features/settings/presentation/admin_console_screen.dart';
 import '../../features/settings/presentation/feedback_screen.dart';
 import '../../features/then_now/presentation/then_now_screen.dart';
 import '../../features/backup/presentation/restore_detect_screen.dart';
@@ -40,6 +41,7 @@ import '../../features/holiday/presentation/ritual_guide_screen.dart';
 import '../../features/family_hub/presentation/family_hub_screen.dart';
 import '../../features/explore_hub/presentation/explore_hub_screen.dart';
 import '../../shared/repositories/settings_repository.dart';
+import '../../design/tokens/screen_mood.dart';
 import '../../shared/widgets/ad_banner_widget.dart';
 
 /// 라우트 경로 상수
@@ -62,7 +64,6 @@ abstract final class AppRoutes {
   static const String temperatureDiary = '/temperature-diary/:nodeId';
   static const String memorial = '/memorial/:nodeId';
   static const String capsules = '/capsules';
-  static const String glossary = '/glossary';
   static const String badges = '/badges';
   static const String hyodo = '/hyodo';
   static const String jokbo = '/jokbo';
@@ -82,6 +83,7 @@ abstract final class AppRoutes {
   static const String ritualGuide = '/ritual-guide';
   static const String familyHub = '/family-hub';
   static const String exploreHub = '/explore-hub';
+  static const String adminConsole = '/admin-console';
 
   static String memoryPath(String nodeId) => '/memory/$nodeId';
   static String temperatureDiaryPath(String nodeId) =>
@@ -204,10 +206,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, s) => const CapsuleListScreen(),
       ),
       GoRoute(
-        path: AppRoutes.glossary,
-        builder: (_, s) => const GlossaryScreen(),
-      ),
-      GoRoute(
         path: AppRoutes.badges,
         builder: (_, s) => const BadgeListScreen(),
       ),
@@ -283,6 +281,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.ritualGuide,
         builder: (_, s) => const RitualGuideScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminConsole,
+        builder: (_, s) => const AdminConsoleScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
@@ -563,51 +565,104 @@ class _CustomBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mood = MoodColors.fromTabIndex(currentIndex);
+
     return Container(
-      height: 72,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0D0D1F) : const Color(0xFFF5F7FA),
-        border: Border(
-          top: BorderSide(
-            color: isDark ? const Color(0x33FFFFFF) : const Color(0x20000000),
-            width: 0.5,
+          height: 72,
+          decoration: BoxDecoration(
+            color: isDark
+                ? const Color(0xCC0D0D1F)
+                : const Color(0xE6F5F7FA),
+            border: Border(
+              top: BorderSide(
+                color: isDark
+                    ? const Color(0x33FFFFFF)
+                    : const Color(0x20000000),
+                width: 0.5,
+              ),
+            ),
           ),
-        ),
-      ),
-      child: Row(
-        children: [
-          _NavItem(
-            icon: Icons.account_tree_outlined,
-            label: '홈',
-            isSelected: currentIndex == 0,
-            onTap: () => onTabSelected(0),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final tabWidth = constraints.maxWidth / 5;
+              return Stack(
+                children: [
+                  // 슬라이딩 그라디언트 인디케이터 필
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 280),
+                    curve: Curves.easeOutCubic,
+                    left: tabWidth * currentIndex + (tabWidth - 48) / 2,
+                    top: 12,
+                    child: Container(
+                      width: 48,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        gradient: LinearGradient(
+                          colors: MoodColors.indicatorGradient(mood),
+                        ),
+                        border: Border.all(
+                          color: MoodColors.indicatorBorder(mood),
+                          width: 1,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x20000000),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // 탭 아이템들
+                  Row(
+                    children: [
+                      _NavItem(
+                        icon: Icons.account_tree_outlined,
+                        label: '홈',
+                        isSelected: currentIndex == 0,
+                        mood: MoodColors.fromTabIndex(0),
+                        currentMood: mood,
+                        onTap: () => onTabSelected(0),
+                      ),
+                      _NavItem(
+                        icon: Icons.photo_library_outlined,
+                        label: '기억',
+                        isSelected: currentIndex == 1,
+                        mood: MoodColors.fromTabIndex(1),
+                        currentMood: mood,
+                        onTap: () => onTabSelected(1),
+                      ),
+                      _NavItem(
+                        icon: Icons.favorite_outline,
+                        label: '가족',
+                        isSelected: currentIndex == 2,
+                        mood: MoodColors.fromTabIndex(2),
+                        currentMood: mood,
+                        onTap: () => onTabSelected(2),
+                      ),
+                      _NavItem(
+                        icon: Icons.explore_outlined,
+                        label: '탐색',
+                        isSelected: currentIndex == 3,
+                        mood: MoodColors.fromTabIndex(3),
+                        currentMood: mood,
+                        onTap: () => onTabSelected(3),
+                      ),
+                      _NavItem(
+                        icon: Icons.settings_outlined,
+                        label: '설정',
+                        isSelected: currentIndex == 4,
+                        mood: MoodColors.fromTabIndex(4),
+                        currentMood: mood,
+                        onTap: () => onTabSelected(4),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
           ),
-          _NavItem(
-            icon: Icons.photo_library_outlined,
-            label: '기억',
-            isSelected: currentIndex == 1,
-            onTap: () => onTabSelected(1),
-          ),
-          _NavItem(
-            icon: Icons.favorite_outline,
-            label: '가족',
-            isSelected: currentIndex == 2,
-            onTap: () => onTabSelected(2),
-          ),
-          _NavItem(
-            icon: Icons.explore_outlined,
-            label: '탐색',
-            isSelected: currentIndex == 3,
-            onTap: () => onTabSelected(3),
-          ),
-          _NavItem(
-            icon: Icons.settings_outlined,
-            label: '설정',
-            isSelected: currentIndex == 4,
-            onTap: () => onTabSelected(4),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -617,19 +672,24 @@ class _NavItem extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.isSelected,
+    required this.mood,
+    required this.currentMood,
     required this.onTap,
   });
 
   final IconData icon;
   final String label;
   final bool isSelected;
+  final ScreenMood mood;
+  final ScreenMood currentMood;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    // 선택된 탭: 해당 무드의 액센트 컬러
     final color = isSelected
-        ? const Color(0xFF6EC6CA)
+        ? MoodColors.accent(currentMood)
         : isDark
             ? const Color(0x80FFFFFF)
             : const Color(0x99000000);

@@ -123,7 +123,7 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
                   : AudioWaveforms(
                       recorderController: _recorderCtrl,
                       size: Size(MediaQuery.of(context).size.width - 96, 80),
-                      waveStyle: const WaveStyle(
+                      waveStyle: WaveStyle(
                         waveColor: AppColors.primary,
                         extendWaveform: true,
                         showMiddleLine: false,
@@ -254,7 +254,7 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
               child: Row(
                 children: [
-                  const Icon(Icons.title, color: AppColors.primary, size: 18),
+                  Icon(Icons.title, color: AppColors.primary, size: 18),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: TextField(
@@ -458,17 +458,17 @@ class _MicCircle extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isRecording ? AppColors.error : AppColors.primary,
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: (isRecording ? AppColors.error : AppColors.primary).withAlpha(80),
-            blurRadius: isRecording ? 30 : 20,
-            spreadRadius: isRecording ? 4 : 2,
+            color: Color(0x30000000),
+            blurRadius: 16,
+            offset: Offset(0, 4),
           ),
         ],
       ),
       child: Icon(
         isRecording ? Icons.stop_rounded : Icons.mic_rounded,
-        color: Colors.white,
+        color: AppColors.onPrimary,
         size: 32,
       ),
     );

@@ -242,10 +242,10 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
                   onTap: () => _convertGhost(context, ref, node),
                   child: Row(
                     children: [
-                      const Icon(Icons.person_add_outlined,
+                      Icon(Icons.person_add_outlined,
                           color: AppColors.secondary, size: 20),
                       const SizedBox(width: AppSpacing.sm),
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           '실제 인물로 연결하기',
                           style: TextStyle(
@@ -270,7 +270,7 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
                   onTap: () => _shareGhostInfo(node),
                   child: Row(
                     children: [
-                      const Icon(Icons.share_outlined,
+                      Icon(Icons.share_outlined,
                           color: AppColors.primary, size: 20),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
@@ -369,7 +369,7 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
                         SnackBar(
                           content: Text(
                             isMe ? '"나" 설정이 해제되었습니다' : '"나"로 설정되었습니다',
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(color: AppColors.textPrimary),
                           ),
                           backgroundColor: AppColors.bgSurface,
                           behavior: SnackBarBehavior.floating,
@@ -672,10 +672,10 @@ class _Header extends StatelessWidget {
                     ? Center(
                         child: Text(
                           node.name.isNotEmpty ? node.name[0] : '?',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       )
@@ -997,7 +997,7 @@ class _MemoTab extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.note_outlined,
+                        Icon(Icons.note_outlined,
                             color: AppColors.primary, size: 18),
                         const SizedBox(width: AppSpacing.sm),
                         Expanded(
@@ -1588,6 +1588,7 @@ class _FlowerActionButton extends ConsumerWidget {
       onTap: onTap,
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Stack(
+        alignment: Alignment.center,
         clipBehavior: Clip.none,
         children: [
           Column(

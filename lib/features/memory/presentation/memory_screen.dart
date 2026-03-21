@@ -131,7 +131,7 @@ class _MemoryScreenState extends ConsumerState<MemoryScreen>
               // 기억 목록
               Expanded(
                 child: memoriesAsync.when(
-                  loading: () => const Center(
+                  loading: () => Center(
                     child: CircularProgressIndicator(color: AppColors.primary),
                   ),
                   error: (e, _) => Center(
@@ -173,13 +173,13 @@ class _MemoryScreenState extends ConsumerState<MemoryScreen>
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Color(0x4D6EC6CA),
-                      blurRadius: 20,
+                      color: Color(0x30000000),
+                      blurRadius: 16,
                       offset: Offset(0, 4),
                     ),
                   ],
                 ),
-                child: const Icon(Icons.add, color: Colors.white, size: 28),
+                child: Icon(Icons.add, color: AppColors.onPrimary, size: 28),
               ),
             ),
           ),

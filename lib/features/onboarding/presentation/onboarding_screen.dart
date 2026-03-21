@@ -23,7 +23,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   /// 페이지 수 (Step 1~3, 마지막은 알림 권한)
   static const _pageCount = 3;
 
-  static const _pages = [
+  static final _pages = [
     _OnboardingData(
       icon: Icons.account_tree_outlined,
       title: '살아있는\n가족 이야기',
@@ -75,33 +75,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       backgroundColor: AppColors.bgBase,
       body: Stack(
         children: [
-          // ── 배경 그라디언트 ─────────────────────────────────────────────
+          // ── 배경 ─────────────────────────────────────────────
           Container(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment.topCenter,
-                radius: 1.2,
-                colors: [AppColors.bgSurface, AppColors.bgBase],
-              ),
-            ),
-          ),
-
-          // ── 스킵 버튼 ──────────────────────────────────────────────────
-          Positioned(
-            top: 0,
-            right: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: TextButton(
-                  onPressed: _skip,
-                  child: Text(
-                    '건너뛰기',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                  ),
-                ),
-              ),
-            ),
+            color: AppColors.bgBase,
           ),
 
           // ── PageView ────────────────────────────────────────────────────
@@ -119,6 +95,24 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               }
               return _OnboardingPage(data: _pages[i]);
             },
+          ),
+
+          // ── 스킵 버튼 (PageView 위에 렌더링) ─────────────────────────────
+          Positioned(
+            top: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: TextButton(
+                  onPressed: _skip,
+                  child: Text(
+                    '건너뛰기',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                  ),
+                ),
+              ),
+            ),
           ),
 
           // ── 하단 인디케이터 + CTA ────────────────────────────────────────

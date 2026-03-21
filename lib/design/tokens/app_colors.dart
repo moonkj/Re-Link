@@ -19,65 +19,67 @@ abstract final class AppColors {
   // ── Day Palette (Light Mode) ──────────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  // Brand — Primary
-  static const Color primaryMint = Color(0xFF6EC6CA);   // Primary Mint
-  static const Color primaryBlue = Color(0xFF4A9EBF);   // Primary Blue
+  // Brand — Primary (Violet)
+  static const Color primaryMint = Color(0xFF8B5CF6);   // Violet-500 (dark mode primary, 선명)
+  static const Color primaryBlue = Color(0xFF06B6D4);   // Cyan-500 (secondary, 선명)
 
   // Brand — Accent
-  static const Color accentMint = Color(0xFF5BBFBE);    // Accent Mint
-  static const Color accentWarm = Color(0xFFF4845F);    // Accent Warm (Coral)
+  static const Color accentMint = Color(0xFF06B6D4);    // Cyan-500
+  static const Color accentWarm = Color(0xFFF43F5E);    // Rose-500 (선명)
 
   // Day Background
-  static const Color dayBg = Color(0xFFF5F7FA);         // 배경
+  static const Color dayBg = Color(0xFFF8FAFC);         // 배경
   static const Color daySurface = Color(0xFFFFFFFF);     // 카드 표면
-  static const Color dayElevated = Color(0xFFF0F2F5);    // 상승 표면
-  static const Color dayTextPrimary = Color(0xFF1A1A2E); // 텍스트
-  static const Color dayTextSecondary = Color(0xFF6B7280);
-  static const Color dayTextTertiary = Color(0xFF9CA3AF);
-  static const Color dayTextDisabled = Color(0xFFD1D5DB);
+  static const Color dayElevated = Color(0xFFF1F5F9);    // 상승 표면
+  static const Color dayTextPrimary = Color(0xFF0F172A); // deep slate 텍스트
+  static const Color dayTextSecondary = Color(0xFF475569); // medium slate
+  static const Color dayTextTertiary = Color(0xFF94A3B8);  // light slate
+  static const Color dayTextDisabled = Color(0xFFCBD5E1);  // very light slate
 
-  // Day Glass
-  static const Color dayGlassSurface = Color(0x1A000000); // 10% 검
-  static const Color dayGlassBorder = Color(0x20000000);  // 12% 검
+  // Day Glass — solid (no transparency)
+  static const Color dayGlassSurface = Color(0xFFFFFFFF); // SOLID white
+  static const Color dayGlassBorder = Color(0x1A000000);  // 10% black border
 
   // ══════════════════════════════════════════════════════════════════════════
   // ── Night Palette (Dark Mode) ─────────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  static const Color nightBg = Color(0xFF0D1117);        // 최심층 배경
-  static const Color nightSurface = Color(0xFF1E2840);   // 카드 배경
-  static const Color nightElevated = Color(0xFF253350);   // 상승 표면
-  static const Color nightNavy = Color(0xFF2D6B8A);      // Navy
-  static const Color nightViolet = Color(0xFF3B4D8B);    // Violet
-  static const Color nightMintBright = Color(0xFF64D4D4); // Mint Bright
-  static const Color nightCoral = Color(0xFFFF9970);      // Coral
-  static const Color nightTextPrimary = Color(0xFFFFFFFF);
-  static const Color nightTextSecondary = Color(0xB3FFFFFF); // 70%
+  static const Color nightBg = Color(0xFF0F0F1A);        // deep indigo-black 최심층 배경
+  static const Color nightSurface = Color(0xFF1E2040);   // dark indigo 카드 배경
+  static const Color nightElevated = Color(0xFF2C2D52);   // medium indigo 상승 표면
+  static const Color nightNavy = Color(0xFF2C2D52);      // Navy (matches elevated)
+  static const Color nightViolet = Color(0xFF8B5CF6);    // Violet-500
+  static const Color nightMintBright = Color(0xFF06B6D4); // Cyan-500
+  static const Color nightCoral = Color(0xFFF43F5E);      // Rose-500
+  static const Color nightTextPrimary = Color(0xFFF8FAFC); // slightly warm white
+  static const Color nightTextSecondary = Color(0xB3F8FAFC); // 70% warm white
 
-  // Night Glass
-  static const Color nightGlassSurface = Color(0x1AFFFFFF); // 10% 흰
-  static const Color nightGlassBorder = Color(0x33FFFFFF);   // 20% 흰
+  // Night Glass — solid (no transparency)
+  static const Color nightGlassSurface = Color(0xFF1E2040); // SOLID nightSurface
+  static const Color nightGlassBorder = Color(0x33FFFFFF);   // 20% white border
 
   // ══════════════════════════════════════════════════════════════════════════
   // ── Shared Aliases (밝기 적응형) ──────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  /// primary — 앱 전반에서 사용되는 메인 색상 (밝기 불변)
-  static const Color primary = primaryMint;
-  static const Color secondary = primaryBlue;
+  /// primary — 앱 전반에서 사용되는 메인 색상 (밝기 적응형)
+  /// Light: primary800 (#7C3AED) Violet-600 — WCAG AA on white
+  /// Dark:  primaryMint (#A78BFA) Violet-400
+  static Color get primary => isDark ? primaryMint : primary800;
+  static Color get secondary => isDark ? primaryBlue : primary900;
   static const Color accent = accentWarm;
 
-  // ── Primary Shades (Mint 기반) ──────────────────────────────────────────
-  static const Color primary50 = Color(0xFFE8F7F8);
-  static const Color primary100 = Color(0xFFC5ECEE);
-  static const Color primary200 = Color(0xFF9FE0E3);
-  static const Color primary300 = Color(0xFF79D3D7);
-  static const Color primary400 = Color(0xFF6EC6CA);
-  static const Color primary500 = Color(0xFF5AB8BC);
-  static const Color primary600 = Color(0xFF4A9EBF);
-  static const Color primary700 = Color(0xFF3D8AA8);
-  static const Color primary800 = Color(0xFF2D6B8A);
-  static const Color primary900 = Color(0xFF1A4D6B);
+  // ── Primary Shades (Violet 기반) ─────────────────────────────────────────
+  static const Color primary50 = Color(0xFFF5F3FF);
+  static const Color primary100 = Color(0xFFEDE9FE);
+  static const Color primary200 = Color(0xFFDDD6FE);
+  static const Color primary300 = Color(0xFFC4B5FD);
+  static const Color primary400 = Color(0xFFA78BFA);
+  static const Color primary500 = Color(0xFF8B5CF6);
+  static const Color primary600 = Color(0xFF7C3AED);
+  static const Color primary700 = Color(0xFF6D28D9);
+  static const Color primary800 = Color(0xFF6D28D9);   // Violet-700 for light mode (더 선명)
+  static const Color primary900 = Color(0xFF0E7490);   // Cyan-700 for light mode secondary
 
   // ── Background (밝기 적응형) ────────────────────────────────────────────
   static Color get bgBase => isDark ? nightBg : dayBg;
@@ -93,12 +95,12 @@ abstract final class AppColors {
   // ══════════════════════════════════════════════════════════════════════════
   // ── Temperature / Vibe Meter (디자인 문서 4.3) ────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
-  static const Color tempIcy = Color(0xFF6B9FCC);        // Cold (냉담)
-  static const Color tempCool = Color(0xFF5BBFBE);       // Cool (쌀쌀)
-  static const Color tempNeutral = Color(0xFF7BC67A);    // Neutral (보통)
-  static const Color tempWarm = Color(0xFFF4C05A);       // Warm (따뜻)
-  static const Color tempHot = Color(0xFFF4845F);        // Hot (뜨거움)
-  static const Color tempFire = Color(0xFFE8525A);       // Burning (열정)
+  static const Color tempIcy = Color(0xFF38BDF8);        // Sky-400 (냉담)
+  static const Color tempCool = Color(0xFF34D399);       // Emerald-400 (쌀쌀)
+  static const Color tempNeutral = Color(0xFFFBBF24);    // Amber-400 (보통)
+  static const Color tempWarm = Color(0xFFFB923C);       // Orange-400 (따뜻)
+  static const Color tempHot = Color(0xFFF43F5E);        // Rose-500 (뜨거움)
+  static const Color tempFire = Color(0xFFEF4444);       // Red-500 (열정)
 
   static Color tempColor(int level) {
     return switch (level) {
@@ -113,24 +115,29 @@ abstract final class AppColors {
   }
 
   // ── Semantic ──────────────────────────────────────────────────────────────
-  static const Color success = Color(0xFF52C77A);
-  static const Color warning = Color(0xFFF4C05A);
-  static const Color error = Color(0xFFFF6B6B);
-  static const Color info = Color(0xFF4A9EBF);
+  static const Color success = Color(0xFF10B981);   // Emerald-500 (선명)
+  static const Color warning = Color(0xFFF59E0B);   // Amber-500 (선명)
+  static const Color error = Color(0xFFE11D48);     // Rose-600 (선명)
+  static const Color info = Color(0xFF06B6D4);      // Cyan-500
 
   // ── Text (밝기 적응형) ──────────────────────────────────────────────────
   static Color get textPrimary => isDark ? nightTextPrimary : dayTextPrimary;
   static Color get textSecondary => isDark
-      ? const Color(0xB3FFFFFF)
+      ? const Color(0xB3F8FAFC)
       : dayTextSecondary;
   static Color get textTertiary => isDark
-      ? const Color(0x80FFFFFF)
+      ? const Color(0x80F8FAFC)
       : dayTextTertiary;
   static Color get textDisabled => isDark
-      ? const Color(0x4DFFFFFF)
+      ? const Color(0x4DF8FAFC)
       : dayTextDisabled;
   static Color get textInverse => isDark
-      ? const Color(0xFF0D1117)
+      ? const Color(0xFF0F0F1A)
+      : const Color(0xFFF8FAFC);
+
+  /// primary 컬러 배경 위 텍스트/아이콘 (버튼, 아바타 등)
+  static Color get onPrimary => isDark
+      ? const Color(0xFFF8FAFC)
       : const Color(0xFFFFFFFF);
 
   // ── Node ──────────────────────────────────────────────────────────────────
@@ -141,18 +148,19 @@ abstract final class AppColors {
   static Color get nodeBorderGhost => isDark
       ? const Color(0x80FFFFFF)
       : const Color(0x40000000);
-  static const Color nodeSelected = Color(0xFFFFD700);    // 선택된 노드
+  static const Color nodeSelected = Color(0xFFFBBF24);    // Amber-400 선택된 노드
 
   // ── Edge (관계선) ─────────────────────────────────────────────────────────
-  static const Color edgeParent = primaryBlue;
-  static const Color edgeSpouse = accentWarm;
-  static const Color edgeSibling = primaryMint;
+  static const Color edgeParent = primaryBlue;     // Cyan-500
+  static const Color edgeSpouse = accentWarm;      // Rose-500
+  static const Color edgeSibling = primaryMint;    // Violet-500
   static Color get edgeOther => isDark
       ? const Color(0x61FFFFFF)
       : const Color(0x61000000);
 
   // ── Plan ─────────────────────────────────────────────────────────────────
-  static const Color planFree = Color(0xFF78909C);
-  static const Color planBasic = primaryBlue;
-  static const Color planPremium = Color(0xFFFFD700);
+  static const Color planFree = Color(0xFF64748B);        // Slate-500
+  static const Color planPlus = primaryMint;               // Violet-500 (primary)
+  static const Color planFamily = Color(0xFF7C3AED);       // Violet-600
+  static const Color planFamilyPlus = Color(0xFFF59E0B);   // Amber-500 Gold
 }

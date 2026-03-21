@@ -185,27 +185,20 @@ class MemoryNotifier extends _$MemoryNotifier {
       throw PlanLimitError(
         feature: '사진 추가',
         currentPlan: plan.displayName,
-        requiredPlan: plan == UserPlan.free ? 'Basic' : 'Premium',
+        requiredPlan: plan == UserPlan.free ? '플러스' : '패밀리',
       );
     }
   }
 
   Future<void> _checkVoiceLimit(int newDurationSeconds) async {
     final plan = await _settings.getUserPlan();
-    if (!plan.hasVoice) {
-      throw PlanLimitError(
-        feature: '음성 녹음',
-        currentPlan: plan.displayName,
-        requiredPlan: 'Basic',
-      );
-    }
     final usedMinutes = await _repo.totalVoiceMinutes();
     final addingMinutes = (newDurationSeconds / 60).ceil();
     if (usedMinutes + addingMinutes > plan.maxVoiceMinutes) {
       throw PlanLimitError(
         feature: '음성 저장',
         currentPlan: plan.displayName,
-        requiredPlan: plan == UserPlan.basic ? 'Premium' : 'Premium',
+        requiredPlan: plan == UserPlan.free ? '플러스' : '패밀리',
       );
     }
   }

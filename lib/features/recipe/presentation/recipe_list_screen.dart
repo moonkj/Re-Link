@@ -118,7 +118,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _openAddSheet,
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: Icon(Icons.add, color: AppColors.onPrimary),
       ),
       body: Column(
         children: [

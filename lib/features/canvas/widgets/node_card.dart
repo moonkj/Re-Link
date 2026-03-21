@@ -83,7 +83,6 @@ class _NodeCardState extends State<NodeCard>
   // ── Ghost → 실제 인물 전환 fill 애니메이션 ────────────────────────────────
   late AnimationController _fillController;
   late Animation<double> _fillScale;
-  late Animation<double> _fillGlow;
   bool _wasGhost = false;
 
   @override
@@ -119,11 +118,6 @@ class _NodeCardState extends State<NodeCard>
             .chain(CurveTween(curve: Curves.easeIn)),
         weight: 50,
       ),
-    ]).animate(_fillController);
-    // glow: 0 → 1 → 0
-    _fillGlow = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 50),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 50),
     ]).animate(_fillController);
   }
 
@@ -169,28 +163,13 @@ class _NodeCardState extends State<NodeCard>
       hint: '탭하면 상세 정보를 볼 수 있습니다',
       button: true,
       child: AnimatedBuilder(
-        animation: Listenable.merge([_pulseAnim, _fillScale, _fillGlow]),
+        animation: Listenable.merge([_pulseAnim, _fillScale]),
         builder: (context, child) {
           final pulseScale = widget.isConnectSource ? _pulseAnim.value : 1.0;
           final fillS = _fillScale.value;
-          final glow = _fillGlow.value;
           return Transform.scale(
             scale: pulseScale * fillS,
-            child: glow > 0.01
-                ? Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withAlpha((glow * 120).toInt()),
-                          blurRadius: 30 * glow,
-                          spreadRadius: 6 * glow,
-                        ),
-                      ],
-                    ),
-                    child: child,
-                  )
-                : child!,
+            child: child!,
           );
         },
         child: Opacity(
@@ -212,13 +191,13 @@ class _NodeCardState extends State<NodeCard>
                           child: Container(
                             padding: const EdgeInsets.all(2),
                             decoration: BoxDecoration(
-                              color: Colors.black54,
+                              color: AppColors.textSecondary.withAlpha(80),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.local_florist,
                               size: 16,
-                              color: Colors.white70,
+                              color: AppColors.textPrimary.withAlpha(180),
                             ),
                           ),
                         ),
@@ -233,12 +212,12 @@ class _NodeCardState extends State<NodeCard>
                               color: AppColors.primary,
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Text(
+                            child: Text(
                               '나',
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                                color: AppColors.onPrimary,
                               ),
                             ),
                           ),
@@ -275,21 +254,10 @@ class _NodeCardState extends State<NodeCard>
           width: 1.5,
         ),
         boxShadow: const [
-          BoxShadow(color: Color(0x1A6C63FF), blurRadius: 12),
+          BoxShadow(color: Color(0x40000000), blurRadius: 8),
         ],
       );
     }
-
-    // 명절 glow 적용
-    final holidayGlowShadows = widget.showHolidayGlow
-        ? const [
-            BoxShadow(
-              color: Color(0x80F4845F),
-              blurRadius: 20,
-              spreadRadius: 6,
-            ),
-          ]
-        : <BoxShadow>[];
 
     // "나" 노드는 primary 테두리
     final borderColor = widget.isSelected
@@ -298,7 +266,7 @@ class _NodeCardState extends State<NodeCard>
             ? AppColors.primary.withAlpha(200)
             : widget.isConnectMode && !widget.isConnectSource
                 ? tempColor.withAlpha(200)
-                : tempColor.withAlpha(160);
+                : tempColor.withAlpha(200);
     final borderWidth = widget.isSelected ? 2.5 : widget.isMe ? 2.0 : 1.5;
 
     return BoxDecoration(
@@ -309,21 +277,19 @@ class _NodeCardState extends State<NodeCard>
         width: borderWidth,
       ),
       boxShadow: widget.isSelected
-          ? [
+          ? const [
               BoxShadow(
-                color: AppColors.nodeSelected.withAlpha(100),
-                blurRadius: 20,
-                spreadRadius: 2,
+                color: Color(0x40000000),
+                blurRadius: 10,
+                spreadRadius: 0,
               ),
-              ...holidayGlowShadows,
             ]
-          : [
+          : const [
               BoxShadow(
-                color: tempColor.withAlpha(60),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                color: Color(0x40000000),
+                blurRadius: 8,
+                offset: Offset(0, 4),
               ),
-              ...holidayGlowShadows,
             ],
     );
   }
@@ -370,7 +336,7 @@ class _NormalContent extends StatelessWidget {
                 '${node.birthDate!.year}년생',
                 style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.textTertiary,
+                  color: AppColors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -401,7 +367,7 @@ class _GhostContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Opacity(
-      opacity: 0.55,
+      opacity: 0.70,
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: Column(
@@ -473,7 +439,7 @@ class _NodeAvatar extends StatelessWidget {
               child: Icon(
                 Icons.person,
                 size: size * 0.5,
-                color: Colors.white,
+                color: AppColors.textPrimary,
               ),
             ),
     );
@@ -581,7 +547,7 @@ class _BirdEyeDot extends StatelessWidget {
   Widget build(BuildContext context) {
     // Ghost → 반투명 흰색, 돌아가신 분 → 회색, 일반 → 온도 색상
     final color = node.isGhost
-        ? Colors.white38
+        ? Colors.white54
         : !node.isAlive
             ? const Color(0xFF8E8E93)
             : isMe
@@ -597,8 +563,8 @@ class _BirdEyeDot extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: color,
-            boxShadow: [
-              BoxShadow(color: color.withAlpha(120), blurRadius: 6),
+            boxShadow: const [
+              BoxShadow(color: Color(0x40000000), blurRadius: 4),
             ],
           ),
         ),
@@ -653,12 +619,12 @@ class _OverviewCard extends StatelessWidget {
                     color: AppColors.primary,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Text(
+                  child: Text(
                     '나',
                     style: TextStyle(
                       fontSize: 8,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: AppColors.onPrimary,
                     ),
                   ),
                 ),

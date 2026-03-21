@@ -6,7 +6,7 @@ part of 'hyodo_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$hyodoNotifierHash() => r'08ee7e38ed33854c1f36cdd2afa2f5f2325ce5b3';
+String _$hyodoNotifierHash() => r'19a7659261e27a94ddaea43267fdd9c3ec154538';
 
 /// See also [HyodoNotifier].
 @ProviderFor(HyodoNotifier)

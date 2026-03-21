@@ -154,7 +154,7 @@ class _AddRecipeSheetState extends ConsumerState<AddRecipeSheet> {
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.glassBorder),
                 ),
-                focusedBorder: const UnderlineInputBorder(
+                focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.primary),
                 ),
               ),
@@ -177,7 +177,7 @@ class _AddRecipeSheetState extends ConsumerState<AddRecipeSheet> {
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.glassBorder),
                 ),
-                focusedBorder: const UnderlineInputBorder(
+                focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.primary),
                 ),
               ),
@@ -201,7 +201,7 @@ class _AddRecipeSheetState extends ConsumerState<AddRecipeSheet> {
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.glassBorder),
                 ),
-                focusedBorder: const UnderlineInputBorder(
+                focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.primary),
                 ),
               ),
@@ -372,7 +372,7 @@ class _NodePickerSheet extends StatelessWidget {
                     backgroundColor: AppColors.primary.withAlpha(30),
                     child: Text(
                       node.name.isNotEmpty ? node.name[0] : '?',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: AppColors.primary,

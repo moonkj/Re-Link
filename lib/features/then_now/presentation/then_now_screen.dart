@@ -235,7 +235,7 @@ class _ThenNowScreenState extends ConsumerState<ThenNowScreen>
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+              borderSide: BorderSide(color: AppColors.primary, width: 2),
             ),
           ),
         ),
@@ -251,7 +251,7 @@ class _ThenNowScreenState extends ConsumerState<ThenNowScreen>
                   : controller.text.trim());
               Navigator.pop(ctx);
             },
-            child: const Text('확인', style: TextStyle(color: AppColors.primary)),
+            child: Text('확인', style: TextStyle(color: AppColors.primary)),
           ),
         ],
       ),
@@ -291,7 +291,7 @@ class _ThenNowScreenState extends ConsumerState<ThenNowScreen>
         children: [
           // 메인 콘텐츠
           if (_loading)
-            const Center(
+            Center(
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 color: AppColors.primary,
@@ -456,7 +456,7 @@ class _BottomBar extends StatelessWidget {
                 Icon(
                   isSaved ? Icons.check_rounded : Icons.bookmark_add_outlined,
                   size: 18,
-                  color: isSaved ? AppColors.success : Colors.white,
+                  color: isSaved ? AppColors.success : AppColors.textPrimary,
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -464,7 +464,7 @@ class _BottomBar extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: isSaved ? AppColors.success : Colors.white,
+                    color: isSaved ? AppColors.success : AppColors.textPrimary,
                   ),
                 ),
               ],
@@ -478,18 +478,18 @@ class _BottomBar extends StatelessWidget {
             backgroundColor: AppColors.primary.withAlpha(60),
             padding: const EdgeInsets.all(AppSpacing.md),
             child: isSharing
-                ? const SizedBox(
+                ? SizedBox(
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                     ),
                   )
-                : const Icon(
+                : Icon(
                     Icons.share_outlined,
                     size: 18,
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                   ),
           ),
         ],

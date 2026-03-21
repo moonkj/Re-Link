@@ -206,7 +206,7 @@ class _RecordLegacySheetState extends ConsumerState<RecordLegacySheet>
                         recorderController: _recorderCtrl,
                         size: Size(
                             MediaQuery.of(context).size.width - 96, 60),
-                        waveStyle: const WaveStyle(
+                        waveStyle: WaveStyle(
                           waveColor: AppColors.primary,
                           extendWaveform: true,
                           showMiddleLine: false,
@@ -311,8 +311,8 @@ class _RecordLegacySheetState extends ConsumerState<RecordLegacySheet>
                 width: double.infinity,
                 child: PrimaryGlassButton(
                   label: '유언 봉인하기',
-                  icon: const Icon(Icons.lock_outlined,
-                      color: Colors.white, size: 18),
+                  icon: Icon(Icons.lock_outlined,
+                      color: AppColors.onPrimary, size: 18),
                   isLoading: _saving,
                   onPressed: _canSave ? _save : null,
                 ),
@@ -332,18 +332,17 @@ class _RecordLegacySheetState extends ConsumerState<RecordLegacySheet>
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isRecording ? AppColors.error : AppColors.primary,
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: (isRecording ? AppColors.error : AppColors.primary)
-                .withAlpha(80),
-            blurRadius: isRecording ? 30 : 20,
-            spreadRadius: isRecording ? 4 : 2,
+            color: Color(0x30000000),
+            blurRadius: 16,
+            offset: Offset(0, 4),
           ),
         ],
       ),
       child: Icon(
         isRecording ? Icons.stop_rounded : Icons.mic_rounded,
-        color: Colors.white,
+        color: AppColors.onPrimary,
         size: 28,
       ),
     );
@@ -626,7 +625,7 @@ class _NodePickerSheet extends StatelessWidget {
                       backgroundColor: AppColors.primary.withAlpha(30),
                       child: Text(
                         node.name.isNotEmpty ? node.name[0] : '?',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: AppColors.primary,

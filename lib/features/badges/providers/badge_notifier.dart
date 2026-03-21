@@ -36,7 +36,6 @@ class BadgeNotifier extends _$BadgeNotifier {
     final memoryCount = stats['memories'] ?? 0;
     final streakCount = await settings.getStreakCount();
     final capsuleCount = await db.capsuleCount();
-    final glossaryCount = await db.glossaryCount();
     final memorialCount = await db.memorialMessageCount();
     final ghostCount = await db.ghostNodeCount();
     final photoCount = await db.memoryCountByType('photo');
@@ -79,7 +78,6 @@ class BadgeNotifier extends _$BadgeNotifier {
 
     // 특수 활동 배지
     award(BadgeDefinition.firstCapsule, capsuleCount >= 1);
-    award(BadgeDefinition.firstGlossary, glossaryCount >= 1);
     award(BadgeDefinition.firstMemorial, memorialCount >= 1);
 
     // 탐험 배지

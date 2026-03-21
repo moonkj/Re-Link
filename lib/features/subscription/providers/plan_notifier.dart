@@ -48,7 +48,7 @@ class PlanNotifier extends _$PlanNotifier {
 
   Future<void> _upgradePlan(UserPlan newPlan) async {
     final current = state.valueOrNull ?? UserPlan.free;
-    // 다운그레이드 방지
+    // 다운그레이드 방지 (enum 순서: free=0 < plus=1 < family=2 < familyPlus=3)
     if (newPlan.index <= current.index) return;
     await ref.read(settingsRepositoryProvider).setUserPlan(newPlan);
     state = AsyncData(newPlan);

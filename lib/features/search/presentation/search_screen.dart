@@ -73,7 +73,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ),
       ),
       body: asyncResult.when(
-        loading: () => const Center(
+        loading: () => Center(
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
         error: (e, _) => Center(
@@ -92,7 +92,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 const SizedBox(height: AppSpacing.sm),
                 ...result.nodes.map((n) => _NodeResultTile(
                       node: n,
-                      onTap: () => context.pop(),
+                      onTap: () => context.pop(n.id),
                     )),
                 const SizedBox(height: AppSpacing.lg),
               ],
@@ -144,7 +144,7 @@ class _SectionHeader extends StatelessWidget {
           ),
           child: Text(
             '$count',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: AppColors.primary,
@@ -187,10 +187,10 @@ class _NodeResultTile extends StatelessWidget {
             ? Center(
                 child: Text(
                   node.name.isNotEmpty ? node.name[0] : '?',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               )

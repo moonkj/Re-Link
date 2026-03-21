@@ -59,7 +59,7 @@ class ArtPalette {
       nodeFill: Color(0xFF1E2840),
       nodeStroke: Color(0xFF6EC6CA),
       edgeColor: Color(0xFF4A9EBF),
-      textColor: Color(0xFFFFFFFF),
+      textColor: Color(0xFFE8EAED),
       accentColor: Color(0xFFFF9970),
     ),
   };

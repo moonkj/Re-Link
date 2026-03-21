@@ -212,11 +212,11 @@ class _SealAnimationState extends State<SealAnimation>
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
-                        color: AppColors.primary.withAlpha(80),
-                        blurRadius: 24,
-                        spreadRadius: 4,
+                        color: Color(0x30000000),
+                        blurRadius: 16,
+                        offset: Offset(0, 4),
                       ),
                     ],
                   ),
@@ -224,7 +224,7 @@ class _SealAnimationState extends State<SealAnimation>
                     widget.type == SealAnimationType.seal
                         ? Icons.lock_clock_outlined
                         : Icons.auto_awesome,
-                    color: Colors.white,
+                    color: AppColors.onPrimary,
                     size: 36,
                   ),
                 ),
@@ -251,13 +251,11 @@ class _SealAnimationState extends State<SealAnimation>
                       color: widget.type == SealAnimationType.seal
                           ? AppColors.accent
                           : AppColors.success,
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
-                          color: (widget.type == SealAnimationType.seal
-                                  ? AppColors.accent
-                                  : AppColors.success)
-                              .withAlpha(80),
-                          blurRadius: 12,
+                          color: Color(0x26000000),
+                          blurRadius: 10,
+                          offset: Offset(0, 2),
                         ),
                       ],
                     ),
@@ -265,7 +263,7 @@ class _SealAnimationState extends State<SealAnimation>
                       widget.type == SealAnimationType.seal
                           ? Icons.lock_outlined
                           : Icons.lock_open_outlined,
-                      color: Colors.white,
+                      color: AppColors.onPrimary,
                       size: 20,
                     ),
                   ),

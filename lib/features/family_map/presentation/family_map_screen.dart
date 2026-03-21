@@ -53,7 +53,7 @@ class _FamilyMapScreenState extends ConsumerState<FamilyMapScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddSheet,
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add_location_alt_outlined, color: Colors.white),
+        child: Icon(Icons.add_location_alt_outlined, color: AppColors.onPrimary),
       ),
       body: pinsAsync.when(
         loading: () => const Center(

@@ -97,8 +97,8 @@ class _EditNodeSheetState extends ConsumerState<EditNodeSheet> {
                           ? Center(
                               child: Text(
                                 widget.node.name.isNotEmpty ? widget.node.name[0] : '?',
-                                style: const TextStyle(
-                                  fontSize: 32, fontWeight: FontWeight.w700, color: Colors.white,
+                                style: TextStyle(
+                                  fontSize: 32, fontWeight: FontWeight.w700, color: AppColors.textPrimary,
                                 ),
                               ),
                             )
@@ -108,10 +108,10 @@ class _EditNodeSheetState extends ConsumerState<EditNodeSheet> {
                       bottom: 0, right: 0,
                       child: Container(
                         padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle, color: AppColors.primary,
                         ),
-                        child: const Icon(Icons.camera_alt, size: 14, color: Colors.white),
+                        child: Icon(Icons.camera_alt, size: 14, color: AppColors.onPrimary),
                       ),
                     ),
                   ],
@@ -189,7 +189,7 @@ class _EditNodeSheetState extends ConsumerState<EditNodeSheet> {
           lastDate: DateTime.now(),
           builder: (context, child) => Theme(
             data: Theme.of(context).copyWith(
-              colorScheme: const ColorScheme.dark(primary: AppColors.primary),
+              colorScheme: ColorScheme.dark(primary: AppColors.primary),
             ),
             child: child!,
           ),
@@ -200,7 +200,7 @@ class _EditNodeSheetState extends ConsumerState<EditNodeSheet> {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
       child: Row(
         children: [
-          const Icon(Icons.calendar_today_outlined, color: AppColors.primary, size: 18),
+          Icon(Icons.calendar_today_outlined, color: AppColors.primary, size: 18),
           const SizedBox(width: AppSpacing.sm),
           Text(
             value == null

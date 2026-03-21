@@ -130,7 +130,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           if (state.isLoading)
             Container(
               color: Colors.black38,
-              child: const Center(
+              child: Center(
                 child: CircularProgressIndicator(color: AppColors.primary),
               ),
             ),
@@ -292,7 +292,7 @@ class _StatusCard extends StatelessWidget {
                       : _formatDate(state.lastBackupAt!),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
-                Text(providerLabel, style: const TextStyle(fontSize: 12, color: AppColors.secondary)),
+                Text(providerLabel, style: TextStyle(fontSize: 12, color: AppColors.secondary)),
               ],
             ),
           ),
@@ -319,7 +319,7 @@ class _BackupListTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       child: Row(
         children: [
-          const Icon(Icons.folder_zip_outlined, color: AppColors.secondary, size: 24),
+          Icon(Icons.folder_zip_outlined, color: AppColors.secondary, size: 24),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
@@ -339,7 +339,7 @@ class _BackupListTile extends StatelessWidget {
           ),
           TextButton(
             onPressed: onRestore,
-            child: const Text('복원', style: TextStyle(color: AppColors.primary, fontSize: 13)),
+            child: Text('복원', style: TextStyle(color: AppColors.primary, fontSize: 13)),
           ),
         ],
       ),
@@ -360,7 +360,7 @@ class _AutoBackupToggle extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
           child: Row(
             children: [
-              const Icon(Icons.schedule_outlined, color: AppColors.primary, size: 24),
+              Icon(Icons.schedule_outlined, color: AppColors.primary, size: 24),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
@@ -429,7 +429,7 @@ class _ActionTile extends StatelessWidget {
             ),
           ),
           if (loading)
-            const SizedBox(width: 20, height: 20,
+            SizedBox(width: 20, height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
           else
             Icon(Icons.chevron_right, color: AppColors.textTertiary),

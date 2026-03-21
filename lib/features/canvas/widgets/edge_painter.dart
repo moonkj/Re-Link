@@ -51,10 +51,18 @@ class EdgePainter extends CustomPainter {
       }
     }
 
+    // ── 대량 노드 모드: 단순 선만 그리기 (성능 우선) ──────────────────
+    if (nodes.length > 30) {
+      _paintLightweight(canvas, size);
+      return;
+    }
+
+    // ── 일반 모드 (≤ 30 노드): 카드 클리핑 + 레이블 + 부부 그룹핑 ────
+
     // 레이블 수집 리스트 — 선 그리기 후 일괄 렌더링
     final labels = <_LabelInfo>[];
 
-    // ── 카드 영역 클리핑 (선이 카드 뒤로 가도록) ─────────────────────
+    // 카드 영역 클리핑 (선이 카드 뒤로 가도록, +2px 최소 버퍼)
     canvas.save();
     final clipPath = Path()
       ..fillType = PathFillType.evenOdd
@@ -65,8 +73,8 @@ class EdgePainter extends CustomPainter {
       clipPath.addRRect(RRect.fromRectAndRadius(
         Rect.fromCenter(
           center: center,
-          width: kNodeCardWidth + 8,
-          height: kNodeCardHeight + 8,
+          width: kNodeCardWidth + 2,
+          height: kNodeCardHeight + 2,
         ),
         const Radius.circular(16),
       ));
@@ -111,10 +119,26 @@ class EdgePainter extends CustomPainter {
       final p2Border = _borderPoint(p2, p1);
       _drawSpouseLine(canvas, p1Border, p2Border, labels);
 
-      // 부부 중앙점
-      final spouseMidX = (p1Border.dx + p2Border.dx) / 2;
-      final spouseMidY = (p1Border.dy + p2Border.dy) / 2;
-      final coupleMid = Offset(spouseMidX, spouseMidY);
+      // 부부 곡선의 실제 중앙점 (수직 오프셋 반영)
+      // cubicTo 제어점이 perp*bow만큼 오프셋되므로 t=0.5에서 0.75*bow 오프셋
+      final spouseVec = p2Border - p1Border;
+      final spouseLen = spouseVec.distance;
+      final straightMid = Offset(
+        (p1Border.dx + p2Border.dx) / 2,
+        (p1Border.dy + p2Border.dy) / 2,
+      );
+      Offset coupleMid;
+      if (spouseLen > 1) {
+        final perpX = -spouseVec.dy / spouseLen;
+        final perpY = spouseVec.dx / spouseLen;
+        final bow = (spouseLen * 0.12).clamp(0.0, 40.0) * 0.75; // 곡선 중점의 실제 오프셋
+        coupleMid = Offset(
+          straightMid.dx + perpX * bow,
+          straightMid.dy + perpY * bow,
+        );
+      } else {
+        coupleMid = straightMid;
+      }
 
       // 이 부부의 자녀 찾기
       final coupleIds = {se.fromNodeId, se.toNodeId};
@@ -177,10 +201,79 @@ class EdgePainter extends CustomPainter {
 
     canvas.restore();
 
-    // ── 레이블 그리기 ──────────────────────────────────────────────────
+    // ── 레이블 그리기 ─────────────────────────────────────────────────
     for (final label in labels) {
       _drawLabel(canvas, label.pos, label.text);
     }
+  }
+
+  /// 대량 노드용 경량 렌더링 — 레이블/부부 그룹핑/장애물 회피 스킵, 클리핑은 유지
+  void _paintLightweight(Canvas canvas, Size size) {
+    // 카드 영역 클리핑 — 선이 카드 뒤로 숨도록 (+2px 최소 버퍼)
+    canvas.save();
+    final clipPath = Path()
+      ..fillType = PathFillType.evenOdd
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+    for (final node in nodes) {
+      final center = _centerOf(node.id);
+      if (center == null) continue;
+      clipPath.addRRect(RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: center,
+          width: kNodeCardWidth + 2,
+          height: kNodeCardHeight + 2,
+        ),
+        const Radius.circular(16),
+      ));
+    }
+    canvas.clipPath(clipPath);
+
+    for (final edge in edges) {
+      final fromCenter = _centerOf(edge.fromNodeId);
+      final toCenter = _centerOf(edge.toNodeId);
+      if (fromCenter == null || toCenter == null) continue;
+
+      final from = _borderPoint(fromCenter, toCenter);
+      final to = _borderPoint(toCenter, fromCenter);
+      final dx = to.dx - from.dx;
+      final dy = to.dy - from.dy;
+      final lenSq = dx * dx + dy * dy;
+      if (lenSq < 1) continue;
+      final len = math.sqrt(lenSq);
+
+      final color = _edgeColor(edge.relation);
+      final paint = Paint()
+        ..color = color.withAlpha(200)
+        ..strokeWidth = 1.5
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+
+      // 수직 오프셋으로 부드러운 곡선 생성 (직선 방지, 최대 40px)
+      final perpX = -dy / len;
+      final perpY = dx / len;
+      final bow = (len * 0.12).clamp(0.0, 40.0);
+      final path = Path()
+        ..moveTo(from.dx, from.dy)
+        ..cubicTo(
+          from.dx + dx * 0.3 + perpX * bow,
+          from.dy + dy * 0.3 + perpY * bow,
+          to.dx - dx * 0.3 + perpX * bow,
+          to.dy - dy * 0.3 + perpY * bow,
+          to.dx, to.dy,
+        );
+      canvas.drawPath(path, paint);
+    }
+
+    // 연결 중인 임시 선
+    if (connectingNodeId != null && pointerPosition != null) {
+      final fromCenter = _centerOf(connectingNodeId!);
+      if (fromCenter != null) {
+        final from = _borderPoint(fromCenter, pointerPosition!);
+        _drawDashedLine(canvas, from, pointerPosition!);
+      }
+    }
+
+    canvas.restore();
   }
 
   // ── 선 그리기 메서드 (레이블은 수집만) ──────────────────────────────────
@@ -190,20 +283,21 @@ class EdgePainter extends CustomPainter {
       Canvas canvas, Offset from, Offset to, List<_LabelInfo> labels) {
     final color = _edgeColor(RelationType.spouse);
     final paint = Paint()
-      ..color = color.withAlpha(180)
-      ..strokeWidth = 1.8
+      ..color = color.withAlpha(220)
+      ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    final mid = _midPoint(from, to);
-    final dist = (to - from).distance;
-    final bow = dist * 0.15; // 거리의 15%만큼 위로 볼록
     final path = _curvePath(from, to);
     canvas.drawPath(path, paint);
 
-    // 레이블: 아치 꼭대기 위쪽 (카드 사이가 아닌 아치 위)
+    // 레이블: 곡선의 실제 중점 근처 (아래쪽 카드 방향)
+    // 두 카드 중 아래에 있는 쪽으로 60% 지점에 배치
+    final lowerY = math.max(from.dy, to.dy);
+    final upperY = math.min(from.dy, to.dy);
+    final labelY = upperY + (lowerY - upperY) * 0.6;
     labels.add(_LabelInfo(
-      pos: _safeLabelPos(Offset(mid.dx, mid.dy - bow - 10)),
+      pos: _safeLabelPos(Offset((from.dx + to.dx) / 2, labelY)),
       text: RelationType.spouse.label,
     ));
   }
@@ -213,17 +307,22 @@ class EdgePainter extends CustomPainter {
       RelationType relation, List<_LabelInfo> labels) {
     final color = _edgeColor(relation);
     final paint = Paint()
-      ..color = color.withAlpha(180)
-      ..strokeWidth = 1.8
+      ..color = color.withAlpha(220)
+      ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
     final path = _curvePath(from, to);
     canvas.drawPath(path, paint);
 
-    // 레이블: 곡선 중간 (카드와 겹치지 않는 위치 탐색)
-    final mid = _midPoint(from, to);
-    labels.add(_LabelInfo(pos: _safeLabelPos(mid), text: relation.label));
+    // 레이블: 아래쪽 카드 방향 60% 지점에 배치 (위쪽 카드 겹침 방지)
+    final lowerY = math.max(from.dy, to.dy);
+    final upperY = math.min(from.dy, to.dy);
+    final labelY = upperY + (lowerY - upperY) * 0.6;
+    labels.add(_LabelInfo(
+      pos: _safeLabelPos(Offset((from.dx + to.dx) / 2, labelY)),
+      text: relation.label,
+    ));
   }
 
   /// 부부 중점에서 자녀들로 곡선 연결
@@ -235,8 +334,8 @@ class EdgePainter extends CustomPainter {
   ) {
     final color = _edgeColor(RelationType.child);
     final paint = Paint()
-      ..color = color.withAlpha(180)
-      ..strokeWidth = 1.8
+      ..color = color.withAlpha(220)
+      ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
@@ -269,7 +368,7 @@ class EdgePainter extends CustomPainter {
 
   // ── 유틸리티 ──────────────────────────────────────────────────────────
 
-  /// 레이블 위치가 카드와 겹치면 위로 밀어서 안전한 위치 반환
+  /// 레이블 위치가 카드와 겹치면 가장 가까운 방향(위/아래)으로 밀어서 안전한 위치 반환
   Offset _safeLabelPos(Offset pos) {
     for (final node in nodes) {
       final c = _centerOf(node.id);
@@ -280,8 +379,14 @@ class EdgePainter extends CustomPainter {
         height: kNodeCardHeight + 16,
       );
       if (cardRect.contains(pos)) {
-        // 카드 위쪽으로 밀기
-        return Offset(pos.dx, cardRect.top - 12);
+        // 카드 중심 기준으로 아래쪽이 가까우면 아래로, 위쪽이 가까우면 위로
+        final distToTop = (pos.dy - cardRect.top).abs();
+        final distToBottom = (cardRect.bottom - pos.dy).abs();
+        if (distToBottom < distToTop) {
+          return Offset(pos.dx, cardRect.bottom + 12);
+        } else {
+          return Offset(pos.dx, cardRect.top - 12);
+        }
       }
     }
     return pos;
@@ -296,6 +401,7 @@ class EdgePainter extends CustomPainter {
     if (lineLenSq < 1) {
       return Path()..moveTo(from.dx, from.dy)..lineTo(to.dx, to.dy);
     }
+
     final lineLen = math.sqrt(lineLenSq);
 
     // 경로상 장애물(중간 카드) 탐색
@@ -326,11 +432,19 @@ class EdgePainter extends CustomPainter {
     }
 
     if (obstacles.isEmpty) {
-      // 장애물 없음: 부드러운 S-커브
-      final d = lineVec.dx * 0.3;
+      // 장애물 없음: 수직 오프셋 부드러운 곡선 (최대 40px 제한)
+      final perpX = -lineVec.dy / lineLen;
+      final perpY = lineVec.dx / lineLen;
+      final bow = (lineLen * 0.12).clamp(0.0, 40.0);
       return Path()
         ..moveTo(from.dx, from.dy)
-        ..cubicTo(from.dx + d, from.dy, to.dx - d, to.dy, to.dx, to.dy);
+        ..cubicTo(
+          from.dx + lineVec.dx * 0.3 + perpX * bow,
+          from.dy + lineVec.dy * 0.3 + perpY * bow,
+          to.dx - lineVec.dx * 0.3 + perpX * bow,
+          to.dy - lineVec.dy * 0.3 + perpY * bow,
+          to.dx, to.dy,
+        );
     }
 
     // 투영 위치 순 정렬
@@ -393,7 +507,7 @@ class EdgePainter extends CustomPainter {
 
   void _drawDashedLine(Canvas canvas, Offset from, Offset to) {
     final paint = Paint()
-      ..color = AppColors.primary.withAlpha(120)
+      ..color = AppColors.primary.withAlpha(180)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
 
@@ -433,7 +547,7 @@ class EdgePainter extends CustomPainter {
       RRect.fromRectAndRadius(bgRect, const Radius.circular(4)),
       Paint()
         ..color =
-            AppColors.isDark ? const Color(0xCC0D1117) : const Color(0xCCFFFFFF),
+            AppColors.isDark ? const Color(0xE61E2040) : const Color(0xCCFFFFFF),
     );
 
     tp.paint(canvas, pos - Offset(tp.width / 2, tp.height / 2));
@@ -444,8 +558,9 @@ class EdgePainter extends CustomPainter {
     final dy = target.dy - center.dy;
     if (dx == 0 && dy == 0) return center;
 
-    const halfW = kNodeCardWidth / 2;
-    const halfH = kNodeCardHeight / 2;
+    // +1px: clipPath 패딩(+2)과 일치시켜 선이 카드 외곽에 딱 붙도록
+    const halfW = kNodeCardWidth / 2 + 1;
+    const halfH = kNodeCardHeight / 2 + 1;
 
     final scaleX = dx != 0 ? halfW / dx.abs() : double.infinity;
     final scaleY = dy != 0 ? halfH / dy.abs() : double.infinity;
@@ -463,7 +578,7 @@ class EdgePainter extends CustomPainter {
         RelationType.spouse => AppColors.accent,
         RelationType.sibling => AppColors.primary,
         RelationType.other =>
-          AppColors.isDark ? Colors.white38 : Colors.black38,
+          AppColors.isDark ? Colors.white54 : Colors.black54,
       };
 
   @override
