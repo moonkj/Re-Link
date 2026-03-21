@@ -151,62 +151,36 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
             child: Row(
               children: [
                 Expanded(
+                  child: Text(
+                    widget.memory.title ?? widget.memory.type.label,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                // 공개/개인 토글 (share 아이콘 왼쪽)
+                GestureDetector(
+                  onTap: _togglePrivacy,
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Flexible(
-                        child: Text(
-                          widget.memory.title ?? widget.memory.type.label,
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-                        ),
+                      Icon(
+                        _isPrivate ? Icons.lock_outline : Icons.public,
+                        size: 18,
+                        color: _isPrivate ? AppColors.accent : AppColors.primary,
                       ),
-                      const SizedBox(width: 8),
-                      // 공개/개인 토글
-                      GestureDetector(
-                        onTap: () async {
-                          final newPrivate = !_isPrivate;
-                          setState(() => _isPrivate = newPrivate);
-                          await ref.read(memoryNotifierProvider.notifier).updatePrivacy(
-                            widget.memory.id,
-                            isPrivate: newPrivate,
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: _isPrivate
-                                ? AppColors.accent.withAlpha(25)
-                                : AppColors.primary.withAlpha(25),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: _isPrivate
-                                  ? AppColors.accent.withAlpha(80)
-                                  : AppColors.primary.withAlpha(80),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _isPrivate ? Icons.lock_outline : Icons.public,
-                                size: 14,
-                                color: _isPrivate ? AppColors.accent : AppColors.primary,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _isPrivate ? '나만 보기' : '가족과 공유',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: _isPrivate ? AppColors.accent : AppColors.primary,
-                                ),
-                              ),
-                            ],
-                          ),
+                      const SizedBox(width: 3),
+                      Text(
+                        _isPrivate ? '비공개' : '공유',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: _isPrivate ? AppColors.accent : AppColors.primary,
                         ),
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(width: AppSpacing.sm),
                 GestureDetector(
                   onTap: () {
                     final router = GoRouter.of(context);
@@ -306,6 +280,15 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
     );
   }
 
+  Future<void> _togglePrivacy() async {
+    final newPrivate = !_isPrivate;
+    setState(() => _isPrivate = newPrivate);
+    await ref.read(memoryNotifierProvider.notifier).updatePrivacy(
+      widget.memory.id,
+      isPrivate: newPrivate,
+    );
+  }
+
   Future<void> _togglePlayback() async {
     if (_playerCtrl == null) return;
     if (_playerCtrl!.playerState == PlayerState.playing) {
@@ -391,61 +374,42 @@ class _LockedOverlay extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 제목 + 토글 pill + 닫기 버튼 (항상 표시)
+          // 제목 + 토글 아이콘 + 닫기 버튼 (항상 표시)
           Padding(
             padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 0),
             child: Row(
               children: [
                 Expanded(
+                  child: Text(
+                    memory.title ?? memory.type.label,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                // 공개/개인 토글 — 잠금 상태에서도 항상 표시 (닫기 아이콘 왼쪽)
+                GestureDetector(
+                  onTap: onTogglePrivacy,
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Flexible(
-                        child: Text(
-                          memory.title ?? memory.type.label,
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-                        ),
+                      Icon(
+                        isPrivate ? Icons.lock_outline : Icons.public,
+                        size: 18,
+                        color: isPrivate ? AppColors.accent : AppColors.primary,
                       ),
-                      const SizedBox(width: 8),
-                      // 공개/개인 토글 — 잠금 상태에서도 항상 표시
-                      GestureDetector(
-                        onTap: onTogglePrivacy,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isPrivate
-                                ? AppColors.accent.withAlpha(25)
-                                : AppColors.primary.withAlpha(25),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isPrivate
-                                  ? AppColors.accent.withAlpha(80)
-                                  : AppColors.primary.withAlpha(80),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                isPrivate ? Icons.lock_outline : Icons.public,
-                                size: 14,
-                                color: isPrivate ? AppColors.accent : AppColors.primary,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                isPrivate ? '나만 보기' : '가족과 공유',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: isPrivate ? AppColors.accent : AppColors.primary,
-                                ),
-                              ),
-                            ],
-                          ),
+                      const SizedBox(width: 3),
+                      Text(
+                        isPrivate ? '비공개' : '공유',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isPrivate ? AppColors.accent : AppColors.primary,
                         ),
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(width: AppSpacing.sm),
                 GestureDetector(
                   onTap: onClose,
                   child: Icon(Icons.close, color: AppColors.textSecondary, size: 22),
@@ -772,24 +736,30 @@ class _VideoContentState extends State<_VideoContent> {
     final ctrl = VideoPlayerController.file(file);
     await ctrl.initialize();
 
-    // iOS 첫 프레임 강제 렌더링: play → 100ms → pause → seekTo(0)
-    try {
-      await ctrl.setVolume(0.0);
-      await ctrl.play();
-      await Future.delayed(const Duration(milliseconds: 100));
-      await ctrl.pause();
-      await ctrl.seekTo(Duration.zero);
-    } catch (_) {}
-
     ctrl.addListener(() {
       if (mounted) setState(() {});
     });
-    if (mounted) {
-      setState(() {
-        _ctrl = ctrl;
-        _initialized = true;
-      });
-    }
+
+    // 1단계: VideoPlayer를 트리에 먼저 마운트
+    if (!mounted) return;
+    setState(() {
+      _ctrl = ctrl;
+      _initialized = true;
+    });
+
+    // 2단계: 트리에 마운트된 후 첫 프레임 렌더링
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || _ctrl == null) return;
+      try {
+        await _ctrl!.setVolume(0.0);
+        await _ctrl!.play();
+        await Future.delayed(const Duration(milliseconds: 100));
+        if (mounted && _ctrl != null) {
+          await _ctrl!.pause();
+          await _ctrl!.seekTo(Duration.zero);
+        }
+      } catch (_) {}
+    });
   }
 
   @override

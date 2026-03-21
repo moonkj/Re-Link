@@ -572,16 +572,19 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
         _videoCtrl = ctrl;
       });
 
-      // iOS 첫 프레임 강제 렌더링: play → 100ms → pause → seekTo(0)
-      if (mounted && _videoCtrl != null) {
-        await _videoCtrl!.setVolume(0.0);
-        await _videoCtrl!.play();
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted && _videoCtrl != null) {
-          await _videoCtrl!.pause();
-          await _videoCtrl!.seekTo(Duration.zero);
-        }
-      }
+      // VideoPlayer 위젯이 트리에 마운트된 후 첫 프레임 렌더링
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted || _videoCtrl == null) return;
+        try {
+          await _videoCtrl!.setVolume(0.0);
+          await _videoCtrl!.play();
+          await Future.delayed(const Duration(milliseconds: 100));
+          if (mounted && _videoCtrl != null) {
+            await _videoCtrl!.pause();
+            await _videoCtrl!.seekTo(Duration.zero);
+          }
+        } catch (_) {}
+      });
     } finally {
       if (mounted) setState(() => _picking = false);
     }
@@ -614,16 +617,19 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
         _videoCtrl = ctrl;
       });
 
-      // iOS 첫 프레임 강제 렌더링: play → 100ms → pause → seekTo(0)
-      if (mounted && _videoCtrl != null) {
-        await _videoCtrl!.setVolume(0.0);
-        await _videoCtrl!.play();
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted && _videoCtrl != null) {
-          await _videoCtrl!.pause();
-          await _videoCtrl!.seekTo(Duration.zero);
-        }
-      }
+      // VideoPlayer 위젯이 트리에 마운트된 후 첫 프레임 렌더링
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted || _videoCtrl == null) return;
+        try {
+          await _videoCtrl!.setVolume(0.0);
+          await _videoCtrl!.play();
+          await Future.delayed(const Duration(milliseconds: 100));
+          if (mounted && _videoCtrl != null) {
+            await _videoCtrl!.pause();
+            await _videoCtrl!.seekTo(Duration.zero);
+          }
+        } catch (_) {}
+      });
     } finally {
       if (mounted) setState(() => _picking = false);
     }
