@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/services/plan/plan_service.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/user_plan.dart';
+import '../../auth/providers/auth_notifier.dart';
 import '../providers/plan_notifier.dart';
 
 /// 플랜 선택 / 업그레이드 화면 (4-Plan: 무료 / 플러스 / 패밀리 / 패밀리플러스)
@@ -54,6 +57,14 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     setState(() => _purchasing = true);
     try {
       await ref.read(planNotifierProvider.notifier).buy(product);
+      // 패밀리 플랜 구매 완료 후 미로그인이면 로그인 유도
+      if (mounted) {
+        final user = ref.read(authNotifierProvider).valueOrNull;
+        final plan = ref.read(planNotifierProvider).valueOrNull;
+        if (user == null && (plan == UserPlan.family || plan == UserPlan.familyPlus)) {
+          await _showLoginPrompt();
+        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -62,6 +73,32 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
       }
     } finally {
       if (mounted) setState(() => _purchasing = false);
+    }
+  }
+
+  Future<void> _showLoginPrompt() async {
+    final shouldLogin = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('클라우드 동기화를 사용하려면'),
+        content: const Text(
+          '패밀리 플랜의 클라우드 동기화와 가족 공유를 사용하려면 로그인이 필요합니다.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('나중에'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('로그인', style: TextStyle(color: AppColors.primary)),
+          ),
+        ],
+      ),
+    );
+    if (shouldLogin == true && mounted) {
+      context.push(AppRoutes.login);
     }
   }
 

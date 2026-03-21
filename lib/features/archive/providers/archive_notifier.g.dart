@@ -6,7 +6,7 @@ part of 'archive_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$archiveNotifierHash() => r'2790ed64297ebc18ba3890d44e1d4935c8bab908';
+String _$archiveNotifierHash() => r'30674582e664314fead5a97b1e6320449986b1f2';
 
 /// See also [ArchiveNotifier].
 @ProviderFor(ArchiveNotifier)

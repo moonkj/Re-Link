@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -101,12 +103,47 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker> {
   /// (MaterialApp key 변경 시 위젯 재생성 방어)
   static bool _checked = false;
 
+  StreamSubscription<Uri>? _linkSub;
+
   @override
   void initState() {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _checkChangelog();
     });
+    _initDeepLinks();
+  }
+
+  @override
+  void dispose() {
+    _linkSub?.cancel();
+    super.dispose();
+  }
+
+  void _initDeepLinks() {
+    final appLinks = AppLinks();
+    // 앱 실행 중 수신된 링크
+    _linkSub = appLinks.uriLinkStream.listen((uri) {
+      _handleDeepLink(uri);
+    }, onError: (_) {});
+    // 앱이 종료된 상태에서 링크로 실행된 경우
+    appLinks.getInitialLink().then((uri) {
+      if (uri != null) _handleDeepLink(uri);
+    }).catchError((_) {});
+  }
+
+  void _handleDeepLink(Uri uri) {
+    if (!mounted) return;
+    final router = ref.read(goRouterProvider);
+    // 초대 링크: relink://invite/accept?token=xxx
+    if (uri.pathSegments.length >= 2 &&
+        uri.pathSegments[0] == 'invite' &&
+        uri.pathSegments[1] == 'accept') {
+      final token = uri.queryParameters['token'] ?? '';
+      if (token.isNotEmpty) {
+        router.go('${AppRoutes.acceptInvite}?token=${Uri.encodeComponent(token)}');
+      }
+    }
   }
 
   Future<void> _checkChangelog() async {
