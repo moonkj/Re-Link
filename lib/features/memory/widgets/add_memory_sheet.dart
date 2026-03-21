@@ -560,6 +560,7 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
       await _videoCtrl?.dispose();
       final ctrl = VideoPlayerController.file(File(result.videoPath));
       await ctrl.initialize();
+      await ctrl.seekTo(Duration.zero); // 첫 프레임 강제 렌더링
 
       setState(() {
         _videoPath = result.videoPath;
@@ -592,6 +593,7 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
       await _videoCtrl?.dispose();
       final ctrl = VideoPlayerController.file(File(result.videoPath));
       await ctrl.initialize();
+      await ctrl.seekTo(Duration.zero); // 첫 프레임 강제 렌더링
 
       setState(() {
         _videoPath = result.videoPath;

@@ -669,6 +669,7 @@ class _VideoContentState extends State<_VideoContent> {
     if (!file.existsSync()) return;
     final ctrl = VideoPlayerController.file(file);
     await ctrl.initialize();
+    await ctrl.seekTo(Duration.zero); // 첫 프레임 강제 렌더링
     ctrl.addListener(() {
       if (mounted) setState(() {});
     });
