@@ -1,7 +1,7 @@
 # Re-Link 개발 진행 현황
 
-> 마지막 업데이트: 2026-03-21
-> 현재 단계: Phase 9 — 영상 기억 + 공개/비공개 + 구독 수정
+> 마지막 업데이트: 2026-03-22
+> 현재 단계: Phase 10 — 로그인/클라우드 동기화 완전 구현
 > v2.0 계획: Phase 5a~5g 전체 26개 기능 계획 완료 (v1.0 런치 후 착수)
 
 ---
@@ -2986,3 +2986,108 @@
 | Phase 7 미구현 구현 | 30+ 항목 | ✅ Batch1(코드) + Batch2(테스트352개) + UX수정 + "나 설정" + 메뉴개편 |
 | Phase 8 UX/UI 리디자인 | 20+ 항목 | ✅ Gen Z 디자인 + 엣지수정 + 나무성장 + 미니맵 + LOD |
 | Phase 9 영상/공개비공개/구독 | 30+ 항목 | ✅ 영상기억 + video_thumbnail + _PrivacyPill + 구독수정 |
+| Phase 10 로그인 + 클라우드동기화 | 40+ 항목 | ✅ Apple/Google Sign-In + Cloudflare Workers + D1 동기화 + R2 미디어 |
+
+---
+
+## Phase 10 — 로그인 + 클라우드 동기화 완전 구현 (2026-03-22)
+
+---
+
+### 인증 시스템 (Apple / Google Sign-In) ✅
+
+#### 패키지
+- [x] `pubspec.yaml` — `sign_in_with_apple: ^6.1.4`, `flutter_secure_storage: ^9.2.4`, `app_links: ^6.4.0`, `connectivity_plus: ^6.1.4` 추가
+
+#### 토큰 저장소
+- [x] `lib/core/services/auth/auth_token_storage.dart` — JWT 액세스/리프레시 토큰 암호화 저장 (flutter_secure_storage)
+- [x] `lib/core/services/auth/auth_http_client.dart` — Authorization 헤더 자동 주입 + 401 시 토큰 갱신
+
+#### 인증 서비스
+- [x] `lib/core/services/auth/auth_service.dart` — Apple/Google Sign-In + Cloudflare Workers POST
+- [x] `lib/shared/models/auth_user.dart` — AuthUser 모델 (id, email, provider, plan, familyGroupId, accessToken)
+
+#### 상태 관리
+- [x] `lib/features/auth/providers/auth_notifier.dart` — AuthNotifier (Riverpod AsyncNotifier)
+  - `signInWithApple()` / `signInWithGoogle()` / `signOut()` / `deleteAccount()`
+  - `isLoggedIn`, `hasFamilyPlan`, `currentPlan` getter
+
+#### 로그인 화면
+- [x] `lib/features/auth/presentation/login_screen.dart` — 완전 구현
+  - Apple Sign-In 버튼 (iOS HIG 준수 — 검정 배경)
+  - Google Sign-In 버튼 (흰 배경 + G 로고 CustomPaint)
+  - "나중에 하기" 스킵 옵션
+  - 에러 스낵바 + 로딩 인디케이터
+
+---
+
+### Drift DB 확장 ✅
+
+- [x] `lib/core/database/tables/sync_queue_table.dart` — SyncQueueTable 신규 생성
+  - 컬럼: id, targetTable, recordId, operation, payloadJson, createdAtMs, isSynced, retryCount
+- [x] `lib/core/database/app_database.dart` — schemaVersion 7 → 8
+  - v7→v8 마이그레이션: `createTable(syncQueueTable)`
+  - SyncQueue CRUD 5개 메서드: `getPendingSyncItems`, `enqueueSyncItem`, `markSyncedItems`, `incrementRetryCount`, `cleanSyncedItems`
+- [x] `lib/core/database/tables/settings_table.dart` — 7개 신규 키 추가
+  - `authUserId`, `authEmail`, `authProvider`, `familyGroupId`, `deviceId`, `lastSyncAt`, `cloudPlan`
+- [x] `lib/shared/repositories/settings_repository.dart` — auth/sync 메서드 추가
+  - `getAuthUserId/setAuthUserId`, `getFamilyGroupId/setFamilyGroupId`, `getDeviceId`, `clearAuthData`, `getLastSyncAt/setLastSyncAt`
+
+---
+
+### 동기화 서비스 ✅
+
+- [x] `lib/core/services/sync/sync_service.dart` — Pull/Push 오케스트레이터
+  - `syncAll()`: pull (D1→Drift) + push (SyncQueue→D1)
+  - `enqueue()`: 로컬 변경 SyncQueue에 추가
+  - Last-Write-Wins (LWW) 전략
+- [x] `lib/core/services/sync/r2_media_service.dart` — R2 presigned URL 업/다운로드 스텁
+
+---
+
+### 가족 동기화 UI ✅
+
+- [x] `lib/features/family_sync/providers/family_sync_notifier.dart` — 동기화 상태 관리
+- [x] `lib/features/family_sync/providers/family_members_notifier.dart` — 가족 멤버 목록 + 초대 링크
+- [x] `lib/features/family_sync/presentation/family_members_screen.dart` — 가족 멤버 화면
+- [x] `lib/features/family_sync/presentation/accept_invite_screen.dart` — 초대 수락 화면
+
+---
+
+### 라우터 가드 ✅
+
+- [x] `lib/core/router/app_router.dart` — 패밀리 전용 라우트 미로그인 시 `/login` 리다이렉트
+  - `AppRoutes.login`, `AppRoutes.familyMembers`, `AppRoutes.acceptInvite` 추가
+  - `redirect` 콜백: `authNotifierProvider` 상태 확인 → 보호된 라우트 가드
+
+---
+
+### Cloudflare Workers 서버 코드 ✅
+
+- [x] `workers/wrangler.toml` — Workers 배포 설정 (D1, R2, KV 바인딩)
+- [x] `workers/schema.sql` — D1 SQLite 스키마 (users, family_groups, members, sync_records, media_assets)
+- [x] `workers/src/types.ts` — TypeScript 인터페이스 (Env, AuthPayload, SyncRecord 등)
+- [x] `workers/src/middleware.ts` — JWT 검증 미들웨어
+- [x] `workers/src/auth.ts` — Apple/Google 소셜 로그인 + JWT 발급 엔드포인트
+- [x] `workers/src/sync.ts` — 동기화 push/pull/resolve 엔드포인트
+- [x] `workers/src/family.ts` — 가족 그룹 CRUD + 초대 엔드포인트
+- [x] `workers/src/media.ts` — R2 presigned URL 엔드포인트
+- [x] `workers/src/index.ts` — 라우터 진입점
+
+---
+
+### 빌드 확인 ✅
+- [x] `flutter pub get` 완료 (17 패키지 변경)
+- [x] `flutter pub run build_runner build` 완료 (684 outputs)
+- [x] `flutter analyze` — 0 errors
+- [x] `flutter build ios --release --no-codesign` — ✅ 39.6MB
+
+---
+
+### 배포 전 체크리스트 (사용자 직접 수행)
+- [ ] Cloudflare 계정 생성 + Workers/D1/R2/KV 프로비저닝
+- [ ] `wrangler deploy` — Workers 배포
+- [ ] `wrangler d1 execute relink-db --file workers/schema.sql` — D1 스키마 초기화
+- [ ] `--dart-define=WORKERS_BASE_URL=https://실제URL.workers.dev` 빌드 파라미터 설정
+- [ ] Apple Developer Console: Sign In with Apple 활성화
+- [ ] Google Cloud Console: OAuth 2.0 클라이언트 ID 발급
