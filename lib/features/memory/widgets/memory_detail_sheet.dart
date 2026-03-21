@@ -157,29 +157,8 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                // 공개/개인 토글 (share 아이콘 왼쪽)
-                GestureDetector(
-                  onTap: _togglePrivacy,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _isPrivate ? Icons.lock_outline : Icons.public,
-                        size: 18,
-                        color: _isPrivate ? AppColors.accent : AppColors.primary,
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        _isPrivate ? '비공개' : '공유',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: _isPrivate ? AppColors.accent : AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                // 공개/개인 토글 알약 (share 아이콘 왼쪽)
+                _PrivacyPill(isPrivate: _isPrivate, onToggle: _togglePrivacy),
                 const SizedBox(width: AppSpacing.sm),
                 GestureDetector(
                   onTap: () {
@@ -386,29 +365,8 @@ class _LockedOverlay extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                // 공개/개인 토글 — 잠금 상태에서도 항상 표시 (닫기 아이콘 왼쪽)
-                GestureDetector(
-                  onTap: onTogglePrivacy,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        isPrivate ? Icons.lock_outline : Icons.public,
-                        size: 18,
-                        color: isPrivate ? AppColors.accent : AppColors.primary,
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        isPrivate ? '비공개' : '공유',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: isPrivate ? AppColors.accent : AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                // 공개/개인 토글 — 잠금 상태에서도 항상 표시
+                _PrivacyPill(isPrivate: isPrivate, onToggle: onTogglePrivacy),
                 const SizedBox(width: AppSpacing.sm),
                 GestureDetector(
                   onTap: onClose,
@@ -552,6 +510,91 @@ class _BlurredPreview extends StatelessWidget {
           ),
         );
     }
+  }
+}
+
+// ── 공개/비공개 알약 토글 ─────────────────────────────────────────────────────
+
+class _PrivacyPill extends StatelessWidget {
+  const _PrivacyPill({required this.isPrivate, required this.onToggle});
+  final bool isPrivate;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onToggle,
+      child: Container(
+        height: 30,
+        decoration: BoxDecoration(
+          color: AppColors.glassSurface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.glassBorder, width: 1),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _PillOption(
+              icon: Icons.public,
+              label: '공개',
+              selected: !isPrivate,
+              color: AppColors.primary,
+            ),
+            _PillOption(
+              icon: Icons.lock_outline,
+              label: '비공개',
+              selected: isPrivate,
+              color: AppColors.accent,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PillOption extends StatelessWidget {
+  const _PillOption({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.color,
+  });
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: selected ? color.withAlpha(200) : Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 13,
+            color: selected ? Colors.white : AppColors.textTertiary,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: selected ? Colors.white : AppColors.textTertiary,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -748,15 +791,15 @@ class _VideoContentState extends State<_VideoContent> {
     });
 
     // 2단계: 트리에 마운트된 후 첫 프레임 렌더링
+    // seekTo(zero)는 iOS 텍스처를 blank로 만들므로 호출하지 않음
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted || _ctrl == null) return;
       try {
         await _ctrl!.setVolume(0.0);
         await _ctrl!.play();
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 300));
         if (mounted && _ctrl != null) {
           await _ctrl!.pause();
-          await _ctrl!.seekTo(Duration.zero);
         }
       } catch (_) {}
     });

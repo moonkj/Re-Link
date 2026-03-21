@@ -573,15 +573,15 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
       });
 
       // VideoPlayer 위젯이 트리에 마운트된 후 첫 프레임 렌더링
+      // seekTo(zero)는 iOS 텍스처를 blank로 만들므로 호출하지 않음
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted || _videoCtrl == null) return;
         try {
           await _videoCtrl!.setVolume(0.0);
           await _videoCtrl!.play();
-          await Future.delayed(const Duration(milliseconds: 100));
+          await Future.delayed(const Duration(milliseconds: 300));
           if (mounted && _videoCtrl != null) {
             await _videoCtrl!.pause();
-            await _videoCtrl!.seekTo(Duration.zero);
           }
         } catch (_) {}
       });
@@ -618,15 +618,15 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
       });
 
       // VideoPlayer 위젯이 트리에 마운트된 후 첫 프레임 렌더링
+      // seekTo(zero)는 iOS 텍스처를 blank로 만들므로 호출하지 않음
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted || _videoCtrl == null) return;
         try {
           await _videoCtrl!.setVolume(0.0);
           await _videoCtrl!.play();
-          await Future.delayed(const Duration(milliseconds: 100));
+          await Future.delayed(const Duration(milliseconds: 300));
           if (mounted && _videoCtrl != null) {
             await _videoCtrl!.pause();
-            await _videoCtrl!.seekTo(Duration.zero);
           }
         } catch (_) {}
       });
