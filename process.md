@@ -3217,3 +3217,38 @@
 - [x] `flutter pub get` — 정상
 - [x] `flutter analyze lib/core/services/sync/ lib/features/family_sync/providers/` — 0 errors
 - [x] `flutter analyze lib/` — 0 errors (기존 warning만 존재)
+
+---
+
+## Phase 13 — 아이패드 App Store 다운로드 지원 (2026-03-22)
+
+> iPad App Store 다운로드 가능 설정 확인 및 문서화. 기존 Xcode 프로젝트 설정이 이미 iPad를 지원하고 있음을 검증.
+
+---
+
+### 아이패드 지원 설정 확인 ✅
+
+**Xcode 빌드 설정 (`ios/Runner.xcodeproj/project.pbxproj`)**
+- [x] `TARGETED_DEVICE_FAMILY = "1,2"` — 3개 빌드 구성(Debug/Release/Profile) 모두 적용
+  - `1` = iPhone, `2` = iPad → Universal App (아이폰 + 아이패드 모두 지원)
+  - App Store에서 iPad로 다운로드 가능
+
+**Info.plist (`ios/Runner/Info.plist`)**
+- [x] `UISupportedInterfaceOrientations~ipad` — iPad 4방향 모두 지원
+  - Portrait, PortraitUpsideDown, LandscapeLeft, LandscapeRight
+- [x] `LSRequiresIPhoneOS: true` — iOS 필수 선언 (iPad 차단 아님, iPad도 iOS 사용)
+- [x] `UIApplicationSupportsIndirectInputEvents: true` — 마우스/트랙패드/키보드 지원
+  - iPad Magic Keyboard, Apple Pencil 간접 입력 이벤트 처리
+
+**배포 최솟값**
+- [x] `IPHONEOS_DEPLOYMENT_TARGET = 13.0` — iOS 13+ (iPad Air 3세대, iPad mini 5세대 이상)
+
+---
+
+### App Store 제출 시 추가 필요 (사용자 직접)
+
+| 항목 | 설명 |
+|------|------|
+| iPad 스크린샷 | App Store Connect: iPad 12.9인치 스크린샷 필수 |
+| iPad 12.9" (2732×2048) | 최소 1장 이상 업로드 |
+| iPad 11" (2388×1668) | 선택 |
