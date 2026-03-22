@@ -81,9 +81,9 @@ Future<void> main() async {
       DeviceOrientation.landscapeRight,
     ]);
     // 카카오 SDK 초기화
-    // TODO: YOUR_KAKAO_NATIVE_APP_KEY를 카카오 개발자 콘솔에서 발급받은 네이티브 앱 키로 교체하세요
+    // TODO: ed9d5c7ed7690d43a6d8ac866353cf31를 카카오 개발자 콘솔에서 발급받은 네이티브 앱 키로 교체하세요
     // https://developers.kakao.com → 내 애플리케이션 → 앱 키 → 네이티브 앱 키
-    KakaoSdk.init(nativeAppKey: 'YOUR_KAKAO_NATIVE_APP_KEY');
+    KakaoSdk.init(nativeAppKey: 'ed9d5c7ed7690d43a6d8ac866353cf31');
 
     // AdMob + 알림 초기화: 1.5초 지연 (iOS 26 watchdog 방지)
     // - NotificationService는 Riverpod 싱글톤이 lazy-init으로 처리
