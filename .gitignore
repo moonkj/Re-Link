@@ -52,6 +52,13 @@ secrets.dart
 google-services.json
 GoogleService-Info.plist
 
+# 인증서 및 서명 키
+*.p8
+*.pem
+*.key
+*.keystore
+*.jks
+
 # iOS Pods
 /ios/Pods/
 /ios/.symlinks/

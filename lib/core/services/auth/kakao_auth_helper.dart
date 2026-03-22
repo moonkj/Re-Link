@@ -4,16 +4,33 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../config/env_config.dart';
+
 /// 카카오 로그인 — 인앱 WebView 방식
 /// Apple 심사 가이드라인 준수 (외부 Safari 미사용)
 /// iOS 26 beta ASWebAuthenticationSession 호환성 문제 우회
 class KakaoAuthHelper {
   // REST API 키 (OAuth 인증 페이지 + 토큰 교환 모두 이 키 사용)
-  static const _restApiKey = '61c6efeba31294512cb6ea04ef5f240a';
+  // ⚠️ 빌드 시 --dart-define=KAKAO_REST_API_KEY=... 로 주입
+  static String get _restApiKey {
+    assert(EnvConfig.kakaoRestApiKey.isNotEmpty,
+        'KAKAO_REST_API_KEY가 설정되지 않았습니다. --dart-define으로 주입하세요.');
+    return EnvConfig.kakaoRestApiKey;
+  }
+
   // 네이티브 앱 키 (URL Scheme 등록용 — 토큰 교환에 사용하지 않음)
-  // ignore: unused_field
-  static const _nativeAppKey = 'ed9d5c7ed7690d43a6d8ac866353cf31';
-  // 카카오 OAuth 리디렉트: 우리 서버가 아닌 카카오 기본 리디렉트 사용
+  // ⚠️ 빌드 시 --dart-define=KAKAO_NATIVE_APP_KEY=... 로 주입
+  static String get _nativeAppKey => EnvConfig.kakaoNativeAppKey;
+
+  // 클라이언트 시크릿
+  // ⚠️ 빌드 시 --dart-define=KAKAO_CLIENT_SECRET=... 로 주입
+  static String get _clientSecret {
+    assert(EnvConfig.kakaoClientSecret.isNotEmpty,
+        'KAKAO_CLIENT_SECRET이 설정되지 않았습니다. --dart-define으로 주입하세요.');
+    return EnvConfig.kakaoClientSecret;
+  }
+
+  // 카카오 OAuth 리디렉트: Workers 콜백 엔드포인트
   static const _redirectUri = 'https://relink-api.relink-app.workers.dev/auth/kakao/callback';
 
   /// 카카오 로그인 — 인앱 WebView 바텀시트
@@ -48,7 +65,7 @@ class KakaoAuthHelper {
         'client_id': _restApiKey,
         'redirect_uri': _redirectUri,
         'code': code,
-        'client_secret': 'LdvmGCSCFydJ8dm7NAmpYb0hKNz4G03S',
+        'client_secret': _clientSecret,
       },
     );
 

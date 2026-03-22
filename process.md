@@ -3992,12 +3992,12 @@ dependencies:
 ### 카카오 개발자 콘솔 설정 ✅
 
 - [x] 앱 등록: Re-Link (바이브랩, 라이프스타일)
-- [x] 네이티브 앱 키: `ed9d5c7ed7690d43a6d8ac866353cf31`
-- [x] REST API 키: `61c6efeba31294512cb6ea04ef5f240a`
+- [x] 네이티브 앱 키: `[카카오 콘솔 참조 — --dart-define=KAKAO_NATIVE_APP_KEY]`
+- [x] REST API 키: `[카카오 콘솔 참조 — --dart-define=KAKAO_REST_API_KEY]`
 - [x] 카카오 로그인 활성화: ON
 - [x] 동의항목: 닉네임(필수), 프로필 사진(선택), 이메일(선택)
 - [x] Redirect URI: `https://relink-api.relink-app.workers.dev/auth/kakao/callback`
-- [x] 클라이언트 시크릿: `LdvmGCSCFydJ8dm7NAmpYb0hKNz4G03S` (활성화)
+- [x] 클라이언트 시크릿: `[카카오 콘솔 참조 — --dart-define=KAKAO_CLIENT_SECRET]` (활성화)
 
 ### 카카오 로그인 디버깅 (5가지 장애 해결) ✅
 

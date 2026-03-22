@@ -84,5 +84,21 @@ abstract final class EnvConfig {
     return prodId;
   }
 
+  // ── 카카오 OAuth ────────────────────────────────────────────────────
+  static const String kakaoRestApiKey = String.fromEnvironment(
+    'KAKAO_REST_API_KEY',
+    defaultValue: '',
+  );
+
+  static const String kakaoNativeAppKey = String.fromEnvironment(
+    'KAKAO_NATIVE_APP_KEY',
+    defaultValue: '',
+  );
+
+  static const String kakaoClientSecret = String.fromEnvironment(
+    'KAKAO_CLIENT_SECRET',
+    defaultValue: '',
+  );
+
   static bool get isApiConfigured => workersBaseUrl.isNotEmpty;
 }
