@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_title">Re-Link</string>
+    <string name="widget_description">가족 기념일, 오늘의 기억, 가족 통계를 한눈에 확인하세요.</string>
+
+    <!-- Section labels -->
+    <string name="widget_anniversary_label">\uD83C\uDF82 기념일</string>
+    <string name="widget_memory_label">\uD83D\uDCAD 오늘의 기억</string>
+
+    <!-- Stats labels -->
+    <string name="widget_stat_node_label">가족</string>
+    <string name="widget_stat_memory_label">기억</string>
+
+    <!-- Empty states -->
+    <string name="widget_anniversary_empty">다가오는 기념일이 없어요</string>
+    <string name="widget_memory_empty">오늘의 기억이 없어요</string>
+</resources>

@@ -383,10 +383,18 @@ class _SplashScreenState extends ConsumerState<_SplashScreen>
     settingsRepo
         .isOnboardingDone()
         .timeout(const Duration(seconds: 3))
-        .then((done) {
-          if (mounted) {
-            // 온보딩 완료 → 캔버스, 미완료 → 복원 감지 화면
-            context.go(done ? AppRoutes.canvas : AppRoutes.restoreDetect);
+        .then((done) async {
+          if (!mounted) return;
+          if (!done) {
+            context.go(AppRoutes.restoreDetect);
+            return;
+          }
+          // 온보딩 완료 → 로그인 상태 확인
+          final authUser = ref.read(authNotifierProvider).valueOrNull;
+          if (authUser != null) {
+            context.go(AppRoutes.canvas);
+          } else {
+            context.go(AppRoutes.login);
           }
         })
         .catchError((_) {

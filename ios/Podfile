@@ -1,5 +1,5 @@
-# iOS 13.0+ required by record, audio_waveforms, google_mobile_ads
-platform :ios, '13.0'
+# iOS 14.0+ required by WidgetKit, record, audio_waveforms, google_mobile_ads
+platform :ios, '14.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'

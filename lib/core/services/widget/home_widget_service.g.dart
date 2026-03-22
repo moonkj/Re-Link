@@ -1,30 +1,30 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'family_members_notifier.dart';
+part of 'home_widget_service.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$familyMembersNotifierHash() =>
-    r'2f6fc2cb2d25afc430cf5064db71b863654e30bd';
+String _$homeWidgetServiceHash() => r'1695db8c71ea5362ed876f0ccfe3d4004c77b274';
 
-/// See also [FamilyMembersNotifier].
-@ProviderFor(FamilyMembersNotifier)
-final familyMembersNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<
-      FamilyMembersNotifier,
-      List<FamilyMember>
-    >.internal(
-      FamilyMembersNotifier.new,
-      name: r'familyMembersNotifierProvider',
+/// HomeWidgetService 프로바이더
+///
+/// Copied from [homeWidgetService].
+@ProviderFor(homeWidgetService)
+final homeWidgetServiceProvider =
+    AutoDisposeProvider<HomeWidgetService>.internal(
+      homeWidgetService,
+      name: r'homeWidgetServiceProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
           ? null
-          : _$familyMembersNotifierHash,
+          : _$homeWidgetServiceHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
-typedef _$FamilyMembersNotifier = AutoDisposeAsyncNotifier<List<FamilyMember>>;
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef HomeWidgetServiceRef = AutoDisposeProviderRef<HomeWidgetService>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

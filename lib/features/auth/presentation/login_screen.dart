@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/services/auth/auth_service.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
@@ -40,10 +42,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final authState = ref.read(authNotifierProvider);
       authState.when(
         data: (user) {
-          if (user != null) {
-            // 로그인 성공 → 화면 닫기
-            Navigator.of(context).pop(true);
-          }
+          if (user != null) _navigateAfterAuth();
         },
         error: (e, _) => _showError(e is AuthException ? e.message : '로그인에 실패했습니다. 다시 시도해 주세요.'),
         loading: () {},
@@ -70,9 +69,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final authState = ref.read(authNotifierProvider);
       authState.when(
         data: (user) {
-          if (user != null) {
-            Navigator.of(context).pop(true);
-          }
+          if (user != null) _navigateAfterAuth();
         },
         error: (e, _) => _showError(e is AuthException ? e.message : '로그인에 실패했습니다. 다시 시도해 주세요.'),
         loading: () {},
@@ -103,10 +100,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
+  // ── 인증 후 네비게이션 ────────────────────────────────────────────────
+
+  void _navigateAfterAuth() {
+    if (!mounted) return;
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop(true);
+    } else {
+      context.go(AppRoutes.canvas);
+    }
+  }
+
   // ── 나중에 하기 ────────────────────────────────────────────────────────
 
   void _onSkip() {
-    Navigator.of(context).pop(false);
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop(false);
+    } else {
+      context.go(AppRoutes.canvas);
+    }
   }
 
   // ── UI ─────────────────────────────────────────────────────────────────

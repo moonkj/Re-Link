@@ -520,131 +520,20 @@ class NodeCardLod extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return switch (lodLevel) {
-      LodLevel.birdEye => _BirdEyeDot(node: node, isMe: isMe),
-      LodLevel.overview => _OverviewCard(node: node, isMe: isMe),
-      LodLevel.detail || LodLevel.zoom => NodeCard(
-          node: node,
-          isSelected: isSelected,
-          isConnectSource: isConnectSource,
-          isConnectMode: isConnectMode,
-          ghostLabel: ghostLabel,
-          earnedBadgeIds: earnedBadgeIds,
-          showHolidayGlow: showHolidayGlow,
-          isMe: isMe,
-        ),
-    };
-  }
-}
-
-/// Bird's Eye (< 0.5x) — 8x8 컬러 점
-class _BirdEyeDot extends StatelessWidget {
-  const _BirdEyeDot({required this.node, this.isMe = false});
-  final NodeModel node;
-  final bool isMe;
-
-  @override
-  Widget build(BuildContext context) {
-    // Ghost → 반투명 흰색, 돌아가신 분 → 회색, 일반 → 온도 색상
-    final color = node.isGhost
-        ? Colors.white54
-        : !node.isAlive
-            ? const Color(0xFF8E8E93)
-            : isMe
-                ? AppColors.primary
-                : AppColors.tempColor(node.temperature);
-    return SizedBox(
-      width: kNodeCardWidth,
-      height: kNodeCardHeight,
-      child: Center(
-        child: Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color,
-            boxShadow: const [
-              BoxShadow(color: Color(0x40000000), blurRadius: 4),
-            ],
-          ),
-        ),
-      ),
+    // 모든 줌 레벨에서 항상 풀 카드 표시 (LOD 점/아바타 모드 제거)
+    return NodeCard(
+      node: node,
+      isSelected: isSelected,
+      isConnectSource: isConnectSource,
+      isConnectMode: isConnectMode,
+      ghostLabel: ghostLabel,
+      earnedBadgeIds: earnedBadgeIds,
+      showHolidayGlow: showHolidayGlow,
+      isMe: isMe,
     );
   }
 }
 
-/// Overview (0.5x-1.0x) — 원형 아바타 + 이름
-class _OverviewCard extends StatelessWidget {
-  const _OverviewCard({required this.node, this.isMe = false});
-  final NodeModel node;
-  final bool isMe;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDeceased = !node.isGhost && !node.isAlive;
-    return Opacity(
-      opacity: isDeceased ? 0.7 : 1.0,
-      child: SizedBox(
-        width: kNodeCardWidth,
-        height: kNodeCardHeight,
-        child: Stack(
-          children: [
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _NodeAvatar(node: node, size: 40),
-                  const SizedBox(height: 4),
-                  Text(
-                    node.name.isEmpty ? '미확인' : node.name,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textPrimary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-            if (isMe)
-              Positioned(
-                top: 18,
-                left: 16,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    '나',
-                    style: TextStyle(
-                      fontSize: 8,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.onPrimary,
-                    ),
-                  ),
-                ),
-              ),
-            if (isDeceased)
-              const Positioned(
-                top: 20,
-                right: 16,
-                child: Icon(
-                  Icons.local_florist,
-                  size: 14,
-                  color: Color(0xFF8E8E93),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 /// Ghost Node 점선 테두리 (CustomPainter)
 class GhostNodeBorder extends CustomPainter {
