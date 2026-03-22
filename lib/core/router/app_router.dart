@@ -398,12 +398,16 @@ class _SplashScreenState extends ConsumerState<_SplashScreen>
             context.go(AppRoutes.restoreDetect);
             return;
           }
-          // 온보딩 완료 → 로그인 상태 확인
-          final authUser = ref.read(authNotifierProvider).valueOrNull;
-          if (authUser != null) {
-            context.go(AppRoutes.canvas);
-          } else {
-            context.go(AppRoutes.login);
+          // 온보딩 완료 → 로그인 상태 확인 (로딩 완료까지 대기)
+          try {
+            final authUser = await ref
+                .read(authNotifierProvider.future)
+                .timeout(const Duration(seconds: 5));
+            if (!mounted) return;
+            context.go(authUser != null ? AppRoutes.canvas : AppRoutes.login);
+          } catch (_) {
+            // 타임아웃 또는 에러 → 로그인 화면
+            if (mounted) context.go(AppRoutes.login);
           }
         })
         .catchError((_) {
