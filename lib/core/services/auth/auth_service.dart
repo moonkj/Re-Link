@@ -30,6 +30,7 @@ class AuthService {
     GoogleSignIn? googleSignIn,
   }) : _googleSignIn = googleSignIn ??
             GoogleSignIn(
+              clientId: '547722763971-rq4rh30ldhs35cp7fdup8dg28jtqaqbs.apps.googleusercontent.com',
               scopes: ['email', 'profile'],
             );
 

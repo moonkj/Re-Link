@@ -73,6 +73,17 @@
 				<string>relink</string>
 			</array>
 		</dict>
+		<!-- Google 로그인 URL Scheme -->
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>google-login</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.547722763971-rq4rh30ldhs35cp7fdup8dg28jtqaqbs</string>
+			</array>
+		</dict>
 		<!-- 카카오 로그인 URL Scheme -->
 		<!-- TODO: YOUR_KAKAO_NATIVE_APP_KEY를 카카오 개발자 콘솔에서 발급받은 네이티브 앱 키로 교체하세요 -->
 		<dict>

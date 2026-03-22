@@ -3964,7 +3964,7 @@ dependencies:
 - [x] `wrangler d1 execute relink-db --file workers/schema.sql` → D1 초기화 완료 (9테이블)
 - [ ] Apple Developer: App Group 등록 (홈 위젯용)
 - [x] Apple Developer: Sign In with Apple 활성화 — App ID `com.relink.app` 등록 + 로그인 테스트 완료
-- [ ] Google Cloud: OAuth 2.0 클라이언트 ID 발급
+- [x] Google Cloud: OAuth 2.0 클라이언트 ID 발급 — iOS 클라이언트 생성 + 로그인 테스트 완료
 - [ ] App Store Connect: 인앱 구매 상품 등록
 - [ ] Google Play Console: 인앱 구매 상품 등록
 - [x] `--dart-define=WORKERS_BASE_URL` → env_config.dart defaultValue 직접 설정 완료
@@ -4057,3 +4057,13 @@ dependencies:
 
 - [x] iPad Pro (12.9") 릴리스 빌드 설치
 - [x] Apple Sign In 로그인 성공 (이메일 가리기 릴레이 주소 정상 동작)
+
+### Google Sign In 설정 ✅
+
+- [x] Google Cloud Console 프로젝트 생성 (re-link-491013)
+- [x] OAuth 동의 화면 설정 (외부)
+- [x] iOS OAuth 클라이언트 ID 발급 (Bundle ID: com.relink.app)
+- [x] `auth_service.dart` + `login_screen.dart` — GoogleSignIn clientId 설정
+- [x] `Info.plist` — Google 역방향 URL Scheme 추가
+- [x] Workers `GOOGLE_CLIENT_ID` 시크릿 등록 + 재배포
+- [x] iPad 실기기 Google 로그인 화면 진입 확인

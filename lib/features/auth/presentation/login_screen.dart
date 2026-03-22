@@ -32,7 +32,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isGoogleLoading = false;
   bool _isKakaoLoading = false;
 
-  final _googleSignIn = GoogleSignIn(scopes: ['email']);
+  final _googleSignIn = GoogleSignIn(
+    clientId: '547722763971-rq4rh30ldhs35cp7fdup8dg28jtqaqbs.apps.googleusercontent.com',
+    scopes: ['email'],
+  );
 
   bool get _isAnyLoading => _isAppleLoading || _isGoogleLoading || _isKakaoLoading;
 
