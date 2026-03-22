@@ -4016,3 +4016,11 @@ dependencies:
 - [x] 카카오 로그인 버튼 추가 (노란색 #FEE500, 말풍선 로고)
 - [x] "건너뛰기" 텍스트 버튼 (X 닫기 대체)
 - [x] 슬로건: "가족의 기억을 잇다"
+
+### 로그인 유지 (토큰 영속성) 디버깅 ✅
+
+- [x] 카카오 로그인 시 JWT 토큰 직접 파싱 + `AuthTokenStorage.saveTokens()` 저장
+- [x] `tryAutoLogin()` — AuthHttpClient 우회 → 직접 `http.get('/auth/me')` (5초 타임아웃)
+- [x] 서버 호출 실패 시 저장된 토큰+userId로 오프라인 `AuthUser` 복원
+- [x] **스플래시 `_doNavigate()` 핵심 수정**: `ref.read(authNotifierProvider).valueOrNull` → `await ref.read(authNotifierProvider.future)` — 로딩 완료 대기 후 로그인 상태 판단
+- [x] `ref.invalidate(authNotifierProvider)` → `tryAutoLogin` 재실행으로 auth 상태 갱신
