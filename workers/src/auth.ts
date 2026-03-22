@@ -1,10 +1,11 @@
 // Re-Link Workers — Auth Endpoints
-// POST /auth/apple    — Apple ID token → JWT
-// POST /auth/google   — Google ID token → JWT
-// POST /auth/refresh  — Refresh token → new Access token
-// DELETE /auth/signout — Logout (invalidate refresh token)
-// DELETE /auth/account — Delete account (App Store policy)
-// GET /me             — Current user info
+// POST   /auth/apple    — Apple ID token → JWT
+// POST   /auth/google   — Google ID token → JWT
+// POST   /auth/kakao    — Kakao access token → JWT
+// POST   /auth/refresh  — Refresh token → new access + refresh tokens
+// POST   /auth/signout  — Logout (invalidate refresh token)
+// DELETE /auth/account  — Delete account (App Store policy)
+// GET    /auth/me       — Current user info
 
 import type {
   Env,
@@ -13,13 +14,13 @@ import type {
   AuthProvider,
   AppleAuthRequest,
   GoogleAuthRequest,
+  KakaoAuthRequest,
   AuthResponse,
   RefreshRequest,
   RefreshResponse,
 } from './types';
 import {
   signJWT,
-  verifyJWTString,
   generateRefreshToken,
   requireAuth,
   jsonResponse,
@@ -119,7 +120,7 @@ async function verifyAppleToken(
 async function verifyGoogleToken(
   idToken: string,
   clientId: string,
-): Promise<{ sub: string; email?: string }> {
+): Promise<{ sub: string; email?: string; name?: string }> {
   const url = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error('Invalid Google token');
@@ -127,6 +128,7 @@ async function verifyGoogleToken(
   const info = (await res.json()) as {
     sub: string;
     email?: string;
+    name?: string;
     aud: string;
     exp: string;
     error_description?: string;
@@ -139,7 +141,7 @@ async function verifyGoogleToken(
   if (info.aud !== clientId)
     throw new Error('Google token audience mismatch');
 
-  return { sub: info.sub, email: info.email };
+  return { sub: info.sub, email: info.email, name: info.name };
 }
 
 // ============================================================
@@ -150,6 +152,7 @@ async function findOrCreateUser(
   provider: AuthProvider,
   providerId: string,
   email: string | undefined,
+  name: string | undefined,
 ): Promise<User> {
   const now = Date.now();
 
@@ -160,13 +163,27 @@ async function findOrCreateUser(
     .first<User>();
 
   if (existing) {
-    // Update email if changed
+    // Update email/name if changed
+    const updates: string[] = [];
+    const values: (string | number)[] = [];
     if (email && email !== existing.email) {
-      await db
-        .prepare('UPDATE users SET email = ?, updated_at = ? WHERE id = ?')
-        .bind(email, now, existing.id)
-        .run();
+      updates.push('email = ?');
+      values.push(email);
       existing.email = email;
+    }
+    if (name && name !== existing.name) {
+      updates.push('name = ?');
+      values.push(name);
+      existing.name = name;
+    }
+    if (updates.length > 0) {
+      updates.push('updated_at = ?');
+      values.push(now);
+      values.push(existing.id);
+      await db
+        .prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`)
+        .bind(...values)
+        .run();
       existing.updated_at = now;
     }
     return existing;
@@ -176,10 +193,10 @@ async function findOrCreateUser(
   const userId = crypto.randomUUID();
   await db
     .prepare(
-      `INSERT INTO users (id, provider, provider_id, email, plan, storage_used_bytes, created_at, updated_at)
-       VALUES (?, ?, ?, ?, 'free', 0, ?, ?)`,
+      `INSERT INTO users (id, provider, provider_id, email, name, plan, storage_used_bytes, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, 'free', 0, ?, ?)`,
     )
-    .bind(userId, provider, providerId, email ?? null, now, now)
+    .bind(userId, provider, providerId, email ?? null, name ?? null, now, now)
     .run();
 
   return {
@@ -187,6 +204,7 @@ async function findOrCreateUser(
     provider,
     provider_id: providerId,
     email: email ?? null,
+    name: name ?? null,
     plan: 'free',
     plan_expires_at: null,
     family_group_id: null,
@@ -221,11 +239,19 @@ async function issueTokenPair(
   return { accessToken, refreshToken };
 }
 
+/** Convert DB plan name to Flutter-compatible format */
+function toFlutterPlan(plan: string): string {
+  // DB uses 'family_plus', Flutter expects 'familyPlus'
+  return plan === 'family_plus' ? 'familyPlus' : plan;
+}
+
 function toPublicUser(user: User): UserPublic {
   return {
     id: user.id,
     email: user.email,
-    plan: user.plan,
+    name: user.name,
+    provider: user.provider,
+    plan: toFlutterPlan(user.plan) as UserPublic['plan'],
     plan_expires_at: user.plan_expires_at,
     family_group_id: user.family_group_id,
     storage_used_bytes: user.storage_used_bytes,
@@ -265,7 +291,9 @@ export async function handleAppleAuth(
   }
 
   const email = body.user_info?.email ?? providerInfo.email;
-  const user = await findOrCreateUser(env.DB, 'apple', providerInfo.sub, email);
+  // Apple provides name only on first sign-in
+  const name = [body.given_name, body.family_name].filter(Boolean).join(' ') || body.user_info?.name;
+  const user = await findOrCreateUser(env.DB, 'apple', providerInfo.sub, email, name || undefined);
   const { accessToken, refreshToken } = await issueTokenPair(
     env.DB,
     user,
@@ -302,7 +330,7 @@ export async function handleGoogleAuth(
 
   const clientId = env.GOOGLE_CLIENT_ID ?? '';
 
-  let providerInfo: { sub: string; email?: string };
+  let providerInfo: { sub: string; email?: string; name?: string };
   try {
     providerInfo = await verifyGoogleToken(body.id_token, clientId);
   } catch (e) {
@@ -318,6 +346,7 @@ export async function handleGoogleAuth(
     'google',
     providerInfo.sub,
     providerInfo.email,
+    providerInfo.name,
   );
   const { accessToken, refreshToken } = await issueTokenPair(
     env.DB,
@@ -377,15 +406,27 @@ export async function handleRefresh(
     return errorResponse('User not found', 401, request);
   }
 
-  // Issue new access token (keep same refresh token)
+  // Issue new access token + rotate refresh token
   const accessToken = await signJWT(
     { sub: user.id, plan: user.plan, groupId: user.family_group_id },
     env.JWT_SECRET,
     ACCESS_TOKEN_TTL,
   );
 
+  // Rotate refresh token (delete old, create new)
+  const newRefreshToken = generateRefreshToken();
+  const newExpiresAt = now + REFRESH_TOKEN_TTL * 1000;
+
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM refresh_tokens WHERE token = ?').bind(body.refresh_token),
+    env.DB.prepare(
+      'INSERT INTO refresh_tokens (token, user_id, expires_at, created_at) VALUES (?, ?, ?, ?)',
+    ).bind(newRefreshToken, user.id, newExpiresAt, now),
+  ]);
+
   const response: RefreshResponse = {
     access_token: accessToken,
+    refresh_token: newRefreshToken,
     expires_in: ACCESS_TOKEN_TTL,
   };
 
@@ -393,7 +434,7 @@ export async function handleRefresh(
 }
 
 // ============================================================
-// Handler: DELETE /auth/signout
+// Handler: POST /auth/signout (Flutter uses POST)
 // ============================================================
 export async function handleSignout(
   request: Request,
@@ -501,5 +542,93 @@ export async function handleGetMe(
     return errorResponse('User not found', 404, request);
   }
 
-  return jsonResponse(toPublicUser(user), 200, request);
+  // Flutter client expects { user: { ... } }
+  return jsonResponse({ user: toPublicUser(user) }, 200, request);
+}
+
+// ============================================================
+// Kakao token verification
+// Calls Kakao's /v2/user/me to validate the access token
+// ============================================================
+async function verifyKakaoToken(
+  accessToken: string,
+): Promise<{ sub: string; email?: string; name?: string }> {
+  const res = await fetch('https://kapi.kakao.com/v2/user/me', {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+    },
+  });
+
+  if (!res.ok) throw new Error('Invalid Kakao access token');
+
+  const info = (await res.json()) as {
+    id: number;
+    kakao_account?: {
+      email?: string;
+      profile?: {
+        nickname?: string;
+      };
+    };
+  };
+
+  if (!info.id) throw new Error('Kakao user ID not found');
+
+  return {
+    sub: String(info.id),
+    email: info.kakao_account?.email,
+    name: info.kakao_account?.profile?.nickname,
+  };
+}
+
+// ============================================================
+// Handler: POST /auth/kakao
+// ============================================================
+export async function handleKakaoAuth(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  let body: KakaoAuthRequest;
+  try {
+    body = (await request.json()) as KakaoAuthRequest;
+  } catch {
+    return errorResponse('Invalid JSON body', 400, request);
+  }
+
+  if (!body.access_token) {
+    return errorResponse('access_token is required', 400, request);
+  }
+
+  let providerInfo: { sub: string; email?: string; name?: string };
+  try {
+    providerInfo = await verifyKakaoToken(body.access_token);
+  } catch (e) {
+    return errorResponse(
+      `Kakao token verification failed: ${(e as Error).message}`,
+      401,
+      request,
+    );
+  }
+
+  const user = await findOrCreateUser(
+    env.DB,
+    'kakao',
+    providerInfo.sub,
+    providerInfo.email,
+    providerInfo.name,
+  );
+  const { accessToken, refreshToken } = await issueTokenPair(
+    env.DB,
+    user,
+    env.JWT_SECRET,
+  );
+
+  const response: AuthResponse = {
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    expires_in: ACCESS_TOKEN_TTL,
+    user: toPublicUser(user),
+  };
+
+  return jsonResponse(response, 200, request);
 }

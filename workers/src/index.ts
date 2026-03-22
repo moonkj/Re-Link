@@ -8,6 +8,7 @@ import { corsPreflightResponse, errorResponse, jsonResponse } from './middleware
 import {
   handleAppleAuth,
   handleGoogleAuth,
+  handleKakaoAuth,
   handleRefresh,
   handleSignout,
   handleDeleteAccount,
@@ -35,6 +36,9 @@ import {
   handleDeleteMedia,
   handleStorageUsage,
 } from './media';
+
+// Purchase handlers
+import { handlePurchaseVerify } from './purchase';
 
 // ============================================================
 // Route table type
@@ -69,11 +73,17 @@ const routes: Route[] = [
   },
   {
     method: 'POST',
+    pattern: /^\/auth\/kakao$/,
+    handler: (req, env) => handleKakaoAuth(req, env),
+  },
+  {
+    method: 'POST',
     pattern: /^\/auth\/refresh$/,
     handler: (req, env) => handleRefresh(req, env),
   },
   {
-    method: 'DELETE',
+    // Flutter uses POST for signout
+    method: 'POST',
     pattern: /^\/auth\/signout$/,
     handler: (req, env) => handleSignout(req, env),
   },
@@ -83,8 +93,9 @@ const routes: Route[] = [
     handler: (req, env) => handleDeleteAccount(req, env),
   },
   {
+    // Flutter calls GET /auth/me
     method: 'GET',
-    pattern: /^\/me$/,
+    pattern: /^\/auth\/me$/,
     handler: (req, env) => handleGetMe(req, env),
   },
 
@@ -147,8 +158,9 @@ const routes: Route[] = [
     handler: (req, env) => handleUploadUrl(req, env),
   },
   {
+    // Flutter calls GET /media/usage
     method: 'GET',
-    pattern: /^\/media\/storage-usage$/,
+    pattern: /^\/media\/usage$/,
     handler: (req, env) => handleStorageUsage(req, env),
   },
   {
@@ -165,6 +177,13 @@ const routes: Route[] = [
     pattern: /^\/media\/(.+)$/,
     handler: (req, env, fileKey) =>
       handleDeleteMedia(req, env, decodeURIComponent(fileKey)),
+  },
+
+  // ── Purchase ──────────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: /^\/purchase\/verify$/,
+    handler: (req, env) => handlePurchaseVerify(req, env),
   },
 ];
 

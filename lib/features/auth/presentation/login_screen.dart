@@ -7,6 +7,7 @@ import '../../../core/services/auth/auth_service.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_radius.dart';
 import '../../../design/tokens/app_spacing.dart';
+import '../../../core/services/auth/kakao_auth_helper.dart';
 import '../../../shared/repositories/settings_repository.dart';
 import '../providers/auth_notifier.dart';
 
@@ -73,15 +74,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   /// 카카오 로그인
-  /// TODO: 카카오 SDK 연동 후 kakaoAccessToken을 받아 전달
   Future<void> _onKakaoSignIn() async {
     if (_isAnyLoading) return;
     setState(() => _isKakaoLoading = true);
     try {
-      // TODO: 카카오 SDK로 토큰 획득 후 전달
-      // final kakaoToken = await KakaoSdk.login();
-      // await ref.read(authNotifierProvider.notifier).signInWithKakao(kakaoToken);
-      _showError('카카오 로그인은 준비 중입니다.');
+      // 카카오 SDK로 액세스 토큰 획득 (카카오톡 앱 -> 카카오 계정 폴백)
+      final kakaoAccessToken = await KakaoAuthHelper.login();
+      if (!mounted) return;
+
+      // 백엔드에 카카오 토큰 전달 -> JWT 발급
+      await ref.read(authNotifierProvider.notifier).signInWithKakao(kakaoAccessToken);
+      if (!mounted) return;
+
+      final authState = ref.read(authNotifierProvider);
+      authState.when(
+        data: (user) {
+          if (user != null) _navigateAfterAuth();
+        },
+        error: (e, _) => _showError(e is AuthException ? e.message : '로그인에 실패했습니다.'),
+        loading: () {},
+      );
     } catch (e) {
       if (!mounted) return;
       _showError(e is AuthException ? e.message : '로그인에 실패했습니다.');

@@ -6,6 +6,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../../shared/models/auth_user.dart';
 import 'auth_http_client.dart';
 import 'auth_token_storage.dart';
+import 'kakao_auth_helper.dart';
 
 part 'auth_service.g.dart';
 
@@ -181,6 +182,9 @@ class AuthService {
       // Google 로그아웃 실패 무시
     }
 
+    // 카카오 로그아웃 (연결된 경우)
+    await KakaoAuthHelper.logout();
+
     // 로컬 토큰 삭제
     await tokenStorage.clearTokens();
   }
@@ -218,6 +222,9 @@ class AuthService {
     } catch (_) {
       // Google 로그아웃 실패 무시 (이미 서버 삭제 완료)
     }
+
+    // 카카오 연결 해제 (계정과 앱 간 연결 완전 해제)
+    await KakaoAuthHelper.unlink();
   }
 
   /// 서버 에러 응답에서 메시지 추출

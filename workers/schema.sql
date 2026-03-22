@@ -7,9 +7,10 @@
 -- ============================================================
 CREATE TABLE IF NOT EXISTS users (
   id                  TEXT    PRIMARY KEY,
-  provider            TEXT    NOT NULL,                     -- 'apple' | 'google'
+  provider            TEXT    NOT NULL,                     -- 'apple' | 'google' | 'kakao'
   provider_id         TEXT    NOT NULL UNIQUE,
   email               TEXT,
+  name                TEXT,
   plan                TEXT    NOT NULL DEFAULT 'free',      -- 'free' | 'plus' | 'family' | 'family_plus'
   plan_expires_at     INTEGER,
   family_group_id     TEXT,
@@ -134,3 +135,18 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
   created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_refresh_user ON refresh_tokens(user_id);
+
+-- ============================================================
+-- Purchase Receipts (audit log)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS purchase_receipts (
+  id              TEXT    PRIMARY KEY,
+  user_id         TEXT    NOT NULL,
+  product_id      TEXT    NOT NULL,
+  platform        TEXT    NOT NULL,                       -- 'ios' | 'android'
+  receipt_hash    TEXT    NOT NULL,
+  verified_at     INTEGER NOT NULL,                      -- epoch ms
+  expires_at      INTEGER,                               -- epoch ms (subscriptions only)
+  is_valid        INTEGER NOT NULL DEFAULT 1
+);
+CREATE INDEX IF NOT EXISTS idx_purchase_receipts_user ON purchase_receipts(user_id);

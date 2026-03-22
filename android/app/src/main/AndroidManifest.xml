@@ -64,6 +64,18 @@
             </intent-filter>
         </activity>
 
+        <!-- ── 카카오 로그인 리다이렉트 ──────────────────────────────── -->
+        <!-- TODO: YOUR_KAKAO_NATIVE_APP_KEY를 카카오 개발자 콘솔에서 발급받은 네이티브 앱 키로 교체하세요 -->
+        <activity android:name="com.kakao.sdk.flutter.AuthCodeHandlerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:host="oauth" android:scheme="kakaoYOUR_KAKAO_NATIVE_APP_KEY" />
+            </intent-filter>
+        </activity>
+
         <!-- ── Re-Link 홈 위젯 ──────────────────────────────────────── -->
         <receiver android:name=".ReLinkWidgetProvider"
             android:exported="true">

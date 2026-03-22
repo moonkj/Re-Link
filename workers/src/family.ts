@@ -132,15 +132,16 @@ export async function handleGetMembers(
 
   const membersResult = await env.DB
     .prepare(
-      `SELECT id, email, plan, storage_used_bytes, created_at
+      `SELECT id, email, name, plan, storage_used_bytes, created_at
        FROM users WHERE family_group_id = ? ORDER BY created_at ASC`,
     )
     .bind(groupId)
-    .all<Pick<User, 'id' | 'email' | 'plan' | 'storage_used_bytes' | 'created_at'>>();
+    .all<Pick<User, 'id' | 'email' | 'name' | 'plan' | 'storage_used_bytes' | 'created_at'>>();
 
   const members: FamilyMember[] = membersResult.results.map((u) => ({
     id: u.id,
     email: u.email,
+    name: u.name,
     plan: u.plan,
     is_owner: u.id === group.owner_id,
     storage_used_bytes: u.storage_used_bytes,

@@ -40,13 +40,14 @@ export interface AuthContext {
 // Domain: User
 // ============================================================
 export type UserPlan = 'free' | 'plus' | 'family' | 'family_plus';
-export type AuthProvider = 'apple' | 'google';
+export type AuthProvider = 'apple' | 'google' | 'kakao';
 
 export interface User {
   id: string;
   provider: AuthProvider;
   provider_id: string;
   email: string | null;
+  name: string | null;
   plan: UserPlan;
   plan_expires_at: number | null;
   family_group_id: string | null;
@@ -58,6 +59,8 @@ export interface User {
 export interface UserPublic {
   id: string;
   email: string | null;
+  name: string | null;
+  provider: AuthProvider;
   plan: UserPlan;
   plan_expires_at: number | null;
   family_group_id: string | null;
@@ -81,6 +84,7 @@ export interface FamilyGroup {
 export interface FamilyMember {
   id: string;
   email: string | null;
+  name: string | null;
   plan: UserPlan;
   is_owner: boolean;
   storage_used_bytes: number;
@@ -229,6 +233,9 @@ export interface StorageUsageResponse {
 // ============================================================
 export interface AppleAuthRequest {
   id_token: string;
+  authorization_code?: string;
+  given_name?: string;
+  family_name?: string;
   user_info?: {
     name?: string;
     email?: string;
@@ -237,6 +244,22 @@ export interface AppleAuthRequest {
 
 export interface GoogleAuthRequest {
   id_token: string;
+}
+
+export interface KakaoAuthRequest {
+  access_token: string;
+}
+
+export interface PurchaseVerifyRequest {
+  receipt: string;
+  product_id: string;
+  platform: 'ios' | 'android';
+}
+
+export interface PurchaseVerifyResponse {
+  valid: boolean;
+  expires_at: string | null;
+  error: string | null;
 }
 
 export interface AuthResponse {
@@ -252,6 +275,7 @@ export interface RefreshRequest {
 
 export interface RefreshResponse {
   access_token: string;
+  refresh_token: string;
   expires_in: number;
 }
 

@@ -451,7 +451,9 @@ export async function handleStorageUsage(
   const usedBytes = usageResult?.total ?? 0;
   const limitBytes = limitResult?.storage_limit_bytes ?? STORAGE_LIMITS.family;
 
-  const response: StorageUsageResponse = {
+  // Flutter reads data['data']['total_bytes']
+  const response = {
+    total_bytes: usedBytes,
     used_bytes: usedBytes,
     limit_bytes: limitBytes,
     used_percent: limitBytes > 0 ? Math.round((usedBytes / limitBytes) * 10000) / 100 : 0,

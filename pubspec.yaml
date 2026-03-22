@@ -48,8 +48,9 @@ dependencies:
   video_player: ^2.9.2
   video_thumbnail: ^0.5.3
 
-  # ── 인증 (Apple / Google Sign-In + JWT) ──────────────────────────────────
+  # ── 인증 (Apple / Google / Kakao Sign-In + JWT) ──────────────────────────
   sign_in_with_apple: ^6.1.4
+  kakao_flutter_sdk_user: ^1.9.5
   flutter_secure_storage: ^9.2.4
   app_links: ^6.4.0
   connectivity_plus: ^6.1.4

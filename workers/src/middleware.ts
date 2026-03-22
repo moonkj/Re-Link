@@ -58,7 +58,8 @@ export function errorResponse(
   status = 400,
   request?: Request,
 ): Response {
-  return jsonResponse({ error: message }, status, request);
+  // Flutter reads both 'error' and 'message' fields
+  return jsonResponse({ error: message, message }, status, request);
 }
 
 // ============================================================

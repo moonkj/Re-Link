@@ -3888,3 +3888,84 @@ dependencies:
 - [x] 캔버스 pan/zoom — InteractiveViewer + QuadTree
 - [x] Mint/Blue 색상 — 30+ 파일 사용
 - [x] iPad Pro 빌드 — TARGETED_DEVICE_FAMILY "1,2" 6곳
+
+---
+
+## Phase 19 — 카카오 SDK + Cloudflare Workers + 최종 수정 (2026-03-22)
+
+> Phase 18에서 발견된 22개 이슈 전부 수정 완료. 카카오 SDK 네이티브 연동, Cloudflare Workers 백엔드 전체 구현.
+
+---
+
+### Phase 18 이슈 수정 완료 (22개) ✅
+
+#### Critical (4개)
+- [x] #1 카카오 로그인 — 버튼 + auth_service + auth_notifier + SDK 연동
+- [x] #2 결제 영수증 서버 검증 — POST /purchase/verify + 오프라인 보류
+- [x] #3 구독 만료 체크 — subscription_expires_at 로컬 확인
+- [x] #4 invite_code → BackupManifest — 생성/검증 양쪽 연결
+
+#### High (6개)
+- [x] #5 buySubscription() — in_app_purchase 동작 확인 (buyNonConsumable 정상)
+- [x] #6 pending 구매 처리 — AsyncLoading 상태 표시
+- [x] #7 로그인 후 온보딩 체크 — 미완료 시 프로필 셋업 이동
+- [x] #8 authUserId 설정 저장 — 로그인 성공 후 settingsRepo 저장
+- [x] #9 토큰 갱신 실패 시 auth 초기화 — ref.invalidate
+- [x] #10 redirect 파라미터 사용 — GoRouterState에서 읽어 네비게이션
+
+#### Medium (8개)
+- [x] #11 앱 시작 시 구독 동기화 — restorePurchases() 초기화
+- [x] #12 테스트 광고 ID → EnvConfig — kDebugMode 분기
+- [x] #13 PlanLimitError UI 표시 — AsyncError 전파
+- [x] #14 클라우드 저장소 쿼터 체크 — GET /media/usage
+- [x] #15 setOnboardingDone() 중복 제거
+- [x] #16 계정 삭제 에러 처리 — 서버 확인 후 토큰 삭제
+- [x] #17 자동 백업 — 앱 포그라운드 복귀 시 트리거
+- [x] #18 보호 라우트 확장 — acceptInvite 추가
+
+#### Low (4개)
+- [x] #19 프로필 셋업 닉네임/생년월일/소개 추가
+- [x] #20 구독 갱신일 표시 섹션
+- [x] #21 Wrapped/Bouquet 페이지 — 이미 완성 확인
+- [x] #22 상품 ID 중복 제거 — 단일 소스
+
+---
+
+### 카카오 SDK 네이티브 연동 ✅
+
+- [x] `kakao_flutter_sdk_user: ^1.9.5` 추가
+- [x] `KakaoAuthHelper` — 카카오톡/계정 로그인 분기
+- [x] iOS Info.plist — URL Scheme + LSApplicationQueriesSchemes
+- [x] Android AndroidManifest — AuthCodeHandlerActivity
+- [x] main.dart — KakaoSdk.init()
+- [x] login_screen.dart — 카카오 버튼 실제 로직 연결
+- [ ] Kakao Developer Console에서 네이티브 앱 키 발급 후 교체 필요
+
+---
+
+### Cloudflare Workers 백엔드 ✅
+
+- [x] `workers/` 디렉토리 전체 생성
+  - `wrangler.toml` — D1/R2/KV 바인딩
+  - `src/index.ts` — 전체 API 라우터 (15+ 엔드포인트)
+  - `src/auth.ts` — JWT + Apple/Google/Kakao 토큰 검증
+  - `src/middleware.ts` — Bearer 인증 미들웨어
+  - `schema.sql` — D1 테이블 스키마 (users, groups, invites, sync_*)
+  - `package.json` + `tsconfig.json`
+- [ ] `wrangler deploy` 실행 필요 (Cloudflare 계정 설정 후)
+
+---
+
+### 배포 전 체크리스트
+
+- [ ] Kakao Developer Console: 네이티브 앱 키 발급 → Info.plist/AndroidManifest 교체
+- [ ] Cloudflare 계정: Workers/D1/R2 프로비저닝
+- [ ] `wrangler deploy` → Workers 배포
+- [ ] `wrangler d1 execute relink-db --file workers/schema.sql` → D1 초기화
+- [ ] Apple Developer: App Group 등록 (홈 위젯용)
+- [ ] Apple Developer: Sign In with Apple 활성화
+- [ ] Google Cloud: OAuth 2.0 클라이언트 ID 발급
+- [ ] App Store Connect: 인앱 구매 상품 등록
+- [ ] Google Play Console: 인앱 구매 상품 등록
+- [ ] `--dart-define=WORKERS_BASE_URL=https://relink-api.YOUR.workers.dev` 빌드 설정
+- [ ] `--dart-define=ADMOB_BANNER_ID_IOS=실제ID` 광고 ID 설정
