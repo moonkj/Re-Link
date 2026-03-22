@@ -166,6 +166,14 @@ class FamilyHubScreen extends ConsumerWidget {
                 ),
                 const TileDivider(),
                 FeatureTile(
+                  icon: Icons.login_rounded,
+                  iconColor: AppColors.secondary,
+                  title: '초대 코드로 합류',
+                  subtitle: '전달받은 코드와 파일로 가족 트리 합류',
+                  onTap: () => context.push(AppRoutes.joinFamily),
+                ),
+                const TileDivider(),
+                FeatureTile(
                   icon: Icons.map_outlined,
                   iconColor: AppColors.secondary,
                   title: '가족 지도',

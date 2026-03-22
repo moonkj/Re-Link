@@ -142,15 +142,28 @@ class _FamilyMapScreenState extends ConsumerState<FamilyMapScreen> {
             },
           ),
           children: [
-            // 타일 레이어 (OpenStreetMap)
-            TileLayer(
-              urlTemplate: isDark
-                  ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
-                  : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
-              subdomains: const ['a', 'b', 'c', 'd'],
-              userAgentPackageName: 'com.relink.reLink',
-              maxZoom: 19,
-            ),
+            // 타일 레이어 — OSM 표준 타일 (한국어 지명 기본 표시)
+            // 다크모드: ColorFiltered로 반전+감마 적용
+            if (isDark)
+              ColorFiltered(
+                colorFilter: const ColorFilter.matrix(<double>[
+                  -0.8, 0, 0, 0, 200,
+                  0, -0.8, 0, 0, 200,
+                  0, 0, -0.8, 0, 200,
+                  0, 0, 0, 1, 0,
+                ]),
+                child: TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.relink.reLink',
+                  maxZoom: 19,
+                ),
+              )
+            else
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.relink.reLink',
+                maxZoom: 19,
+              ),
             // 마커 레이어
             MarkerLayer(
               markers: filtered.map((pin) {

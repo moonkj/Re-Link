@@ -27,6 +27,7 @@ import '../../features/jokbo/presentation/palgojodo_screen.dart';
 import '../../features/clan/presentation/clan_explorer_screen.dart';
 import '../../features/birthday/presentation/birthday_screen.dart';
 import '../../features/invite/presentation/invite_screen.dart';
+import '../../features/invite/presentation/join_family_screen.dart';
 import '../../features/snapshot/presentation/snapshot_share_screen.dart';
 import '../../features/wrapped/presentation/wrapped_screen.dart';
 import '../../features/recipe/presentation/recipe_list_screen.dart';
@@ -91,6 +92,7 @@ abstract final class AppRoutes {
   static const String login = '/login';
   static const String familyMembers = '/family-members';
   static const String acceptInvite = '/invite/accept';
+  static const String joinFamily = '/join-family';
 
   static String memoryPath(String nodeId) => '/memory/$nodeId';
   static String temperatureDiaryPath(String nodeId) =>
@@ -250,6 +252,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.invite,
         builder: (_, s) => const InviteScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.joinFamily,
+        builder: (_, s) => const JoinFamilyScreen(),
       ),
       GoRoute(
         path: AppRoutes.snapshot,
