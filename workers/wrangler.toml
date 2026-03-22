@@ -9,7 +9,7 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding       = "DB"
 database_name = "relink-db"
-database_id   = "YOUR_D1_DATABASE_ID"   # wrangler d1 create relink-db → paste ID here
+database_id   = "ee4ec1d4-a41f-47d5-851a-0187f6de5820"
 
 # ── R2 Bucket ────────────────────────────────────────────────
 [[r2_buckets]]
@@ -56,6 +56,6 @@ database_id   = "YOUR_D1_STAGING_DATABASE_ID"
 binding     = "MEDIA_BUCKET"
 bucket_name = "relink-media-staging"
 
-# ── Workers limits ───────────────────────────────────────────
-[limits]
-cpu_ms = 50   # default; increase if sync push batches time out
+# ── Workers limits (유료 플랜에서만 설정 가능) ──────────────
+# [limits]
+# cpu_ms = 50

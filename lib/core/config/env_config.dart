@@ -7,7 +7,7 @@ abstract final class EnvConfig {
   // ── Cloudflare Workers API ─────────────────────────────────────────────
   static const String workersBaseUrl = String.fromEnvironment(
     'WORKERS_BASE_URL',
-    defaultValue: 'https://api.relink.app',
+    defaultValue: 'https://relink-api.relink-app.workers.dev',
   );
 
   static const String r2BucketUrl = String.fromEnvironment(
