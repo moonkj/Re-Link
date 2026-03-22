@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../config/env_config.dart';
+import '../../../features/auth/providers/auth_notifier.dart';
 import 'auth_token_storage.dart';
 
 part 'auth_http_client.g.dart';
@@ -13,8 +14,8 @@ AuthHttpClient authHttpClient(Ref ref) {
   return AuthHttpClient(
     tokenStorage: ref.read(authTokenStorageProvider),
     onUnauthorized: () async {
-      // 순환 참조 방지: provider를 직접 읽지 않고 콜백으로 처리
-      // auth_service에서 401 처리 시 signOut()을 호출
+      // 리프레시 토큰 갱신 실패 → 인증 상태 초기화 (로그아웃 처리)
+      ref.invalidate(authNotifierProvider);
     },
   );
 }

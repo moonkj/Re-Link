@@ -20,12 +20,17 @@ class ProfileSetupScreen extends ConsumerStatefulWidget {
 
 class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   final _nameController = TextEditingController();
+  final _nicknameController = TextEditingController();
+  final _bioController = TextEditingController();
   String? _photoPath;
+  DateTime? _birthDate;
   bool _saving = false;
 
   @override
   void dispose() {
     _nameController.dispose();
+    _nicknameController.dispose();
+    _bioController.dispose();
     super.dispose();
   }
 
@@ -113,7 +118,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 ),
                 const SizedBox(height: AppSpacing.xxxl),
 
-                // 이름 입력
+                // 이름 입력 (필수)
                 GlassCard(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.lg,
@@ -131,6 +136,90 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       hintStyle: TextStyle(color: AppColors.textTertiary),
                       prefixIcon: Icon(Icons.person_outline, color: AppColors.primary),
                     ),
+                    textInputAction: TextInputAction.next,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // 닉네임 입력 (선택)
+                GlassCard(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.sm,
+                  ),
+                  child: TextField(
+                    controller: _nicknameController,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 16,
+                    ),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: '닉네임 (선택)',
+                      hintStyle: TextStyle(color: AppColors.textTertiary),
+                      prefixIcon: Icon(Icons.tag, color: AppColors.primary),
+                    ),
+                    textInputAction: TextInputAction.next,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // 생년월일 선택 (선택)
+                GlassCard(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.sm,
+                  ),
+                  onTap: _pickBirthDate,
+                  child: Row(
+                    children: [
+                      Icon(Icons.cake_outlined, color: AppColors.primary),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Text(
+                          _birthDate != null
+                              ? '${_birthDate!.year}년 ${_birthDate!.month}월 ${_birthDate!.day}일'
+                              : '생년월일 (선택)',
+                          style: TextStyle(
+                            color: _birthDate != null
+                                ? AppColors.textPrimary
+                                : AppColors.textTertiary,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      if (_birthDate != null)
+                        GestureDetector(
+                          onTap: () => setState(() => _birthDate = null),
+                          child: Icon(Icons.close, size: 18, color: AppColors.textTertiary),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // 소개 입력 (선택, 최대 100자)
+                GlassCard(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.sm,
+                  ),
+                  child: TextField(
+                    controller: _bioController,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 16,
+                    ),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: '한 줄 소개 (선택, 최대 100자)',
+                      hintStyle: TextStyle(color: AppColors.textTertiary),
+                      prefixIcon: Icon(Icons.edit_note, color: AppColors.primary),
+                      counterText: '',
+                    ),
+                    maxLength: 100,
+                    maxLines: 2,
+                    minLines: 1,
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _save(),
                   ),
@@ -166,6 +255,20 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     setState(() => _photoPath = result);
   }
 
+  Future<void> _pickBirthDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _birthDate ?? DateTime(now.year - 30),
+      firstDate: DateTime(1900),
+      lastDate: now,
+      locale: const Locale('ko', 'KR'),
+    );
+    if (picked != null && mounted) {
+      setState(() => _birthDate = picked);
+    }
+  }
+
   Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
@@ -176,9 +279,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     }
     setState(() => _saving = true);
     try {
+      final nickname = _nicknameController.text.trim();
+      final bio = _bioController.text.trim();
       await ref.read(profileRepositoryProvider).saveProfile(
             name: name,
+            nickname: nickname.isNotEmpty ? nickname : null,
             photoPath: _photoPath,
+            birthDate: _birthDate,
+            bio: bio.isNotEmpty ? bio : null,
           );
       await ref.read(settingsRepositoryProvider).setOnboardingDone();
       if (!mounted) return;

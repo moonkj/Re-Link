@@ -72,8 +72,9 @@ class BackupService {
       await encoder.addDirectory(mediaDir, includeDirName: true);
     }
 
-    // 내 노드 ID 가져오기
+    // 내 노드 ID + 초대 코드 가져오기
     final myNodeId = await settings.getMyNodeId();
+    final inviteCode = await settings.getInviteCode();
 
     // manifest 추가 (크기는 나중에)
     final manifestTmp = File(p.join(tmpDir.path, 'manifest_tmp.json'));
@@ -85,6 +86,7 @@ class BackupService {
       memoryCount: memoryCount,
       totalBytes: 0, // ZIP 완료 후 업데이트
       senderNodeId: myNodeId,
+      inviteCode: inviteCode,
     );
     await manifestTmp.writeAsString(manifest.toJsonString());
     encoder.addFile(manifestTmp, 'manifest.json');
@@ -103,6 +105,7 @@ class BackupService {
       totalBytes: bytes.length,
       checksum: checksum,
       senderNodeId: manifest.senderNodeId,
+      inviteCode: manifest.inviteCode,
     );
     // manifest를 체크섬 포함해서 다시 덮어쓰기 (별도 파일에 저장)
     final checksumFile = File(p.join(tmpDir.path, '$filename.meta'));

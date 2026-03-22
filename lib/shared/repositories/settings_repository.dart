@@ -179,6 +179,11 @@ class SettingsRepository {
   Future<void> setStreakFreezeUsedMonth(String month) =>
       set(SettingsKey.streakFreezeUsedMonth, month);
 
+  // ── 초대 코드 ──────────────────────────────────────────────────────────────
+
+  Future<String?> getInviteCode() async => get(SettingsKey.inviteCode);
+  Future<void> setInviteCode(String code) => set(SettingsKey.inviteCode, code);
+
   // ── 인증 / 클라우드 동기화 ────────────────────────────────────────────────
 
   Future<String?> getAuthUserId() async => get(SettingsKey.authUserId);

@@ -106,8 +106,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.splash,
     redirect: (BuildContext context, GoRouterState state) {
       final location = state.matchedLocation;
-      // 패밀리 전용 보호 라우트
-      const protectedRoutes = [AppRoutes.familyMembers];
+      // 패밀리 전용 보호 라우트 (#18)
+      const protectedRoutes = [
+        AppRoutes.familyMembers,
+        AppRoutes.acceptInvite,
+      ];
       if (!protectedRoutes.any((r) => location.startsWith(r))) return null;
 
       final authState = ref.read(authNotifierProvider);

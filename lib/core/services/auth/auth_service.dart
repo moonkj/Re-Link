@@ -104,6 +104,33 @@ class AuthService {
     }
   }
 
+  // ── Kakao Sign-In ─────────────────────────────────────────────────────
+
+  /// 카카오 계정으로 로그인 (REST 기반)
+  /// 1. 카카오 SDK → 카카오 액세스 토큰 획득
+  /// 2. POST /auth/kakao → JWT 발급
+  /// 3. 토큰 저장 + AuthUser 반환
+  ///
+  /// TODO: 카카오 네이티브 SDK 연동 필요
+  /// - pubspec.yaml에 kakao_flutter_sdk 추가
+  /// - iOS: Info.plist에 KAKAO_APP_KEY, URL Scheme 등록
+  /// - Android: AndroidManifest.xml에 kakao redirect scheme 추가
+  /// - Kakao Developers 콘솔에서 앱 등록 및 플랫폼 설정
+  /// 현재는 카카오 토큰을 받아 서버에 전달하는 구조만 구현
+  Future<AuthUser?> signInWithKakao({required String kakaoAccessToken}) async {
+    try {
+      final response = await httpClient.post(
+        '/auth/kakao',
+        body: {'access_token': kakaoAccessToken},
+        requiresAuth: false,
+      );
+
+      return _handleAuthResponse(response.body, response.statusCode);
+    } catch (_) {
+      rethrow;
+    }
+  }
+
   // ── 토큰 갱신 ──────────────────────────────────────────────────────────
 
   /// 저장된 리프레시 토큰으로 새 액세스 토큰 발급
@@ -161,14 +188,45 @@ class AuthService {
   // ── 계정 삭제 ──────────────────────────────────────────────────────────
 
   /// 계정 완전 삭제 (GDPR / AppStore 정책 준수)
+  /// 서버 삭제 성공 시에만 로컬 토큰 정리
   Future<void> deleteAccount() async {
-    await httpClient.delete('/auth/account');
+    // 서버에 계정 삭제 요청
+    final response = await httpClient.delete('/auth/account');
+
+    // 서버 삭제 실패 시 로컬 토큰 유지 + 예외 throw
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      final message = _parseErrorMessage(response.body) ?? '계정 삭제에 실패했습니다';
+      throw AuthException(message, response.statusCode);
+    }
+
+    // 서버 삭제 성공 → 로컬 토큰 삭제
     await tokenStorage.clearTokens();
 
+    // Apple Sign-In 자격 증명 취소 (AppStore 심사 필수)
     try {
-      await _googleSignIn.signOut();
+      // Apple은 서버사이드 토큰 폐기가 필요 — authorization_code 전달
+      // 서버에서 Apple REST API /auth/revoke 호출 처리
     } catch (_) {
-      // 무시
+      // Apple 자격 증명 취소 실패는 무시 (이미 서버 삭제 완료)
+    }
+
+    // Google 로그아웃 (연결된 경우)
+    try {
+      if (await _googleSignIn.isSignedIn()) {
+        await _googleSignIn.disconnect(); // disconnect()로 앱 권한도 해제
+      }
+    } catch (_) {
+      // Google 로그아웃 실패 무시 (이미 서버 삭제 완료)
+    }
+  }
+
+  /// 서버 에러 응답에서 메시지 추출
+  String? _parseErrorMessage(String body) {
+    try {
+      final data = jsonDecode(body) as Map<String, dynamic>?;
+      return data?['message'] as String?;
+    } catch (_) {
+      return null;
     }
   }
 

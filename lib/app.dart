@@ -11,6 +11,7 @@ import 'design/tokens/app_theme.dart';
 import 'features/changelog/presentation/changelog_modal.dart';
 import 'features/auth/providers/auth_notifier.dart';
 import 'features/changelog/providers/changelog_notifier.dart';
+import 'features/backup/providers/backup_notifier.dart';
 import 'features/family_sync/providers/family_sync_notifier.dart';
 import 'features/memorial/providers/memorial_notifier.dart';
 import 'features/settings/providers/elderly_mode_notifier.dart';
@@ -130,6 +131,8 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _triggerSyncIfNeeded();
+      // 포그라운드 복귀 시 자동 백업 체크 (24시간 경과 시 실행)
+      ref.read(backupNotifierProvider.notifier).checkAutoBackup();
     }
   }
 

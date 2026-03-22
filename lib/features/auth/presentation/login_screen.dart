@@ -4,18 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/auth/auth_service.dart';
-import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_radius.dart';
 import '../../../design/tokens/app_spacing.dart';
+import '../../../shared/repositories/settings_repository.dart';
 import '../providers/auth_notifier.dart';
 
 /// 로그인 화면
 /// - Apple Sign-In (iOS HIG 준수)
 /// - Google Sign-In
 /// - "나중에 하기" 스킵 옵션
-///
-/// 패밀리 플랜 전용 기능(클라우드 동기화, 가족 공유) 진입 시 표시
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -26,64 +24,71 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isAppleLoading = false;
   bool _isGoogleLoading = false;
+  bool _isKakaoLoading = false;
 
-  bool get _isAnyLoading => _isAppleLoading || _isGoogleLoading;
-
-  // ── Apple Sign-In ──────────────────────────────────────────────────────
+  bool get _isAnyLoading => _isAppleLoading || _isGoogleLoading || _isKakaoLoading;
 
   Future<void> _onAppleSignIn() async {
     if (_isAnyLoading) return;
     setState(() => _isAppleLoading = true);
-
     try {
       await ref.read(authNotifierProvider.notifier).signInWithApple();
-
       if (!mounted) return;
       final authState = ref.read(authNotifierProvider);
       authState.when(
         data: (user) {
           if (user != null) _navigateAfterAuth();
         },
-        error: (e, _) => _showError(e is AuthException ? e.message : '로그인에 실패했습니다. 다시 시도해 주세요.'),
+        error: (e, _) => _showError(e is AuthException ? e.message : '로그인에 실패했습니다.'),
         loading: () {},
       );
     } catch (e) {
       if (!mounted) return;
-      final message = e is AuthException ? e.message : '로그인에 실패했습니다. 다시 시도해 주세요.';
-      _showError(message);
+      _showError(e is AuthException ? e.message : '로그인에 실패했습니다.');
     } finally {
       if (mounted) setState(() => _isAppleLoading = false);
     }
   }
 
-  // ── Google Sign-In ─────────────────────────────────────────────────────
-
   Future<void> _onGoogleSignIn() async {
     if (_isAnyLoading) return;
     setState(() => _isGoogleLoading = true);
-
     try {
       await ref.read(authNotifierProvider.notifier).signInWithGoogle();
-
       if (!mounted) return;
       final authState = ref.read(authNotifierProvider);
       authState.when(
         data: (user) {
           if (user != null) _navigateAfterAuth();
         },
-        error: (e, _) => _showError(e is AuthException ? e.message : '로그인에 실패했습니다. 다시 시도해 주세요.'),
+        error: (e, _) => _showError(e is AuthException ? e.message : '로그인에 실패했습니다.'),
         loading: () {},
       );
     } catch (e) {
       if (!mounted) return;
-      final message = e is AuthException ? e.message : '로그인에 실패했습니다. 다시 시도해 주세요.';
-      _showError(message);
+      _showError(e is AuthException ? e.message : '로그인에 실패했습니다.');
     } finally {
       if (mounted) setState(() => _isGoogleLoading = false);
     }
   }
 
-  // ── 에러 스낵바 ────────────────────────────────────────────────────────
+  /// 카카오 로그인
+  /// TODO: 카카오 SDK 연동 후 kakaoAccessToken을 받아 전달
+  Future<void> _onKakaoSignIn() async {
+    if (_isAnyLoading) return;
+    setState(() => _isKakaoLoading = true);
+    try {
+      // TODO: 카카오 SDK로 토큰 획득 후 전달
+      // final kakaoToken = await KakaoSdk.login();
+      // await ref.read(authNotifierProvider.notifier).signInWithKakao(kakaoToken);
+      _showError('카카오 로그인은 준비 중입니다.');
+    } catch (e) {
+      if (!mounted) return;
+      _showError(e is AuthException ? e.message : '로그인에 실패했습니다.');
+    } finally {
+      if (mounted) setState(() => _isKakaoLoading = false);
+    }
+  }
 
   void _showError(String message) {
     if (!mounted) return;
@@ -92,26 +97,50 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         content: Text(message),
         backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.radiusSm,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.radiusSm),
         margin: const EdgeInsets.all(AppSpacing.lg),
       ),
     );
   }
 
-  // ── 인증 후 네비게이션 ────────────────────────────────────────────────
-
-  void _navigateAfterAuth() {
+  Future<void> _navigateAfterAuth() async {
     if (!mounted) return;
+
+    // authUserId를 설정에 저장 (#8)
+    final authUser = ref.read(authNotifierProvider).valueOrNull;
+    if (authUser != null) {
+      await ref.read(settingsRepositoryProvider).setAuthUserId(authUser.id);
+    }
+
+    if (!mounted) return;
+
+    // redirect 쿼리 파라미터 확인 (#10)
+    final redirectPath = GoRouterState.of(context)
+        .uri
+        .queryParameters['redirect'];
+
+    if (redirectPath != null && redirectPath.isNotEmpty) {
+      final decoded = Uri.decodeComponent(redirectPath);
+      context.go(decoded);
+      return;
+    }
+
+    // 온보딩 완료 여부 확인 (#7)
+    final onboardingDone =
+        await ref.read(settingsRepositoryProvider).isOnboardingDone();
+    if (!mounted) return;
+
+    if (!onboardingDone) {
+      context.go(AppRoutes.profileSetup);
+      return;
+    }
+
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop(true);
     } else {
       context.go(AppRoutes.canvas);
     }
   }
-
-  // ── 나중에 하기 ────────────────────────────────────────────────────────
 
   void _onSkip() {
     if (Navigator.of(context).canPop()) {
@@ -121,32 +150,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  // ── UI ─────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
+    final brightness = MediaQuery.platformBrightnessOf(context);
+    final isLight = brightness == Brightness.light;
+
     return Scaffold(
-      backgroundColor: AppColors.bgBase,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.bgBase,
-              AppColors.nightSurface.withValues(alpha: 0.6),
-              AppColors.bgBase,
-            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isLight
+                ? const [Color(0xFF6EC6CA), Color(0xFF4A9EBF), Color(0xFF3D7CA8)]
+                : const [Color(0xFF0F0F1A), Color(0xFF1A1A3E), Color(0xFF0F0F1A)],
           ),
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.pagePadding,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 28),
             child: Column(
               children: [
-                // ── 상단 닫기 버튼 ───────────────────────────────────────
+                // ── 상단 스킵 버튼 ─────────────────────────────────────
                 Align(
                   alignment: Alignment.topRight,
                   child: Padding(
@@ -154,15 +179,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: GestureDetector(
                       onTap: _onSkip,
                       child: Container(
-                        padding: const EdgeInsets.all(AppSpacing.sm),
-                        decoration: BoxDecoration(
-                          color: AppColors.nightElevated.withValues(alpha: 0.6),
-                          borderRadius: AppRadius.radiusFull,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
                         ),
-                        child: Icon(
-                          CupertinoIcons.xmark,
-                          color: AppColors.textSecondary,
-                          size: 18,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.25),
+                          ),
+                        ),
+                        child: const Text(
+                          '건너뛰기',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -171,56 +205,136 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 const Spacer(flex: 2),
 
-                // ── 로고 영역 ─────────────────────────────────────────────
-                _LogoSection(),
+                // ── 로고 ───────────────────────────────────────────────
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: const Icon(
+                    CupertinoIcons.link,
+                    color: Colors.white,
+                    size: 36,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Re-Link',
+                  style: TextStyle(
+                    fontSize: 42,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: -1.5,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '가족의 기억을 잇다',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white.withValues(alpha: 0.8),
+                    letterSpacing: 0.5,
+                  ),
+                ),
 
-                const SizedBox(height: AppSpacing.xxxl),
+                const SizedBox(height: 36),
 
-                // ── 혜택 카드 ─────────────────────────────────────────────
-                _BenefitsCard(),
+                // ── 혜택 카드 ─────────────────────────────────────────
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '로그인하면',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      _BenefitRow(
+                        icon: CupertinoIcons.cloud_upload,
+                        text: '클라우드 동기화 · 20GB 자동 백업',
+                      ),
+                      const SizedBox(height: 10),
+                      _BenefitRow(
+                        icon: CupertinoIcons.person_3,
+                        text: '가족 실시간 공유 · 최대 6명',
+                      ),
+                      const SizedBox(height: 10),
+                      _BenefitRow(
+                        icon: CupertinoIcons.infinite,
+                        text: '무제한 노드 · 사진 · 음성',
+                      ),
+                    ],
+                  ),
+                ),
 
                 const Spacer(flex: 3),
 
-                // ── 로그인 버튼들 ─────────────────────────────────────────
-                _SignInButtons(
-                  isAppleLoading: _isAppleLoading,
-                  isGoogleLoading: _isGoogleLoading,
-                  onApple: _onAppleSignIn,
-                  onGoogle: _onGoogleSignIn,
+                // ── Apple Sign-In ─────────────────────────────────────
+                _SignInButton(
+                  onPressed: _isAnyLoading ? null : _onAppleSignIn,
+                  isLoading: _isAppleLoading,
+                  backgroundColor: Colors.white,
+                  textColor: Colors.black,
+                  icon: const Icon(Icons.apple, color: Colors.black, size: 22),
+                  label: 'Apple로 계속하기',
                 ),
 
-                const SizedBox(height: AppSpacing.xxl),
+                const SizedBox(height: 12),
 
-                // ── 나중에 하기 ───────────────────────────────────────────
-                TextButton(
-                  onPressed: _isAnyLoading ? null : _onSkip,
-                  child: Text(
-                    '나중에 하기',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textTertiary,
-                      decoration: TextDecoration.underline,
-                      decorationColor: AppColors.textTertiary,
-                    ),
-                  ),
+                // ── Google Sign-In ────────────────────────────────────
+                _SignInButton(
+                  onPressed: _isAnyLoading ? null : _onGoogleSignIn,
+                  isLoading: _isGoogleLoading,
+                  backgroundColor: Colors.white.withValues(alpha: 0.15),
+                  textColor: Colors.white,
+                  borderColor: Colors.white.withValues(alpha: 0.3),
+                  icon: _GoogleLogo(),
+                  label: 'Google로 계속하기',
                 ),
 
-                // ── 약관 ──────────────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: AppSpacing.sm,
-                    bottom: AppSpacing.lg,
-                  ),
-                  child: Text(
-                    '로그인 시 이용약관 및 개인정보처리방침에 동의하게 됩니다.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textTertiary,
-                      height: 1.5,
-                    ),
+                const SizedBox(height: 12),
+
+                // ── Kakao Sign-In ────────────────────────────────────
+                _SignInButton(
+                  onPressed: _isAnyLoading ? null : _onKakaoSignIn,
+                  isLoading: _isKakaoLoading,
+                  backgroundColor: const Color(0xFFFEE500),
+                  textColor: const Color(0xFF191919),
+                  icon: const _KakaoLogo(),
+                  label: '카카오로 계속하기',
+                ),
+
+                const SizedBox(height: 24),
+
+                // ── 약관 ─────────────────────────────────────────────
+                Text(
+                  '로그인 시 이용약관 및 개인정보처리방침에 동의합니다',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.white.withValues(alpha: 0.45),
+                    height: 1.5,
                   ),
                 ),
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -230,327 +344,93 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 }
 
-// ── 로고 섹션 ────────────────────────────────────────────────────────────────
-
-class _LogoSection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // 아이콘
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.primaryMint, AppColors.primaryBlue],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: AppRadius.radiusXxl,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primaryMint.withValues(alpha: 0.35),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: const Icon(
-            CupertinoIcons.link,
-            color: Colors.white,
-            size: 36,
-          ),
-        ),
-
-        const SizedBox(height: AppSpacing.lg),
-
-        // 앱 이름
-        Text(
-          'Re-Link',
-          style: TextStyle(
-            fontSize: 44,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-            letterSpacing: -1.5,
-          ),
-        ),
-
-        const SizedBox(height: AppSpacing.sm),
-
-        // 설명
-        Text(
-          '패밀리 플랜을 시작하려면 로그인이 필요합니다',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 15,
-            color: AppColors.textSecondary,
-            height: 1.5,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── 혜택 카드 ────────────────────────────────────────────────────────────────
-
-class _BenefitsCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return GlassCard(
-      padding: const EdgeInsets.all(AppSpacing.xxl),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '패밀리 플랜 혜택',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _BenefitRow(
-            icon: CupertinoIcons.cloud_upload,
-            color: AppColors.primaryBlue,
-            title: '클라우드 동기화',
-            subtitle: '20GB 자동 백업 · iCloud/Google Drive',
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _BenefitRow(
-            icon: CupertinoIcons.person_3,
-            color: AppColors.primaryMint,
-            title: '가족 실시간 공유',
-            subtitle: '최대 6명이 함께 기억을 쌓아요',
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _BenefitRow(
-            icon: CupertinoIcons.memories,
-            color: AppColors.accentWarm,
-            title: '무제한 노드 · 사진 · 음성',
-            subtitle: '제한 없이 가족 트리를 완성하세요',
-          ),
-        ],
-      ),
-    );
-  }
-}
+// ── 혜택 행 ──────────────────────────────────────────────────────────────────
 
 class _BenefitRow extends StatelessWidget {
-  const _BenefitRow({
-    required this.icon,
-    required this.color,
-    required this.title,
-    required this.subtitle,
-  });
-
+  const _BenefitRow({required this.icon, required this.text});
   final IconData icon;
-  final Color color;
-  final String title;
-  final String subtitle;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.15),
-            borderRadius: AppRadius.radiusSm,
-          ),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        const SizedBox(width: AppSpacing.md),
+        Icon(icon, color: Colors.white.withValues(alpha: 0.7), size: 18),
+        const SizedBox(width: 10),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                  height: 1.4,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── 로그인 버튼 묶음 ─────────────────────────────────────────────────────────
-
-class _SignInButtons extends StatelessWidget {
-  const _SignInButtons({
-    required this.isAppleLoading,
-    required this.isGoogleLoading,
-    required this.onApple,
-    required this.onGoogle,
-  });
-
-  final bool isAppleLoading;
-  final bool isGoogleLoading;
-  final VoidCallback onApple;
-  final VoidCallback onGoogle;
-
-  bool get _isAnyLoading => isAppleLoading || isGoogleLoading;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Apple Sign-In (검은 배경 — iOS HIG 준수)
-        _AppleSignInButton(
-          isLoading: isAppleLoading,
-          isDisabled: _isAnyLoading && !isAppleLoading,
-          onPressed: onApple,
-        ),
-
-        const SizedBox(height: AppSpacing.md),
-
-        // Google Sign-In (흰 배경)
-        _GoogleSignInButton(
-          isLoading: isGoogleLoading,
-          isDisabled: _isAnyLoading && !isGoogleLoading,
-          onPressed: onGoogle,
-        ),
-      ],
-    );
-  }
-}
-
-// ── Apple Sign-In 버튼 ───────────────────────────────────────────────────────
-
-class _AppleSignInButton extends StatelessWidget {
-  const _AppleSignInButton({
-    required this.isLoading,
-    required this.isDisabled,
-    required this.onPressed,
-  });
-
-  final bool isLoading;
-  final bool isDisabled;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: (isLoading || isDisabled) ? null : onPressed,
-      child: AnimatedOpacity(
-        opacity: isDisabled ? 0.4 : 1.0,
-        duration: const Duration(milliseconds: 150),
-        child: Container(
-          width: double.infinity,
-          height: 54,
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: AppRadius.radiusLg,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (isLoading)
-                const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation(Colors.white),
-                  ),
-                )
-              else ...[
-                const Icon(
-                  Icons.apple,
-                  color: Colors.white,
-                  size: 22,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                const Text(
-                  'Apple로 계속하기',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Google Sign-In 버튼 ──────────────────────────────────────────────────────
-
-class _GoogleSignInButton extends StatelessWidget {
-  const _GoogleSignInButton({
-    required this.isLoading,
-    required this.isDisabled,
-    required this.onPressed,
-  });
-
-  final bool isLoading;
-  final bool isDisabled;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: (isLoading || isDisabled) ? null : onPressed,
-      child: AnimatedOpacity(
-        opacity: isDisabled ? 0.4 : 1.0,
-        duration: const Duration(milliseconds: 150),
-        child: Container(
-          width: double.infinity,
-          height: 54,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: AppRadius.radiusLg,
-            border: Border.all(
-              color: const Color(0xFFDDE1E7),
-              width: 1.0,
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.white.withValues(alpha: 0.8),
+              height: 1.3,
             ),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── 로그인 버튼 ──────────────────────────────────────────────────────────────
+
+class _SignInButton extends StatelessWidget {
+  const _SignInButton({
+    required this.onPressed,
+    required this.isLoading,
+    required this.backgroundColor,
+    required this.textColor,
+    required this.icon,
+    required this.label,
+    this.borderColor,
+  });
+
+  final VoidCallback? onPressed;
+  final bool isLoading;
+  final Color backgroundColor;
+  final Color textColor;
+  final Widget icon;
+  final String label;
+  final Color? borderColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: isLoading ? null : onPressed,
+      child: AnimatedOpacity(
+        opacity: onPressed == null && !isLoading ? 0.4 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        child: Container(
+          width: double.infinity,
+          height: 54,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(14),
+            border: borderColor != null
+                ? Border.all(color: borderColor!)
+                : null,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (isLoading)
-                const SizedBox(
+                SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation(Color(0xFF4285F4)),
+                    valueColor: AlwaysStoppedAnimation(textColor),
                   ),
                 )
               else ...[
-                _GoogleLogo(),
-                const SizedBox(width: AppSpacing.sm),
-                const Text(
-                  'Google로 계속하기',
+                icon,
+                const SizedBox(width: 10),
+                Text(
+                  label,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1F1F1F),
+                    color: textColor,
                     letterSpacing: -0.3,
                   ),
                 ),
@@ -563,7 +443,8 @@ class _GoogleSignInButton extends StatelessWidget {
   }
 }
 
-/// Google 'G' 로고 (패키지 없이 CustomPaint로 구현)
+// ── Google 로고 ──────────────────────────────────────────────────────────────
+
 class _GoogleLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -580,15 +461,14 @@ class _GoogleLogoPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
 
-    // G 로고 4색 원호 (간략화 버전)
     final colors = [
-      const Color(0xFF4285F4), // Blue
-      const Color(0xFF34A853), // Green
-      const Color(0xFFFBBC05), // Yellow
-      const Color(0xFFEA4335), // Red
+      const Color(0xFF4285F4),
+      const Color(0xFF34A853),
+      const Color(0xFFFBBC05),
+      const Color(0xFFEA4335),
     ];
 
-    final sweepAngle = 3.14159 / 2; // 90도
+    final sweepAngle = 3.14159 / 2;
 
     for (var i = 0; i < 4; i++) {
       final paint = Paint()
@@ -605,14 +485,12 @@ class _GoogleLogoPainter extends CustomPainter {
       );
     }
 
-    // 중앙 흰 원 (G자 컷아웃)
     canvas.drawCircle(
       center,
       radius * 0.38,
       Paint()..color = Colors.white,
     );
 
-    // G 가로선 (오른쪽)
     canvas.drawRect(
       Rect.fromLTWH(
         center.dx,
@@ -626,4 +504,50 @@ class _GoogleLogoPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_GoogleLogoPainter oldDelegate) => false;
+}
+
+// ── 카카오 로고 ──────────────────────────────────────────────────────────────
+
+class _KakaoLogo extends StatelessWidget {
+  const _KakaoLogo();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: const Size(20, 20),
+      painter: _KakaoLogoPainter(),
+    );
+  }
+}
+
+/// 카카오 말풍선 로고 (카카오 브랜드 가이드라인 준수)
+class _KakaoLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF191919)
+      ..style = PaintingStyle.fill;
+
+    // 말풍선 원형 바디
+    final center = Offset(size.width / 2, size.height * 0.42);
+    final rx = size.width * 0.45;
+    final ry = size.height * 0.38;
+
+    canvas.drawOval(
+      Rect.fromCenter(center: center, width: rx * 2, height: ry * 2),
+      paint,
+    );
+
+    // 하단 꼬리 삼각형
+    final tailPath = Path()
+      ..moveTo(size.width * 0.32, size.height * 0.7)
+      ..lineTo(size.width * 0.22, size.height * 0.95)
+      ..lineTo(size.width * 0.52, size.height * 0.72)
+      ..close();
+
+    canvas.drawPath(tailPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(_KakaoLogoPainter oldDelegate) => false;
 }

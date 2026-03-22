@@ -6,7 +6,6 @@ import '../../../core/services/notification/notification_service.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
-import '../../../shared/repositories/settings_repository.dart';
 
 /// 온보딩 3스텝 화면 (첫 실행 시)
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -51,7 +50,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Future<void> _complete() async {
-    await ref.read(settingsRepositoryProvider).setOnboardingDone();
+    // 온보딩 완료 플래그는 profile_setup에서 설정 (중복 방지 #15)
     if (!mounted) return;
     context.go(AppRoutes.profileSetup);
   }

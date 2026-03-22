@@ -6,7 +6,7 @@ part of 'auth_http_client.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authHttpClientHash() => r'3d7f88beecb0d8fe1129193426de1d114d87dcd4';
+String _$authHttpClientHash() => r'a1925af7eacac33a37d52ebb9c9564191a38673a';
 
 /// Riverpod provider — AuthHttpClient
 ///

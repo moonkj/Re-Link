@@ -73,6 +73,9 @@ abstract final class SettingsKey {
   static const String adminAllBadges = 'admin_all_badges';             // true / false
   static const String adminDummyGenerated = 'admin_dummy_generated';   // true / false
 
+  // ── 초대 코드 ──────────────────────────────────────────────────────────
+  static const String inviteCode     = 'invite_code';         // 6자리 가족 초대 코드
+
   // ── 인증 / 클라우드 동기화 ────────────────────────────────────────────
   static const String authUserId     = 'auth_user_id';       // 인증된 사용자 UUID
   static const String authEmail      = 'auth_email';         // 인증 이메일

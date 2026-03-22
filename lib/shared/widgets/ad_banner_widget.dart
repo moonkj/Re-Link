@@ -1,7 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../../core/config/env_config.dart';
 import '../../design/tokens/app_colors.dart';
 import '../models/user_plan.dart';
 import '../../features/subscription/providers/plan_notifier.dart';
@@ -26,10 +26,6 @@ class _AdBannerWidgetState extends ConsumerState<AdBannerWidget> {
   BannerAd? _bannerAd;
   bool _adLoaded = false;
 
-  // 테스트 ID — 출시 전 실제 ID로 교체
-  static const String _adUnitIdAndroid = 'ca-app-pub-3940256099942544/6300978111';
-  static const String _adUnitIdIos = 'ca-app-pub-3940256099942544/2934735716';
-
   @override
   void initState() {
     super.initState();
@@ -37,7 +33,8 @@ class _AdBannerWidgetState extends ConsumerState<AdBannerWidget> {
   }
 
   void _loadAd() {
-    final adUnitId = Platform.isIOS ? _adUnitIdIos : _adUnitIdAndroid;
+    // EnvConfig에서 광고 ID 가져옴 — kDebugMode 시 테스트 ID 자동 선택 (#12)
+    final adUnitId = EnvConfig.bannerAdUnitId;
 
     _bannerAd = BannerAd(
       adUnitId: adUnitId,

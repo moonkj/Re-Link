@@ -5,17 +5,12 @@ abstract final class AppConstants {
   static const String appTagline = '가족의 기억을 잇다';
   static const String packageName = 'com.relink';
 
-  // ── 인앱 구매 상품 ID (PlanProductIds 참조) ──────────────────────────────
-  static const String iapPlusId = 'com.relink.plus';
-  static const String iapFamilyMonthlyId = 'com.relink.family_monthly';
-  static const String iapFamilyAnnualId = 'com.relink.family_annual';
-  static const String iapFamilyPlusMonthlyId = 'com.relink.family_plus_monthly';
-  static const String iapFamilyPlusAnnualId = 'com.relink.family_plus_annual';
+  // ── 인앱 구매 상품 ID → PlanProductIds 클래스 사용 (#22) ──────────────────
+  // 상품 ID는 lib/core/services/plan/plan_service.dart의 PlanProductIds에서 관리
+  // 중복 정의 제거 — 직접 사용하지 말 것
 
-  // ── 플랜별 제한 (UserPlan enum 참조) ────────────────────────────────────
-  static const int freeMaxNodes = 15;
-  static const int freeMaxPhotos = 50;
-  static const int freeMaxVoiceMinutes = 5;
+  // ── 플랜별 제한 → UserPlan enum 참조 ────────────────────────────────────
+  // 플랜 제한 값은 lib/shared/models/user_plan.dart의 UserPlan enum에서 관리
 
   // ── 캔버스 ────────────────────────────────────────────────────────────────
   static const double canvasDefaultScale = 1.0;

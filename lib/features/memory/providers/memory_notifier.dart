@@ -60,8 +60,9 @@ class MemoryNotifier extends _$MemoryNotifier {
       );
       state = const AsyncData(null);
       return memory;
-    } on PlanLimitError {
-      state = const AsyncData(null);
+    } on PlanLimitError catch (e, st) {
+      // PlanLimitError를 AsyncError로 전달하여 UI에서 에러 메시지 표시 (#13)
+      state = AsyncError(e, st);
       rethrow;
     } catch (e, st) {
       state = AsyncError(e, st);
@@ -92,8 +93,9 @@ class MemoryNotifier extends _$MemoryNotifier {
       );
       state = const AsyncData(null);
       return memory;
-    } on PlanLimitError {
-      state = const AsyncData(null);
+    } on PlanLimitError catch (e, st) {
+      // PlanLimitError를 AsyncError로 전달하여 UI에서 에러 메시지 표시 (#13)
+      state = AsyncError(e, st);
       rethrow;
     } catch (e, st) {
       state = AsyncError(e, st);
@@ -126,8 +128,9 @@ class MemoryNotifier extends _$MemoryNotifier {
       );
       state = const AsyncData(null);
       return memory;
-    } on PlanLimitError {
-      state = const AsyncData(null);
+    } on PlanLimitError catch (e, st) {
+      // PlanLimitError를 AsyncError로 전달하여 UI에서 에러 메시지 표시 (#13)
+      state = AsyncError(e, st);
       rethrow;
     } catch (e, st) {
       state = AsyncError(e, st);

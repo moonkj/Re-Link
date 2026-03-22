@@ -190,6 +190,12 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                             ),
                 ),
 
+                // 현재 구독 정보 표시 (#20)
+                if (currentPlan.isSubscription)
+                  _SubscriptionInfoSection(
+                    currentPlan: currentPlan,
+                  ),
+
                 // 구매 복원
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.lg),
@@ -749,6 +755,116 @@ List<({String label, bool enabled})> _featuresForPlan(UserPlan plan) {
         (label: '버전 관리 백업', enabled: true),
         (label: '신기능 얼리 액세스', enabled: true),
       ];
+  }
+}
+
+// ── 구독 정보 섹션 (#20) ───────────────────────────────────────────────────────
+
+class _SubscriptionInfoSection extends ConsumerWidget {
+  const _SubscriptionInfoSection({required this.currentPlan});
+
+  final UserPlan currentPlan;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return FutureBuilder<DateTime?>(
+      future: ref.read(planNotifierProvider.notifier).getSubscriptionExpiry(),
+      builder: (context, snapshot) {
+        final expiresAt = snapshot.data;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.sm,
+          ),
+          child: GlassCard(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.card_membership_outlined,
+                        size: 18, color: AppColors.primary),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      '현재 구독 정보',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Divider(color: AppColors.glassBorder),
+                const SizedBox(height: AppSpacing.sm),
+
+                // 플랜명
+                _InfoRow(
+                  label: '플랜',
+                  value: currentPlan.displayName,
+                ),
+
+                // 갱신일
+                if (expiresAt != null)
+                  _InfoRow(
+                    label: '다음 갱신일',
+                    value: _formatDate(expiresAt),
+                  ),
+
+                const SizedBox(height: AppSpacing.sm),
+
+                // 구독 관리 안내
+                Text(
+                  '구독 해지는 기기의 설정 > 구독에서 가능합니다.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.year}년 ${date.month}월 ${date.day}일';
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

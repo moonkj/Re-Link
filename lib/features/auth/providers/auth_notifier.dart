@@ -51,6 +51,22 @@ class AuthNotifier extends _$AuthNotifier {
     );
   }
 
+  // ── Kakao Sign-In ─────────────────────────────────────────────────────
+
+  /// 카카오 계정으로 로그인
+  /// 성공 시 state를 [AsyncData(AuthUser)]로 업데이트
+  /// 실패 시 [AsyncError]로 업데이트
+  ///
+  /// TODO: 카카오 SDK에서 kakaoAccessToken을 받아 전달해야 함
+  Future<void> signInWithKakao(String kakaoAccessToken) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+      () => ref.read(authServiceProvider).signInWithKakao(
+            kakaoAccessToken: kakaoAccessToken,
+          ),
+    );
+  }
+
   // ── 로그아웃 ───────────────────────────────────────────────────────────
 
   /// 로그아웃 처리
