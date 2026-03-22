@@ -63,3 +63,7 @@ GoogleService-Info.plist
 
 # 폰트 파일 (라이선스 확인 후 결정)
 # assets/fonts/
+
+# Workers
+workers/node_modules/
+.wrangler/
