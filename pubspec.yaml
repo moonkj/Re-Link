@@ -48,6 +48,9 @@ dependencies:
   video_player: ^2.9.2
   video_thumbnail: ^0.5.3
 
+  # ── WebView (카카오 인앱 로그인) ──────────────────────────────────────────
+  webview_flutter: ^4.10.0
+
   # ── 인증 (Apple / Google / Kakao Sign-In + JWT) ──────────────────────────
   sign_in_with_apple: ^6.1.4
   kakao_flutter_sdk_user: ^1.9.5

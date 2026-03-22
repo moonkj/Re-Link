@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -61,14 +63,28 @@ class AuthHttpClient {
     Map<String, dynamic>? body,
     bool requiresAuth = true,
   }) async {
+    debugPrint('[AuthHttp] POST $baseUrl$path (requiresAuth=$requiresAuth)');
+    if (body != null) {
+      debugPrint('[AuthHttp] body keys: ${body.keys.toList()}');
+    }
     return _sendWithRetry(
       () async {
         final token = requiresAuth ? await tokenStorage.getAccessToken() : null;
-        return _client.post(
-          _uri(path),
+        final uri = _uri(path);
+        debugPrint('[AuthHttp] → sending POST to $uri');
+        final response = await _client.post(
+          uri,
           headers: _defaultHeaders(token),
           body: body != null ? jsonEncode(body) : null,
+        ).timeout(
+          const Duration(seconds: 15),
+          onTimeout: () {
+            debugPrint('[AuthHttp] ⚠ POST $path timed out after 15s');
+            throw TimeoutException('POST $path timed out after 15s');
+          },
         );
+        debugPrint('[AuthHttp] ← POST $path responded: ${response.statusCode}');
+        return response;
       },
       requiresAuth: requiresAuth,
     );
@@ -89,15 +105,25 @@ class AuthHttpClient {
     Future<http.Response> Function() request, {
     bool requiresAuth = true,
   }) async {
-    final response = await request();
+    http.Response response;
+    try {
+      response = await request();
+    } catch (e, st) {
+      debugPrint('[AuthHttp] ❌ HTTP request failed: $e');
+      debugPrint('[AuthHttp] Stack trace: $st');
+      rethrow;
+    }
 
     if (response.statusCode == 401 && requiresAuth) {
+      debugPrint('[AuthHttp] 401 received, attempting token refresh...');
       // 리프레시 토큰으로 액세스 토큰 갱신 시도
       final newToken = await _tryRefreshToken();
       if (newToken != null) {
+        debugPrint('[AuthHttp] Token refreshed, retrying request...');
         // 새 토큰으로 1회 재시도
         return request();
       } else {
+        debugPrint('[AuthHttp] Token refresh failed, triggering unauthorized');
         // 갱신 실패 → 로그아웃 처리
         await onUnauthorized?.call();
       }

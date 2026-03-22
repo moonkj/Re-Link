@@ -1,54 +1,175 @@
-import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:webview_flutter/webview_flutter.dart';
 
-/// 카카오 SDK 래퍼 -- 로그인 후 accessToken 반환
-///
-/// 카카오 개발자 콘솔 설정 필요:
-/// 1. https://developers.kakao.com 에서 앱 등록
-/// 2. 플랫폼 등록:
-///    - Android: com.relink.re_link (키해시 등록)
-///    - iOS: com.relink.reLink (번들 ID 등록)
-/// 3. 카카오 로그인 활성화 (동의항목 설정)
-/// 4. 발급받은 네이티브 앱 키를 아래 위치에 설정:
-///    - main.dart: KakaoSdk.init(nativeAppKey: ...)
-///    - iOS Info.plist: kakao{NATIVE_APP_KEY} URL Scheme
-///    - Android AndroidManifest.xml: kakao{NATIVE_APP_KEY} scheme
+/// 카카오 로그인 — 인앱 WebView 방식
+/// Apple 심사 가이드라인 준수 (외부 Safari 미사용)
+/// iOS 26 beta ASWebAuthenticationSession 호환성 문제 우회
 class KakaoAuthHelper {
-  /// 카카오 로그인 (카카오톡 앱 -> 카카오 계정 폴백)
-  ///
-  /// 카카오톡이 설치된 경우 카카오톡 앱으로 로그인 시도,
-  /// 설치되지 않았거나 실패한 경우 카카오 계정(웹) 로그인으로 폴백
-  static Future<String> login() async {
-    OAuthToken token;
-    if (await isKakaoTalkInstalled()) {
-      try {
-        token = await UserApi.instance.loginWithKakaoTalk();
-      } catch (e) {
-        debugPrint('[KakaoAuth] 카카오톡 로그인 실패, 계정 로그인 시도: $e');
-        token = await UserApi.instance.loginWithKakaoAccount();
-      }
-    } else {
-      token = await UserApi.instance.loginWithKakaoAccount();
+  // REST API 키 (OAuth 인증 페이지 + 토큰 교환 모두 이 키 사용)
+  static const _restApiKey = '61c6efeba31294512cb6ea04ef5f240a';
+  // 네이티브 앱 키 (URL Scheme 등록용 — 토큰 교환에 사용하지 않음)
+  // ignore: unused_field
+  static const _nativeAppKey = 'ed9d5c7ed7690d43a6d8ac866353cf31';
+  // 카카오 OAuth 리디렉트: 우리 서버가 아닌 카카오 기본 리디렉트 사용
+  static const _redirectUri = 'https://relink-api.relink-app.workers.dev/auth/kakao/callback';
+
+  /// 카카오 로그인 — 인앱 WebView 바텀시트
+  static Future<String> login(BuildContext context) async {
+    final authUrl =
+        'https://kauth.kakao.com/oauth/authorize'
+        '?response_type=code'
+        '&client_id=$_restApiKey'
+        '&redirect_uri=${Uri.encodeComponent(_redirectUri)}'
+        '&prompt=login';
+
+    // 인앱 WebView 바텀시트로 카카오 로그인 표시
+    final code = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _KakaoWebViewSheet(authUrl: authUrl),
+    );
+
+    if (code == null || code.isEmpty) {
+      throw Exception('카카오 로그인이 취소되었습니다');
     }
-    return token.accessToken;
+
+    // 인증 코드 → access_token 교환
+    // ⚠️ client_id는 반드시 REST API 키를 사용해야 함
+    // OAuth 인가 요청(authorize)과 토큰 교환(token) 모두 동일한 키 타입 필요
+    final tokenResponse = await http.post(
+      Uri.parse('https://kauth.kakao.com/oauth/token'),
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: {
+        'grant_type': 'authorization_code',
+        'client_id': _restApiKey,
+        'redirect_uri': _redirectUri,
+        'code': code,
+        'client_secret': 'LdvmGCSCFydJ8dm7NAmpYb0hKNz4G03S',
+      },
+    );
+
+    if (tokenResponse.statusCode != 200) {
+      debugPrint('[KakaoAuth] 토큰 교환 실패: ${tokenResponse.body}');
+      final errorBody = jsonDecode(tokenResponse.body) as Map<String, dynamic>;
+      final errorCode = errorBody['error'] ?? '';
+      final errorDesc = errorBody['error_description'] ?? '토큰 교환 실패';
+      throw Exception('$errorCode: $errorDesc');
+    }
+
+    final tokenData = jsonDecode(tokenResponse.body) as Map<String, dynamic>;
+    final accessToken = tokenData['access_token'] as String?;
+
+    if (accessToken == null || accessToken.isEmpty) {
+      throw Exception('카카오 액세스 토큰을 받지 못했습니다');
+    }
+
+    debugPrint('[KakaoAuth] 로그인 성공');
+    return accessToken;
   }
 
-  /// 카카오 로그아웃
-  static Future<void> logout() async {
-    try {
-      await UserApi.instance.logout();
-    } catch (_) {
-      // 카카오 로그아웃 실패 무시 (이미 서버 로그아웃 처리됨)
-    }
+  static Future<void> logout() async {}
+  static Future<void> unlink() async {}
+}
+
+/// 카카오 로그인 WebView 바텀시트
+class _KakaoWebViewSheet extends StatefulWidget {
+  const _KakaoWebViewSheet({required this.authUrl});
+  final String authUrl;
+
+  @override
+  State<_KakaoWebViewSheet> createState() => _KakaoWebViewSheetState();
+}
+
+class _KakaoWebViewSheetState extends State<_KakaoWebViewSheet> {
+  late final WebViewController _webCtrl;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _webCtrl = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(NavigationDelegate(
+        onPageStarted: (_) {
+          if (mounted) setState(() => _isLoading = true);
+        },
+        onPageFinished: (_) {
+          if (mounted) setState(() => _isLoading = false);
+        },
+        onNavigationRequest: (request) {
+          final url = request.url;
+          // 리디렉트 URL에서 인증 코드 가로채기
+          if (url.startsWith(KakaoAuthHelper._redirectUri)) {
+            final uri = Uri.parse(url);
+            final code = uri.queryParameters['code'];
+            if (code != null && code.isNotEmpty) {
+              Navigator.of(context).pop(code);
+              return NavigationDecision.prevent;
+            }
+            // 에러 케이스
+            final error = uri.queryParameters['error'];
+            if (error != null) {
+              Navigator.of(context).pop(null);
+              return NavigationDecision.prevent;
+            }
+          }
+          return NavigationDecision.navigate;
+        },
+      ))
+      ..loadRequest(Uri.parse(widget.authUrl));
   }
 
-  /// 카카오 연결 해제 (계정 삭제 시)
-  /// 카카오 계정과 앱 간의 연결을 완전히 해제합니다.
-  static Future<void> unlink() async {
-    try {
-      await UserApi.instance.unlink();
-    } catch (_) {
-      // 카카오 연결 해제 실패 무시 (이미 서버 삭제 처리됨)
-    }
+  @override
+  Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height * 0.85;
+
+    return Container(
+      height: height,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          // 핸들 바 + 닫기
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                const SizedBox(width: 40),
+                const Spacer(),
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: const Icon(Icons.close, size: 24, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          // 로딩 인디케이터
+          if (_isLoading)
+            const LinearProgressIndicator(
+              color: Color(0xFFFEE500),
+              backgroundColor: Color(0xFFF5F5F5),
+            ),
+          // WebView
+          Expanded(
+            child: WebViewWidget(controller: _webCtrl),
+          ),
+        ],
+      ),
+    );
   }
 }

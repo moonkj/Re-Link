@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'app.dart';
 import 'core/services/notification/notification_service.dart';
 
@@ -80,11 +79,6 @@ Future<void> main() async {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
-    // 카카오 SDK 초기화
-    // TODO: ed9d5c7ed7690d43a6d8ac866353cf31를 카카오 개발자 콘솔에서 발급받은 네이티브 앱 키로 교체하세요
-    // https://developers.kakao.com → 내 애플리케이션 → 앱 키 → 네이티브 앱 키
-    KakaoSdk.init(nativeAppKey: 'ed9d5c7ed7690d43a6d8ac866353cf31');
-
     // AdMob + 알림 초기화: 1.5초 지연 (iOS 26 watchdog 방지)
     // - NotificationService는 Riverpod 싱글톤이 lazy-init으로 처리
     // - 여기서 별도 인스턴스 생성하면 이중 초기화로 충돌 발생

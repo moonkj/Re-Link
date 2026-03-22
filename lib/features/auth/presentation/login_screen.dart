@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
@@ -78,25 +80,47 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (_isAnyLoading) return;
     setState(() => _isKakaoLoading = true);
     try {
-      // 카카오 SDK로 액세스 토큰 획득 (카카오톡 앱 -> 카카오 계정 폴백)
-      final kakaoAccessToken = await KakaoAuthHelper.login();
-      if (!mounted) return;
+      // 카카오 인앱 WebView 로그인
+      debugPrint('[KakaoLogin] Step 1: Starting Kakao WebView login...');
+      final kakaoAccessToken = await KakaoAuthHelper.login(context);
+      debugPrint('[KakaoLogin] Step 2: Got Kakao token: ${kakaoAccessToken.substring(0, 10.clamp(0, kakaoAccessToken.length))}...');
+      if (!mounted) {
+        debugPrint('[KakaoLogin] ⚠ Widget not mounted after Kakao login — aborting');
+        return;
+      }
 
-      // 백엔드에 카카오 토큰 전달 -> JWT 발급
-      await ref.read(authNotifierProvider.notifier).signInWithKakao(kakaoAccessToken);
+      // 카카오 토큰 → 서버 인증 (직접 HTTP 호출 — AuthHttpClient 호환성 문제 우회)
       if (!mounted) return;
+      try {
+        final serverResponse = await http.post(
+          Uri.parse('https://relink-api.relink-app.workers.dev/auth/kakao'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'access_token': kakaoAccessToken}),
+        ).timeout(const Duration(seconds: 15));
 
-      final authState = ref.read(authNotifierProvider);
-      authState.when(
-        data: (user) {
-          if (user != null) _navigateAfterAuth();
-        },
-        error: (e, _) => _showError(e is AuthException ? e.message : '로그인에 실패했습니다.'),
-        loading: () {},
-      );
-    } catch (e) {
-      if (!mounted) return;
-      _showError(e is AuthException ? e.message : '로그인에 실패했습니다.');
+        if (!mounted) return;
+
+        if (serverResponse.statusCode == 200 || serverResponse.statusCode == 201) {
+          // JWT 토큰 저장 + AuthNotifier 상태 갱신
+          await ref.read(authNotifierProvider.notifier).signInWithKakao(kakaoAccessToken);
+          if (!mounted) return;
+          _navigateAfterAuth();
+        } else {
+          final errBody = jsonDecode(serverResponse.body) as Map<String, dynamic>;
+          _showError(errBody['message'] as String? ?? '서버 인증 실패');
+        }
+      } catch (e) {
+        if (!mounted) return;
+        _showError('서버 연결 실패: $e');
+      }
+    } catch (e, st) {
+      debugPrint('[KakaoLogin] ✗ Exception: $e');
+      debugPrint('[KakaoLogin] Stack: $st');
+      if (!mounted) {
+        debugPrint('[KakaoLogin] ⚠ Widget not mounted in catch — error swallowed');
+        return;
+      }
+      _showError(e is AuthException ? e.message : '로그인 실패: $e');
     } finally {
       if (mounted) setState(() => _isKakaoLoading = false);
     }

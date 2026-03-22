@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -111,23 +112,24 @@ class AuthService {
   /// 1. 카카오 SDK → 카카오 액세스 토큰 획득
   /// 2. POST /auth/kakao → JWT 발급
   /// 3. 토큰 저장 + AuthUser 반환
-  ///
-  /// TODO: 카카오 네이티브 SDK 연동 필요
-  /// - pubspec.yaml에 kakao_flutter_sdk 추가
-  /// - iOS: Info.plist에 KAKAO_APP_KEY, URL Scheme 등록
-  /// - Android: AndroidManifest.xml에 kakao redirect scheme 추가
-  /// - Kakao Developers 콘솔에서 앱 등록 및 플랫폼 설정
-  /// 현재는 카카오 토큰을 받아 서버에 전달하는 구조만 구현
   Future<AuthUser?> signInWithKakao({required String kakaoAccessToken}) async {
     try {
+      debugPrint('[AuthService] signInWithKakao: sending token to Workers...');
+      debugPrint('[AuthService] baseUrl: ${httpClient.baseUrl}');
+      debugPrint('[AuthService] token preview: ${kakaoAccessToken.substring(0, 10.clamp(0, kakaoAccessToken.length))}...');
+
       final response = await httpClient.post(
         '/auth/kakao',
         body: {'access_token': kakaoAccessToken},
         requiresAuth: false,
       );
 
+      debugPrint('[AuthService] signInWithKakao response: ${response.statusCode}');
+      debugPrint('[AuthService] signInWithKakao body: ${response.body}');
+
       return _handleAuthResponse(response.body, response.statusCode);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[AuthService] signInWithKakao ERROR: $e');
       rethrow;
     }
   }

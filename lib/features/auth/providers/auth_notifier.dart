@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/services/auth/auth_service.dart';
@@ -56,15 +57,15 @@ class AuthNotifier extends _$AuthNotifier {
   /// 카카오 계정으로 로그인
   /// 성공 시 state를 [AsyncData(AuthUser)]로 업데이트
   /// 실패 시 [AsyncError]로 업데이트
-  ///
-  /// TODO: 카카오 SDK에서 kakaoAccessToken을 받아 전달해야 함
   Future<void> signInWithKakao(String kakaoAccessToken) async {
     state = const AsyncLoading();
+    debugPrint('[AuthNotifier] signInWithKakao: starting...');
     state = await AsyncValue.guard(
       () => ref.read(authServiceProvider).signInWithKakao(
             kakaoAccessToken: kakaoAccessToken,
           ),
     );
+    debugPrint('[AuthNotifier] signInWithKakao: result=$state');
   }
 
   // ── 로그아웃 ───────────────────────────────────────────────────────────

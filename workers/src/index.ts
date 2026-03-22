@@ -77,6 +77,20 @@ const routes: Route[] = [
     handler: (req, env) => handleKakaoAuth(req, env),
   },
   {
+    // 카카오 OAuth 콜백 (WebView에서 코드를 가로채므로 실제 호출 안 됨)
+    // 카카오 콘솔 Redirect URI 검증용
+    method: 'GET',
+    pattern: /^\/auth\/kakao\/callback/,
+    handler: async (req) => {
+      const url = new URL(req.url);
+      const code = url.searchParams.get('code');
+      return new Response(
+        `<html><body><script>window.close();</script><p>인증 완료. code=${code}</p></body></html>`,
+        { headers: { 'Content-Type': 'text/html' } },
+      );
+    },
+  },
+  {
     method: 'POST',
     pattern: /^\/auth\/refresh$/,
     handler: (req, env) => handleRefresh(req, env),
