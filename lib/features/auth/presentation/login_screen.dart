@@ -134,10 +134,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       // Step 1: Google 계정 선택 + 인증
       debugPrint('[GoogleLogin] Step 1: Starting Google Sign-In...');
-      final account = await _googleSignIn.signIn();
+      final account = await _googleSignIn.signIn().catchError((e) {
+        debugPrint('[GoogleLogin] signIn error: $e');
+        return null;
+      });
       if (account == null) {
-        // 사용자가 직접 취소 — 에러 아님
-        debugPrint('[GoogleLogin] User cancelled Google Sign-In');
+        if (mounted) _showError('Google 로그인: Google Cloud Console에서 OAuth 클라이언트 ID 설정이 필요합니다');
         return;
       }
 
