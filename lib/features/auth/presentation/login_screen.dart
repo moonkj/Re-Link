@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/auth/auth_service.dart';
 import '../../../design/tokens/app_colors.dart';
@@ -30,47 +32,170 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isGoogleLoading = false;
   bool _isKakaoLoading = false;
 
+  final _googleSignIn = GoogleSignIn(scopes: ['email']);
+
   bool get _isAnyLoading => _isAppleLoading || _isGoogleLoading || _isKakaoLoading;
 
+  /// Apple 로그인 (직접 HTTP — AuthHttpClient iOS 26 beta 호환성 우회)
   Future<void> _onAppleSignIn() async {
     if (_isAnyLoading) return;
     setState(() => _isAppleLoading = true);
     try {
-      await ref.read(authNotifierProvider.notifier).signInWithApple();
-      if (!mounted) return;
-      final authState = ref.read(authNotifierProvider);
-      authState.when(
-        data: (user) {
-          if (user != null) _navigateAfterAuth();
-        },
-        error: (e, _) => _showError(e is AuthException ? e.message : '로그인에 실패했습니다.'),
-        loading: () {},
+      // Step 1: Apple ID 자격 증명 획득
+      debugPrint('[AppleLogin] Step 1: Starting Apple Sign-In...');
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
       );
-    } catch (e) {
+
+      final idToken = credential.identityToken;
+      if (idToken == null) {
+        debugPrint('[AppleLogin] No identity token — aborting');
+        return;
+      }
+      debugPrint('[AppleLogin] Step 2: Got Apple ID token');
+
       if (!mounted) return;
-      _showError(e is AuthException ? e.message : '로그인에 실패했습니다.');
+
+      // Step 2: 서버 인증 (직접 HTTP 호출 — AuthHttpClient 우회)
+      final body = <String, dynamic>{
+        'id_token': idToken,
+        if (credential.authorizationCode.isNotEmpty)
+          'authorization_code': credential.authorizationCode,
+        if (credential.givenName != null)
+          'given_name': credential.givenName,
+        if (credential.familyName != null)
+          'family_name': credential.familyName,
+      };
+
+      try {
+        final serverResponse = await http.post(
+          Uri.parse('https://relink-api.relink-app.workers.dev/auth/apple'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(body),
+        ).timeout(const Duration(seconds: 15));
+
+        if (!mounted) return;
+
+        if (serverResponse.statusCode == 200 || serverResponse.statusCode == 201) {
+          final data = jsonDecode(serverResponse.body) as Map<String, dynamic>;
+          final accessToken = data['access_token'] as String?;
+          final refreshToken = data['refresh_token'] as String?;
+          final userData = data['user'] as Map<String, dynamic>?;
+
+          if (accessToken != null && refreshToken != null && userData != null) {
+            final tokenStorage = ref.read(authTokenStorageProvider);
+            await tokenStorage.saveTokens(
+              accessToken: accessToken,
+              refreshToken: refreshToken,
+              userId: userData['id'] as String?,
+            );
+
+            ref.invalidate(authNotifierProvider);
+            await ref.read(authNotifierProvider.future);
+
+            if (!mounted) return;
+            _navigateAfterAuth();
+          } else {
+            _showError('서버 응답 형식 오류');
+          }
+        } else {
+          final errBody = jsonDecode(serverResponse.body) as Map<String, dynamic>;
+          _showError(errBody['message'] as String? ?? '서버 인증 실패');
+        }
+      } catch (e) {
+        if (!mounted) return;
+        _showError('서버 연결 실패: $e');
+      }
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code == AuthorizationErrorCode.canceled) {
+        // 사용자가 직접 취소 — 에러 아님
+        debugPrint('[AppleLogin] User cancelled Apple Sign-In');
+        return;
+      }
+      if (!mounted) return;
+      _showError('Apple 로그인 실패: ${e.message}');
+    } catch (e, st) {
+      debugPrint('[AppleLogin] Exception: $e');
+      debugPrint('[AppleLogin] Stack: $st');
+      if (!mounted) return;
+      _showError(e is AuthException ? e.message : '로그인 실패: $e');
     } finally {
       if (mounted) setState(() => _isAppleLoading = false);
     }
   }
 
+  /// Google 로그인 (직접 HTTP — AuthHttpClient iOS 26 beta 호환성 우회)
   Future<void> _onGoogleSignIn() async {
     if (_isAnyLoading) return;
     setState(() => _isGoogleLoading = true);
     try {
-      await ref.read(authNotifierProvider.notifier).signInWithGoogle();
+      // Step 1: Google 계정 선택 + 인증
+      debugPrint('[GoogleLogin] Step 1: Starting Google Sign-In...');
+      final account = await _googleSignIn.signIn();
+      if (account == null) {
+        // 사용자가 직접 취소 — 에러 아님
+        debugPrint('[GoogleLogin] User cancelled Google Sign-In');
+        return;
+      }
+
+      final auth = await account.authentication;
+      final idToken = auth.idToken;
+      if (idToken == null) {
+        debugPrint('[GoogleLogin] No ID token — aborting');
+        return;
+      }
+      debugPrint('[GoogleLogin] Step 2: Got Google ID token');
+
       if (!mounted) return;
-      final authState = ref.read(authNotifierProvider);
-      authState.when(
-        data: (user) {
-          if (user != null) _navigateAfterAuth();
-        },
-        error: (e, _) => _showError(e is AuthException ? e.message : '로그인에 실패했습니다.'),
-        loading: () {},
-      );
-    } catch (e) {
+
+      // Step 2: 서버 인증 (직접 HTTP 호출 — AuthHttpClient 우회)
+      try {
+        final serverResponse = await http.post(
+          Uri.parse('https://relink-api.relink-app.workers.dev/auth/google'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'id_token': idToken}),
+        ).timeout(const Duration(seconds: 15));
+
+        if (!mounted) return;
+
+        if (serverResponse.statusCode == 200 || serverResponse.statusCode == 201) {
+          final data = jsonDecode(serverResponse.body) as Map<String, dynamic>;
+          final accessToken = data['access_token'] as String?;
+          final refreshToken = data['refresh_token'] as String?;
+          final userData = data['user'] as Map<String, dynamic>?;
+
+          if (accessToken != null && refreshToken != null && userData != null) {
+            final tokenStorage = ref.read(authTokenStorageProvider);
+            await tokenStorage.saveTokens(
+              accessToken: accessToken,
+              refreshToken: refreshToken,
+              userId: userData['id'] as String?,
+            );
+
+            ref.invalidate(authNotifierProvider);
+            await ref.read(authNotifierProvider.future);
+
+            if (!mounted) return;
+            _navigateAfterAuth();
+          } else {
+            _showError('서버 응답 형식 오류');
+          }
+        } else {
+          final errBody = jsonDecode(serverResponse.body) as Map<String, dynamic>;
+          _showError(errBody['message'] as String? ?? '서버 인증 실패');
+        }
+      } catch (e) {
+        if (!mounted) return;
+        _showError('서버 연결 실패: $e');
+      }
+    } catch (e, st) {
+      debugPrint('[GoogleLogin] Exception: $e');
+      debugPrint('[GoogleLogin] Stack: $st');
       if (!mounted) return;
-      _showError(e is AuthException ? e.message : '로그인에 실패했습니다.');
+      _showError(e is AuthException ? e.message : '로그인 실패: $e');
     } finally {
       if (mounted) setState(() => _isGoogleLoading = false);
     }
