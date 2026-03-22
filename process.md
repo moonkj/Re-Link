@@ -3958,14 +3958,61 @@ dependencies:
 
 ### 배포 전 체크리스트
 
-- [ ] Kakao Developer Console: 네이티브 앱 키 발급 → Info.plist/AndroidManifest 교체
-- [ ] Cloudflare 계정: Workers/D1/R2 프로비저닝
-- [ ] `wrangler deploy` → Workers 배포
-- [ ] `wrangler d1 execute relink-db --file workers/schema.sql` → D1 초기화
+- [x] Kakao Developer Console: 네이티브 앱 키 발급 → Info.plist/AndroidManifest 적용 완료
+- [x] Cloudflare 계정: Workers/D1/R2 프로비저닝 완료 (APAC/ICN)
+- [x] `wrangler deploy` → Workers 배포 완료 (https://relink-api.relink-app.workers.dev)
+- [x] `wrangler d1 execute relink-db --file workers/schema.sql` → D1 초기화 완료 (9테이블)
 - [ ] Apple Developer: App Group 등록 (홈 위젯용)
 - [ ] Apple Developer: Sign In with Apple 활성화
 - [ ] Google Cloud: OAuth 2.0 클라이언트 ID 발급
 - [ ] App Store Connect: 인앱 구매 상품 등록
 - [ ] Google Play Console: 인앱 구매 상품 등록
-- [ ] `--dart-define=WORKERS_BASE_URL=https://relink-api.YOUR.workers.dev` 빌드 설정
+- [x] `--dart-define=WORKERS_BASE_URL` → env_config.dart defaultValue 직접 설정 완료
 - [ ] `--dart-define=ADMOB_BANNER_ID_IOS=실제ID` 광고 ID 설정
+
+---
+
+## Phase 20 — 카카오 로그인 디버깅 + Cloudflare 배포 (2026-03-22)
+
+> 카카오 로그인 5가지 장애를 순차적으로 해결. Cloudflare Workers/D1/R2 실서버 배포 완료.
+
+---
+
+### Cloudflare 인프라 배포 ✅
+
+- [x] `wrangler login` → Cloudflare 계정 인증 (lmurmkj@naver.com)
+- [x] D1 데이터베이스 생성: `relink-db` (ID: ee4ec1d4-a41f-47d5-851a-0187f6de5820, APAC/ICN)
+- [x] R2 버킷 생성: `relink-media` (10GB 무료)
+- [x] D1 스키마 초기화: 9개 테이블 (users, family_groups, family_invites, sync_nodes/edges/memories, refresh_tokens, purchase_receipts)
+- [x] JWT_SECRET 시크릿 설정 (256bit 랜덤)
+- [x] Workers 배포: `https://relink-api.relink-app.workers.dev`
+- [x] workers.dev 서브도메인 등록: `relink-app`
+- [x] env_config.dart → Workers URL 연결
+
+### 카카오 개발자 콘솔 설정 ✅
+
+- [x] 앱 등록: Re-Link (바이브랩, 라이프스타일)
+- [x] 네이티브 앱 키: `ed9d5c7ed7690d43a6d8ac866353cf31`
+- [x] REST API 키: `61c6efeba31294512cb6ea04ef5f240a`
+- [x] 카카오 로그인 활성화: ON
+- [x] 동의항목: 닉네임(필수), 프로필 사진(선택), 이메일(선택)
+- [x] Redirect URI: `https://relink-api.relink-app.workers.dev/auth/kakao/callback`
+- [x] 클라이언트 시크릿: `LdvmGCSCFydJ8dm7NAmpYb0hKNz4G03S` (활성화)
+
+### 카카오 로그인 디버깅 (5가지 장애 해결) ✅
+
+| # | 에러 | 원인 | 해결 |
+|---|------|------|------|
+| 1 | ASWebAuthenticationSession error 3 | iOS 26 beta 호환성 | `kakao_flutter_sdk` → 인앱 WebView 전환 |
+| 2 | KOE006 앱 관리자 설정 오류 | Redirect URI 미등록 | 카카오 콘솔 Default REST API Key에 등록 |
+| 3 | invalid_client: Bad client credentials | `client_id` 키 타입 불일치 (네이티브 vs REST) | authorize + token 모두 REST API 키 사용 |
+| 4 | invalid_client (재발) | `client_secret` 누락 | 카카오 콘솔 시크릿 코드 토큰 교환에 추가 |
+| 5 | 타임아웃 (서버 응답 없음) | AuthHttpClient 내부 호환성 문제 | 직접 `http.post` 호출로 우회 |
+
+### 로그인 화면 디자인 리뉴얼 ✅
+
+- [x] 모드별 전용 그라데이션 (라이트: 민트→블루, 다크: 인디고)
+- [x] 항상 흰색 텍스트 (배경 대비 보장)
+- [x] 카카오 로그인 버튼 추가 (노란색 #FEE500, 말풍선 로고)
+- [x] "건너뛰기" 텍스트 버튼 (X 닫기 대체)
+- [x] 슬로건: "가족의 기억을 잇다"
