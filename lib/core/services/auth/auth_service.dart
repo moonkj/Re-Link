@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
+import '../../config/env_config.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../../shared/models/auth_user.dart';
@@ -248,20 +250,40 @@ class AuthService {
       final accessToken = await tokenStorage.getAccessToken();
       if (accessToken == null) return null;
 
-      // 저장된 액세스 토큰으로 /auth/me 호출
-      final response = await httpClient.get('/auth/me');
+      final userId = await tokenStorage.getUserId();
+      if (userId == null) return null;
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final user = data['user'] as Map<String, dynamic>?;
-        if (user == null) return null;
+      // 저장된 토큰 + userId로 로컬 복원 (서버 호출 없이)
+      // 서버 검증은 첫 API 호출 시 자동 수행 (401 → refresh → onUnauthorized)
+      try {
+        final response = await http.get(
+          Uri.parse('${EnvConfig.workersBaseUrl}/auth/me'),
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+            'Accept': 'application/json',
+          },
+        ).timeout(const Duration(seconds: 5));
 
-        // 최신 토큰 다시 읽기 (401 자동 갱신이 발생했을 수 있음)
-        final latestToken = await tokenStorage.getAccessToken();
-        return AuthUser.fromJson(user, latestToken ?? accessToken);
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body) as Map<String, dynamic>;
+          final user = data['user'] as Map<String, dynamic>?;
+          if (user != null) {
+            return AuthUser.fromJson(user, accessToken);
+          }
+        }
+      } catch (_) {
+        // 서버 호출 실패 시 — 저장된 정보로 오프라인 복원
       }
 
-      return null;
+      // 오프라인 폴백: 저장된 토큰으로 최소한의 AuthUser 생성
+      return AuthUser(
+        id: userId,
+        email: null,
+        provider: 'unknown',
+        plan: 'free',
+        familyGroupId: null,
+        accessToken: accessToken,
+      );
     } catch (_) {
       return null;
     }
