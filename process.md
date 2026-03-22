@@ -3090,7 +3090,7 @@
 - [ ] `wrangler deploy` — Workers 배포
 - [ ] `wrangler d1 execute relink-db --file workers/schema.sql` — D1 스키마 초기화
 - [ ] `--dart-define=WORKERS_BASE_URL=https://실제URL.workers.dev` 빌드 파라미터 설정
-- [ ] Apple Developer Console: Sign In with Apple 활성화
+- [x] Apple Developer Console: Sign In with Apple 활성화 (com.relink.app)
 - [ ] Google Cloud Console: OAuth 2.0 클라이언트 ID 발급
 
 ---
@@ -3963,7 +3963,7 @@ dependencies:
 - [x] `wrangler deploy` → Workers 배포 완료 (https://relink-api.relink-app.workers.dev)
 - [x] `wrangler d1 execute relink-db --file workers/schema.sql` → D1 초기화 완료 (9테이블)
 - [ ] Apple Developer: App Group 등록 (홈 위젯용)
-- [ ] Apple Developer: Sign In with Apple 활성화
+- [x] Apple Developer: Sign In with Apple 활성화 — App ID `com.relink.app` 등록 + 로그인 테스트 완료
 - [ ] Google Cloud: OAuth 2.0 클라이언트 ID 발급
 - [ ] App Store Connect: 인앱 구매 상품 등록
 - [ ] Google Play Console: 인앱 구매 상품 등록
@@ -4024,3 +4024,36 @@ dependencies:
 - [x] 서버 호출 실패 시 저장된 토큰+userId로 오프라인 `AuthUser` 복원
 - [x] **스플래시 `_doNavigate()` 핵심 수정**: `ref.read(authNotifierProvider).valueOrNull` → `await ref.read(authNotifierProvider.future)` — 로딩 완료 대기 후 로그인 상태 판단
 - [x] `ref.invalidate(authNotifierProvider)` → `tryAutoLogin` 재실행으로 auth 상태 갱신
+
+---
+
+## Phase 21 — Apple Sign In 포털 설정 + Bundle ID 변경 (2026-03-22)
+
+> Apple Developer 포털 설정, iOS Bundle ID 변경 (`com.relink.reLink` → `com.relink.app`), Workers APPLE_CLIENT_ID 시크릿 업데이트, 실기기 Apple 로그인 테스트 완료.
+
+---
+
+### Apple Developer 포털 설정 ✅
+
+- [x] App ID 등록: `com.relink.app` (Explicit, Sign In with Apple 활성화)
+- [x] App Store Connect 앱 생성 완료
+- [x] Sign In with Apple 키 (.p8) 다운로드 완료
+
+### iOS Bundle ID 변경 ✅
+
+- [x] `project.pbxproj` — Runner: `com.relink.reLink` → `com.relink.app`
+- [x] `project.pbxproj` — Widget: `com.relink.reLink.ReLinkWidget` → `com.relink.app.ReLinkWidget`
+- [x] `project.pbxproj` — Tests: `com.relink.reLink.RunnerTests` → `com.relink.app.RunnerTests`
+- [x] `Runner.entitlements` — Sign In with Apple 권한 추가
+- [x] `ReLinkWidget.entitlements` — App Group: `group.com.relink.reLink` → `group.com.relink.app`
+- [x] `ReLinkWidget.swift` — suiteName: `group.com.relink.reLink` → `group.com.relink.app`
+
+### Cloudflare Workers 업데이트 ✅
+
+- [x] `APPLE_CLIENT_ID` 시크릿: `com.relink.app` 등록
+- [x] Workers 재배포 완료 (Version: e7b9bebc)
+
+### 실기기 테스트 ✅
+
+- [x] iPad Pro (12.9") 릴리스 빌드 설치
+- [x] Apple Sign In 로그인 성공 (이메일 가리기 릴레이 주소 정상 동작)

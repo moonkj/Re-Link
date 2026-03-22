@@ -24,7 +24,7 @@ struct ReLinkColors {
 }
 
 struct ReLinkUserDefaults {
-    static let suiteName = "group.com.relink.reLink"
+    static let suiteName = "group.com.relink.app"
 
     static var shared: UserDefaults? {
         return UserDefaults(suiteName: suiteName)
