@@ -9,6 +9,7 @@ import '../../../core/services/auth/auth_service.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_radius.dart';
 import '../../../design/tokens/app_spacing.dart';
+import '../../../core/services/auth/auth_token_storage.dart';
 import '../../../core/services/auth/kakao_auth_helper.dart';
 import '../../../shared/repositories/settings_repository.dart';
 import '../providers/auth_notifier.dart';
@@ -101,10 +102,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (!mounted) return;
 
         if (serverResponse.statusCode == 200 || serverResponse.statusCode == 201) {
-          // JWT 토큰 저장 + AuthNotifier 상태 갱신
-          await ref.read(authNotifierProvider.notifier).signInWithKakao(kakaoAccessToken);
-          if (!mounted) return;
-          _navigateAfterAuth();
+          // 서버 응답에서 JWT 토큰 직접 파싱 + 저장
+          final data = jsonDecode(serverResponse.body) as Map<String, dynamic>;
+          final accessToken = data['access_token'] as String?;
+          final refreshToken = data['refresh_token'] as String?;
+          final userData = data['user'] as Map<String, dynamic>?;
+
+          if (accessToken != null && refreshToken != null && userData != null) {
+            // 토큰 저장 (로그인 유지)
+            final tokenStorage = ref.read(authTokenStorageProvider);
+            await tokenStorage.saveTokens(
+              accessToken: accessToken,
+              refreshToken: refreshToken,
+              userId: userData['id'] as String?,
+            );
+
+            // AuthNotifier 상태 갱신 — 토큰 저장 후 재초기화하면 tryAutoLogin이 성공
+            ref.invalidate(authNotifierProvider);
+            // tryAutoLogin이 저장된 토큰으로 자동 로그인하도록 대기
+            await ref.read(authNotifierProvider.future);
+
+            if (!mounted) return;
+            _navigateAfterAuth();
+          } else {
+            _showError('서버 응답 형식 오류');
+          }
         } else {
           final errBody = jsonDecode(serverResponse.body) as Map<String, dynamic>;
           _showError(errBody['message'] as String? ?? '서버 인증 실패');
