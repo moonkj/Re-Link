@@ -228,6 +228,16 @@ export interface StorageUsageResponse {
   used_percent: number;
 }
 
+export interface ConfirmUploadRequest {
+  file_key: string;
+  file_size_bytes: number;
+}
+
+export interface ConfirmUploadResponse {
+  ok: boolean;
+  storage_used_bytes: number;
+}
+
 // ============================================================
 // Auth API — Request / Response
 // ============================================================

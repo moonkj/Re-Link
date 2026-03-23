@@ -1,22 +1,36 @@
 import 'dart:convert';
 import 'dart:ui' show Offset;
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/database/app_database.dart';
+import '../../core/services/sync/media_upload_queue_service.dart';
+import '../../core/utils/path_utils.dart';
 import '../../shared/models/node_model.dart';
 import 'db_provider.dart';
+import 'settings_repository.dart';
 
 part 'node_repository.g.dart';
 
 @riverpod
 NodeRepository nodeRepository(Ref ref) =>
-    NodeRepository(ref.watch(appDatabaseProvider));
+    NodeRepository(
+      ref.watch(appDatabaseProvider),
+      uploadQueue: ref.read(mediaUploadQueueServiceProvider),
+      settings: ref.read(settingsRepositoryProvider),
+    );
 
 class NodeRepository {
-  NodeRepository(this._db);
+  NodeRepository(
+    this._db, {
+    required this.uploadQueue,
+    required this.settings,
+  });
   final AppDatabase _db;
+  final MediaUploadQueueService uploadQueue;
+  final SettingsRepository settings;
   final _uuid = const Uuid();
 
   // ── 조회 ──────────────────────────────────────────────────────────────────
@@ -43,6 +57,7 @@ class NodeRepository {
     required String name,
     String? nickname,
     String? photoPath,
+    String? r2PhotoKey,
     String? bio,
     DateTime? birthDate,
     DateTime? deathDate,
@@ -59,6 +74,7 @@ class NodeRepository {
       name: name,
       nickname: Value(nickname),
       photoPath: Value(photoPath),
+      r2PhotoKey: Value(r2PhotoKey),
       bio: Value(bio),
       birthDate: Value(birthDate),
       deathDate: Value(deathDate),
@@ -70,6 +86,10 @@ class NodeRepository {
       createdAt: Value(now),
       updatedAt: Value(now),
     ));
+    // 패밀리 플랜이면 아바타 사진 R2 업로드 큐에 추가
+    if (photoPath != null) {
+      await _enqueueAvatarUploadIfCloud(id, photoPath);
+    }
     return (await getById(id))!;
   }
 
@@ -81,6 +101,7 @@ class NodeRepository {
       name: node.name,
       nickname: Value(node.nickname),
       photoPath: Value(node.photoPath),
+      r2PhotoKey: Value(node.r2PhotoKey),
       bio: Value(node.bio),
       birthDate: Value(node.birthDate),
       deathDate: Value(node.deathDate),
@@ -92,6 +113,17 @@ class NodeRepository {
       createdAt: Value(node.createdAt),
       updatedAt: Value(DateTime.now()),
     ));
+  }
+
+  /// 노드 프로필 사진 업데이트 + R2 업로드 큐 자동 등록
+  Future<void> updatePhoto(String nodeId, String? photoPath) async {
+    final node = await getById(nodeId);
+    if (node == null) return;
+    await update(node.copyWith(photoPath: photoPath));
+    // 패밀리 플랜이면 아바타 사진 R2 업로드 큐에 추가
+    if (photoPath != null) {
+      await _enqueueAvatarUploadIfCloud(nodeId, photoPath);
+    }
   }
 
   Future<void> updatePosition(String id, double x, double y) async {
@@ -249,6 +281,7 @@ class NodeRepository {
       name: node.name,
       nickname: Value(node.nickname),
       photoPath: Value(node.photoPath),
+      r2PhotoKey: Value(node.r2PhotoKey),
       bio: Value(node.bio),
       birthDate: Value(node.birthDate),
       deathDate: Value(node.deathDate),
@@ -271,6 +304,28 @@ class NodeRepository {
     return edges.any((e) => e.relation == RelationType.spouse);
   }
 
+  // ── R2 업로드 큐 자동 등록 ──────────────────────────────────────────────
+
+  /// 패밀리 플랜이면 아바타 사진을 R2 업로드 큐에 등록
+  Future<void> _enqueueAvatarUploadIfCloud(
+      String nodeId, String photoPath) async {
+    try {
+      final plan = await settings.getUserPlan();
+      if (!plan.hasCloud) return;
+
+      final absPath = PathUtils.toAbsolute(photoPath) ?? photoPath;
+      await uploadQueue.enqueue(
+        nodeId: nodeId,
+        localPath: absPath,
+        category: 'photo',
+        contentType: 'image/webp',
+      );
+      debugPrint('[NodeRepository] 아바타 R2 업로드 큐 등록: $nodeId');
+    } catch (e) {
+      debugPrint('[NodeRepository] R2 큐 등록 오류 (무시): $e');
+    }
+  }
+
   // ── 변환 ──────────────────────────────────────────────────────────────────
 
   NodeModel _rowToModel(NodesTableData row) {
@@ -282,6 +337,7 @@ class NodeRepository {
       name: row.name,
       nickname: row.nickname,
       photoPath: row.photoPath,
+      r2PhotoKey: row.r2PhotoKey,
       bio: row.bio,
       birthDate: row.birthDate,
       deathDate: row.deathDate,

@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:archive/archive_io.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../core/services/sync/media_upload_queue_service.dart';
 import '../../../shared/models/node_model.dart';
 import '../../../shared/repositories/node_repository.dart';
+import '../../../shared/repositories/settings_repository.dart';
 import '../../../core/database/app_database.dart';
 
 part 'merge_preview_notifier.g.dart';
@@ -187,7 +189,11 @@ class MergePreviewNotifier extends _$MergePreviewNotifier {
 
     try {
       final tempDb = AppDatabase.forMerge(tmpDbPath);
-      final tempRepo = NodeRepository(tempDb);
+      final tempRepo = NodeRepository(
+        tempDb,
+        uploadQueue: ref.read(mediaUploadQueueServiceProvider),
+        settings: SettingsRepository(tempDb),
+      );
       final nodes = await tempRepo.getAll();
       await tempDb.close();
       dir.deleteSync(recursive: true);

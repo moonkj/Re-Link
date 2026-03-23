@@ -4,7 +4,8 @@ class NodeModel {
     required this.id,
     required this.name,
     this.nickname,
-    this.photoPath,    // 로컬 파일 경로
+    this.photoPath,     // 로컬 파일 경로
+    this.r2PhotoKey,    // R2 클라우드 프로필 사진 키
     this.bio,
     this.birthDate,
     this.deathDate,
@@ -20,12 +21,13 @@ class NodeModel {
   final String id;
   final String name;
   final String? nickname;
-  final String? photoPath;  // 로컬 파일 경로 (Supabase URL 아님)
+  final String? photoPath;   // 로컬 파일 경로 (Supabase URL 아님)
+  final String? r2PhotoKey;  // R2 클라우드 프로필 사진 키
   final String? bio;
   final DateTime? birthDate;
   final DateTime? deathDate;
   final bool isGhost;
-  final int temperature;    // 0(icy) ~ 5(fire)
+  final int temperature;     // 0(icy) ~ 5(fire)
   final double positionX;
   final double positionY;
   final List<String> tags;
@@ -40,6 +42,7 @@ class NodeModel {
     String? name,
     String? nickname,
     String? photoPath,
+    String? r2PhotoKey,
     String? bio,
     DateTime? birthDate,
     DateTime? deathDate,
@@ -52,6 +55,7 @@ class NodeModel {
     DateTime? updatedAt,
     bool clearNickname = false,
     bool clearPhotoPath = false,
+    bool clearR2PhotoKey = false,
     bool clearBio = false,
     bool clearBirthDate = false,
     bool clearDeathDate = false,
@@ -61,6 +65,7 @@ class NodeModel {
       name: name ?? this.name,
       nickname: clearNickname ? null : (nickname ?? this.nickname),
       photoPath: clearPhotoPath ? null : (photoPath ?? this.photoPath),
+      r2PhotoKey: clearR2PhotoKey ? null : (r2PhotoKey ?? this.r2PhotoKey),
       bio: clearBio ? null : (bio ?? this.bio),
       birthDate: clearBirthDate ? null : (birthDate ?? this.birthDate),
       deathDate: clearDeathDate ? null : (deathDate ?? this.deathDate),

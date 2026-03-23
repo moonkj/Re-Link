@@ -6,6 +6,7 @@ import 'package:re_link/core/database/app_database.dart';
 import 'package:re_link/shared/models/memory_model.dart';
 import 'package:re_link/shared/repositories/memory_repository.dart';
 import 'package:re_link/shared/repositories/node_repository.dart';
+import '../helpers/test_helpers.dart';
 
 void main() {
   late AppDatabase db;
@@ -16,7 +17,7 @@ void main() {
   setUp(() async {
     db = AppDatabase.forTesting(NativeDatabase.memory());
     repo = MemoryRepository(db);
-    nodeRepo = NodeRepository(db);
+    nodeRepo = createTestNodeRepository(db);
     final node = await nodeRepo.create(name: '테스트', positionX: 0, positionY: 0);
     testNodeId = node.id;
   });

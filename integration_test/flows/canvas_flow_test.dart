@@ -13,6 +13,7 @@ import 'package:re_link/core/database/app_database.dart';
 import 'package:re_link/shared/repositories/db_provider.dart';
 import 'package:re_link/shared/repositories/node_repository.dart';
 import 'package:re_link/shared/models/node_model.dart';
+import '../../test/helpers/test_helpers.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +28,7 @@ void main() {
 
   testWidgets('캔버스: 노드 추가 후 카드가 화면에 나타남', (tester) async {
     // DB에 노드 미리 삽입
-    final repo = NodeRepository(db);
+    final repo = createTestNodeRepository(db);
     await repo.create(
       name: '홍길동',
       positionX: 1900,
@@ -64,7 +65,7 @@ void main() {
   });
 
   testWidgets('캔버스: 노드 2개 + 엣지가 EdgePainter로 렌더링', (tester) async {
-    final repo = NodeRepository(db);
+    final repo = createTestNodeRepository(db);
     final n1 = await repo.create(name: '아버지', positionX: 1800, positionY: 1800);
     final n2 = await repo.create(name: '어머니', positionX: 2100, positionY: 1800);
     await repo.addEdge(

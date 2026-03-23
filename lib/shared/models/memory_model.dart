@@ -21,8 +21,10 @@ class MemoryModel {
     required this.type,
     this.title,
     this.description,
-    this.filePath,      // 로컬 파일 경로 (사진/음성)
-    this.thumbnailPath, // 로컬 썸네일 경로
+    this.filePath,          // 로컬 파일 경로 (사진/음성)
+    this.thumbnailPath,     // 로컬 썸네일 경로
+    this.r2FileKey,         // R2 클라우드 파일 키
+    this.r2ThumbnailKey,    // R2 클라우드 썸네일 키
     this.durationSeconds,
     this.dateTaken,
     this.tags = const [],
@@ -37,6 +39,8 @@ class MemoryModel {
   final String? description;
   final String? filePath;
   final String? thumbnailPath;
+  final String? r2FileKey;
+  final String? r2ThumbnailKey;
   final int? durationSeconds;
   final DateTime? dateTaken;
   final List<String> tags;
@@ -58,11 +62,15 @@ class MemoryModel {
     String? description,
     String? filePath,
     String? thumbnailPath,
+    String? r2FileKey,
+    String? r2ThumbnailKey,
     int? durationSeconds,
     DateTime? dateTaken,
     List<String>? tags,
     DateTime? createdAt,
     bool? isPrivate,
+    bool clearR2FileKey = false,
+    bool clearR2ThumbnailKey = false,
   }) {
     return MemoryModel(
       id: id ?? this.id,
@@ -72,6 +80,8 @@ class MemoryModel {
       description: description ?? this.description,
       filePath: filePath ?? this.filePath,
       thumbnailPath: thumbnailPath ?? this.thumbnailPath,
+      r2FileKey: clearR2FileKey ? null : (r2FileKey ?? this.r2FileKey),
+      r2ThumbnailKey: clearR2ThumbnailKey ? null : (r2ThumbnailKey ?? this.r2ThumbnailKey),
       durationSeconds: durationSeconds ?? this.durationSeconds,
       dateTaken: dateTaken ?? this.dateTaken,
       tags: tags ?? this.tags,

@@ -32,6 +32,7 @@ import {
 // Media handlers
 import {
   handleUploadUrl,
+  handleConfirmUpload,
   handleDownloadUrl,
   handleDeleteMedia,
   handleStorageUsage,
@@ -170,6 +171,12 @@ const routes: Route[] = [
     method: 'POST',
     pattern: /^\/media\/upload-url$/,
     handler: (req, env) => handleUploadUrl(req, env),
+  },
+  {
+    // POST /media/confirm-upload — confirm R2 upload & update storage usage
+    method: 'POST',
+    pattern: /^\/media\/confirm-upload$/,
+    handler: (req, env) => handleConfirmUpload(req, env),
   },
   {
     // Flutter calls GET /media/usage

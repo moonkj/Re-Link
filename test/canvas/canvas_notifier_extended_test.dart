@@ -6,6 +6,7 @@ import 'package:re_link/core/database/app_database.dart';
 import 'package:re_link/shared/models/node_model.dart';
 import 'package:re_link/shared/repositories/node_repository.dart';
 import 'package:re_link/features/canvas/providers/canvas_notifier.dart';
+import '../helpers/test_helpers.dart';
 
 NodeModel _node(String id, {DateTime? birthDate, bool isGhost = false}) =>
     NodeModel(
@@ -191,7 +192,7 @@ void main() {
 
     setUp(() {
       db = AppDatabase.forTesting(NativeDatabase.memory());
-      repo = NodeRepository(db);
+      repo = createTestNodeRepository(db);
     });
 
     tearDown(() => db.close());

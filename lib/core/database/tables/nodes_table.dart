@@ -26,6 +26,9 @@ class NodesTable extends Table {
   /// 태그 (JSON 배열 문자열)
   TextColumn get tagsJson => text().withDefault(const Constant('[]'))();
 
+  /// R2 클라우드 프로필 사진 키 (패밀리/패밀리플러스 전용)
+  TextColumn get r2PhotoKey => text().nullable()();
+
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 

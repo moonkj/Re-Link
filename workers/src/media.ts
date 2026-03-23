@@ -1,8 +1,9 @@
 // Re-Link Workers — Media (R2) Endpoints
 // POST /media/upload-url              — Generate presigned upload URL
+// POST /media/confirm-upload          — Confirm R2 upload & update storage usage
 // GET  /media/:fileKey/download-url   — Generate presigned download URL
 // DELETE /media/:fileKey              — Delete R2 object
-// GET  /media/storage-usage           — Storage usage for current user's group
+// GET  /media/usage                   — Storage usage for current user's group
 
 import type {
   Env,
@@ -11,6 +12,8 @@ import type {
   UploadUrlResponse,
   DownloadUrlResponse,
   StorageUsageResponse,
+  ConfirmUploadRequest,
+  ConfirmUploadResponse,
   UserPlan,
 } from './types';
 import { STORAGE_LIMITS } from './types';
@@ -311,6 +314,125 @@ export async function handleUploadUrl(
     upload_url: uploadUrl,
     file_key,
     expires_in_seconds: UPLOAD_URL_TTL,
+  };
+
+  return jsonResponse({ data: response }, 200, request);
+}
+
+// ============================================================
+// Handler: POST /media/confirm-upload
+// Confirms a file was uploaded to R2, then updates storage usage
+// ============================================================
+export async function handleConfirmUpload(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const { ctx, error } = await requireAuth(request, env);
+  if (error) return error;
+
+  const planError = requireFamilyPlan(ctx, request);
+  if (planError) return planError;
+
+  const groupError = requireGroupMembership(ctx, request);
+  if (groupError) return groupError;
+
+  let body: ConfirmUploadRequest;
+  try {
+    body = (await request.json()) as ConfirmUploadRequest;
+  } catch {
+    return errorResponse('Invalid JSON body', 400, request);
+  }
+
+  const { file_key, file_size_bytes } = body;
+
+  if (!file_key || typeof file_size_bytes !== 'number' || file_size_bytes <= 0) {
+    return errorResponse(
+      'file_key (string) and file_size_bytes (positive number) are required',
+      400,
+      request,
+    );
+  }
+
+  // Validate file_key ownership: must start with groupId/userId/
+  const groupId = ctx.groupId!;
+  const ownerPrefix = `${groupId}/${ctx.userId}/`;
+  if (!file_key.startsWith(ownerPrefix)) {
+    return errorResponse(
+      `file_key must start with "${ownerPrefix}"`,
+      403,
+      request,
+    );
+  }
+
+  // Verify the object actually exists in R2
+  const r2Object = await env.MEDIA_BUCKET.head(file_key);
+  if (!r2Object) {
+    return errorResponse(
+      'File not found in storage. Upload may not have completed.',
+      404,
+      request,
+    );
+  }
+
+  // Optionally cross-check reported size vs actual R2 object size
+  const actualSize = r2Object.size;
+  const sizeDiff = Math.abs(actualSize - file_size_bytes);
+  // Allow small tolerance (1 KB) for encoding overhead
+  if (sizeDiff > 1024) {
+    return errorResponse(
+      `Reported size (${file_size_bytes}) does not match actual size (${actualSize})`,
+      400,
+      request,
+    );
+  }
+
+  // Use actual R2 object size for accuracy
+  const confirmedSize = actualSize;
+
+  // Check storage quota before confirming
+  const planLimit = STORAGE_LIMITS[ctx.plan as UserPlan] ?? 0;
+
+  const usageResult = await env.DB
+    .prepare(
+      'SELECT SUM(storage_used_bytes) as total FROM users WHERE family_group_id = ?',
+    )
+    .bind(groupId)
+    .first<{ total: number | null }>();
+
+  const currentUsage = usageResult?.total ?? 0;
+
+  if (currentUsage + confirmedSize > planLimit) {
+    // Over quota — delete the uploaded file from R2 to reclaim space
+    await env.MEDIA_BUCKET.delete(file_key);
+    return errorResponse(
+      'Storage quota exceeded. Uploaded file has been removed.',
+      507,
+      request,
+    );
+  }
+
+  // Update the user's storage_used_bytes
+  await env.DB
+    .prepare(
+      `UPDATE users
+       SET storage_used_bytes = storage_used_bytes + ?,
+           updated_at = ?
+       WHERE id = ?`,
+    )
+    .bind(confirmedSize, Date.now(), ctx.userId)
+    .run();
+
+  // Fetch the updated value
+  const updatedUser = await env.DB
+    .prepare('SELECT storage_used_bytes FROM users WHERE id = ?')
+    .bind(ctx.userId)
+    .first<{ storage_used_bytes: number }>();
+
+  const newUsage = updatedUser?.storage_used_bytes ?? confirmedSize;
+
+  const response: ConfirmUploadResponse = {
+    ok: true,
+    storage_used_bytes: newUsage,
   };
 
   return jsonResponse({ data: response }, 200, request);

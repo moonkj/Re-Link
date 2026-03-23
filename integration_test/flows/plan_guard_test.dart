@@ -11,6 +11,7 @@ import 'package:re_link/core/database/app_database.dart';
 import 'package:re_link/shared/models/user_plan.dart';
 import 'package:re_link/shared/repositories/node_repository.dart';
 import 'package:re_link/shared/repositories/settings_repository.dart';
+import '../../test/helpers/test_helpers.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +22,7 @@ void main() {
 
   setUp(() {
     db = AppDatabase.forTesting(NativeDatabase.memory());
-    nodeRepo = NodeRepository(db);
+    nodeRepo = createTestNodeRepository(db);
     settingsRepo = SettingsRepository(db);
   });
 

@@ -4,6 +4,7 @@ import 'package:re_link/core/database/app_database.dart';
 import 'package:re_link/shared/models/memory_model.dart';
 import 'package:re_link/shared/repositories/memory_repository.dart';
 import 'package:re_link/shared/repositories/node_repository.dart';
+import '../helpers/test_helpers.dart';
 
 void main() {
   late AppDatabase db;
@@ -18,7 +19,7 @@ void main() {
       }),
     );
     repo = MemoryRepository(db);
-    nodeRepo = NodeRepository(db);
+    nodeRepo = createTestNodeRepository(db);
     // 테스트용 노드 생성
     final node = await nodeRepo.create(name: '테스트 인물');
     testNodeId = node.id;

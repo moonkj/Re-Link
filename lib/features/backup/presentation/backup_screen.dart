@@ -170,10 +170,16 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   Future<void> _exportFile() async {
     try {
       final file = await ref.read(backupServiceProvider).createBackup();
+      if (!mounted) return;
+      final box = context.findRenderObject() as RenderBox?;
+      final origin = box != null
+          ? box.localToGlobal(Offset.zero) & box.size
+          : const Rect.fromLTWH(0, 0, 100, 100);
       await Share.shareXFiles(
         [XFile(file.path)],
         subject: 'Re-Link 가족 트리 백업',
         text: 'Re-Link 앱에서 열어주세요 (.rlink)',
+        sharePositionOrigin: origin,
       );
     } catch (e) {
       if (!mounted) return;

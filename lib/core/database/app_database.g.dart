@@ -648,6 +648,17 @@ class $NodesTableTable extends NodesTable
     requiredDuringInsert: false,
     defaultValue: const Constant('[]'),
   );
+  static const VerificationMeta _r2PhotoKeyMeta = const VerificationMeta(
+    'r2PhotoKey',
+  );
+  @override
+  late final GeneratedColumn<String> r2PhotoKey = GeneratedColumn<String>(
+    'r2_photo_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -686,6 +697,7 @@ class $NodesTableTable extends NodesTable
     positionX,
     positionY,
     tagsJson,
+    r2PhotoKey,
     createdAt,
     updatedAt,
   ];
@@ -777,6 +789,15 @@ class $NodesTableTable extends NodesTable
         tagsJson.isAcceptableOrUnknown(data['tags_json']!, _tagsJsonMeta),
       );
     }
+    if (data.containsKey('r2_photo_key')) {
+      context.handle(
+        _r2PhotoKeyMeta,
+        r2PhotoKey.isAcceptableOrUnknown(
+          data['r2_photo_key']!,
+          _r2PhotoKeyMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -846,6 +867,10 @@ class $NodesTableTable extends NodesTable
         DriftSqlType.string,
         data['${effectivePrefix}tags_json'],
       )!,
+      r2PhotoKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}r2_photo_key'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -884,6 +909,9 @@ class NodesTableData extends DataClass implements Insertable<NodesTableData> {
 
   /// 태그 (JSON 배열 문자열)
   final String tagsJson;
+
+  /// R2 클라우드 프로필 사진 키 (패밀리/패밀리플러스 전용)
+  final String? r2PhotoKey;
   final DateTime createdAt;
   final DateTime updatedAt;
   const NodesTableData({
@@ -899,6 +927,7 @@ class NodesTableData extends DataClass implements Insertable<NodesTableData> {
     required this.positionX,
     required this.positionY,
     required this.tagsJson,
+    this.r2PhotoKey,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -927,6 +956,9 @@ class NodesTableData extends DataClass implements Insertable<NodesTableData> {
     map['position_x'] = Variable<double>(positionX);
     map['position_y'] = Variable<double>(positionY);
     map['tags_json'] = Variable<String>(tagsJson);
+    if (!nullToAbsent || r2PhotoKey != null) {
+      map['r2_photo_key'] = Variable<String>(r2PhotoKey);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -954,6 +986,9 @@ class NodesTableData extends DataClass implements Insertable<NodesTableData> {
       positionX: Value(positionX),
       positionY: Value(positionY),
       tagsJson: Value(tagsJson),
+      r2PhotoKey: r2PhotoKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(r2PhotoKey),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -977,6 +1012,7 @@ class NodesTableData extends DataClass implements Insertable<NodesTableData> {
       positionX: serializer.fromJson<double>(json['positionX']),
       positionY: serializer.fromJson<double>(json['positionY']),
       tagsJson: serializer.fromJson<String>(json['tagsJson']),
+      r2PhotoKey: serializer.fromJson<String?>(json['r2PhotoKey']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -997,6 +1033,7 @@ class NodesTableData extends DataClass implements Insertable<NodesTableData> {
       'positionX': serializer.toJson<double>(positionX),
       'positionY': serializer.toJson<double>(positionY),
       'tagsJson': serializer.toJson<String>(tagsJson),
+      'r2PhotoKey': serializer.toJson<String?>(r2PhotoKey),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1015,6 +1052,7 @@ class NodesTableData extends DataClass implements Insertable<NodesTableData> {
     double? positionX,
     double? positionY,
     String? tagsJson,
+    Value<String?> r2PhotoKey = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => NodesTableData(
@@ -1030,6 +1068,7 @@ class NodesTableData extends DataClass implements Insertable<NodesTableData> {
     positionX: positionX ?? this.positionX,
     positionY: positionY ?? this.positionY,
     tagsJson: tagsJson ?? this.tagsJson,
+    r2PhotoKey: r2PhotoKey.present ? r2PhotoKey.value : this.r2PhotoKey,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -1049,6 +1088,9 @@ class NodesTableData extends DataClass implements Insertable<NodesTableData> {
       positionX: data.positionX.present ? data.positionX.value : this.positionX,
       positionY: data.positionY.present ? data.positionY.value : this.positionY,
       tagsJson: data.tagsJson.present ? data.tagsJson.value : this.tagsJson,
+      r2PhotoKey: data.r2PhotoKey.present
+          ? data.r2PhotoKey.value
+          : this.r2PhotoKey,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -1069,6 +1111,7 @@ class NodesTableData extends DataClass implements Insertable<NodesTableData> {
           ..write('positionX: $positionX, ')
           ..write('positionY: $positionY, ')
           ..write('tagsJson: $tagsJson, ')
+          ..write('r2PhotoKey: $r2PhotoKey, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1089,6 +1132,7 @@ class NodesTableData extends DataClass implements Insertable<NodesTableData> {
     positionX,
     positionY,
     tagsJson,
+    r2PhotoKey,
     createdAt,
     updatedAt,
   );
@@ -1108,6 +1152,7 @@ class NodesTableData extends DataClass implements Insertable<NodesTableData> {
           other.positionX == this.positionX &&
           other.positionY == this.positionY &&
           other.tagsJson == this.tagsJson &&
+          other.r2PhotoKey == this.r2PhotoKey &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -1125,6 +1170,7 @@ class NodesTableCompanion extends UpdateCompanion<NodesTableData> {
   final Value<double> positionX;
   final Value<double> positionY;
   final Value<String> tagsJson;
+  final Value<String?> r2PhotoKey;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -1141,6 +1187,7 @@ class NodesTableCompanion extends UpdateCompanion<NodesTableData> {
     this.positionX = const Value.absent(),
     this.positionY = const Value.absent(),
     this.tagsJson = const Value.absent(),
+    this.r2PhotoKey = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1158,6 +1205,7 @@ class NodesTableCompanion extends UpdateCompanion<NodesTableData> {
     this.positionX = const Value.absent(),
     this.positionY = const Value.absent(),
     this.tagsJson = const Value.absent(),
+    this.r2PhotoKey = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1176,6 +1224,7 @@ class NodesTableCompanion extends UpdateCompanion<NodesTableData> {
     Expression<double>? positionX,
     Expression<double>? positionY,
     Expression<String>? tagsJson,
+    Expression<String>? r2PhotoKey,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -1193,6 +1242,7 @@ class NodesTableCompanion extends UpdateCompanion<NodesTableData> {
       if (positionX != null) 'position_x': positionX,
       if (positionY != null) 'position_y': positionY,
       if (tagsJson != null) 'tags_json': tagsJson,
+      if (r2PhotoKey != null) 'r2_photo_key': r2PhotoKey,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -1212,6 +1262,7 @@ class NodesTableCompanion extends UpdateCompanion<NodesTableData> {
     Value<double>? positionX,
     Value<double>? positionY,
     Value<String>? tagsJson,
+    Value<String?>? r2PhotoKey,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -1229,6 +1280,7 @@ class NodesTableCompanion extends UpdateCompanion<NodesTableData> {
       positionX: positionX ?? this.positionX,
       positionY: positionY ?? this.positionY,
       tagsJson: tagsJson ?? this.tagsJson,
+      r2PhotoKey: r2PhotoKey ?? this.r2PhotoKey,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -1274,6 +1326,9 @@ class NodesTableCompanion extends UpdateCompanion<NodesTableData> {
     if (tagsJson.present) {
       map['tags_json'] = Variable<String>(tagsJson.value);
     }
+    if (r2PhotoKey.present) {
+      map['r2_photo_key'] = Variable<String>(r2PhotoKey.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1301,6 +1356,7 @@ class NodesTableCompanion extends UpdateCompanion<NodesTableData> {
           ..write('positionX: $positionX, ')
           ..write('positionY: $positionY, ')
           ..write('tagsJson: $tagsJson, ')
+          ..write('r2PhotoKey: $r2PhotoKey, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -1869,6 +1925,28 @@ class $MemoriesTableTable extends MemoriesTable
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _r2FileKeyMeta = const VerificationMeta(
+    'r2FileKey',
+  );
+  @override
+  late final GeneratedColumn<String> r2FileKey = GeneratedColumn<String>(
+    'r2_file_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _r2ThumbnailKeyMeta = const VerificationMeta(
+    'r2ThumbnailKey',
+  );
+  @override
+  late final GeneratedColumn<String> r2ThumbnailKey = GeneratedColumn<String>(
+    'r2_thumbnail_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1883,6 +1961,8 @@ class $MemoriesTableTable extends MemoriesTable
     tagsJson,
     createdAt,
     isPrivate,
+    r2FileKey,
+    r2ThumbnailKey,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1980,6 +2060,21 @@ class $MemoriesTableTable extends MemoriesTable
         isPrivate.isAcceptableOrUnknown(data['is_private']!, _isPrivateMeta),
       );
     }
+    if (data.containsKey('r2_file_key')) {
+      context.handle(
+        _r2FileKeyMeta,
+        r2FileKey.isAcceptableOrUnknown(data['r2_file_key']!, _r2FileKeyMeta),
+      );
+    }
+    if (data.containsKey('r2_thumbnail_key')) {
+      context.handle(
+        _r2ThumbnailKeyMeta,
+        r2ThumbnailKey.isAcceptableOrUnknown(
+          data['r2_thumbnail_key']!,
+          _r2ThumbnailKeyMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -2037,6 +2132,14 @@ class $MemoriesTableTable extends MemoriesTable
         DriftSqlType.bool,
         data['${effectivePrefix}is_private'],
       )!,
+      r2FileKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}r2_file_key'],
+      ),
+      r2ThumbnailKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}r2_thumbnail_key'],
+      ),
     );
   }
 
@@ -2068,6 +2171,12 @@ class MemoriesTableData extends DataClass
 
   /// Privacy Layer: 개인 메모 잠금 여부
   final bool isPrivate;
+
+  /// R2 클라우드 파일 키 (패밀리/패밀리플러스 전용)
+  final String? r2FileKey;
+
+  /// R2 클라우드 썸네일 키 (패밀리/패밀리플러스 전용)
+  final String? r2ThumbnailKey;
   const MemoriesTableData({
     required this.id,
     required this.nodeId,
@@ -2081,6 +2190,8 @@ class MemoriesTableData extends DataClass
     required this.tagsJson,
     required this.createdAt,
     required this.isPrivate,
+    this.r2FileKey,
+    this.r2ThumbnailKey,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2109,6 +2220,12 @@ class MemoriesTableData extends DataClass
     map['tags_json'] = Variable<String>(tagsJson);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['is_private'] = Variable<bool>(isPrivate);
+    if (!nullToAbsent || r2FileKey != null) {
+      map['r2_file_key'] = Variable<String>(r2FileKey);
+    }
+    if (!nullToAbsent || r2ThumbnailKey != null) {
+      map['r2_thumbnail_key'] = Variable<String>(r2ThumbnailKey);
+    }
     return map;
   }
 
@@ -2138,6 +2255,12 @@ class MemoriesTableData extends DataClass
       tagsJson: Value(tagsJson),
       createdAt: Value(createdAt),
       isPrivate: Value(isPrivate),
+      r2FileKey: r2FileKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(r2FileKey),
+      r2ThumbnailKey: r2ThumbnailKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(r2ThumbnailKey),
     );
   }
 
@@ -2159,6 +2282,8 @@ class MemoriesTableData extends DataClass
       tagsJson: serializer.fromJson<String>(json['tagsJson']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       isPrivate: serializer.fromJson<bool>(json['isPrivate']),
+      r2FileKey: serializer.fromJson<String?>(json['r2FileKey']),
+      r2ThumbnailKey: serializer.fromJson<String?>(json['r2ThumbnailKey']),
     );
   }
   @override
@@ -2177,6 +2302,8 @@ class MemoriesTableData extends DataClass
       'tagsJson': serializer.toJson<String>(tagsJson),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'isPrivate': serializer.toJson<bool>(isPrivate),
+      'r2FileKey': serializer.toJson<String?>(r2FileKey),
+      'r2ThumbnailKey': serializer.toJson<String?>(r2ThumbnailKey),
     };
   }
 
@@ -2193,6 +2320,8 @@ class MemoriesTableData extends DataClass
     String? tagsJson,
     DateTime? createdAt,
     bool? isPrivate,
+    Value<String?> r2FileKey = const Value.absent(),
+    Value<String?> r2ThumbnailKey = const Value.absent(),
   }) => MemoriesTableData(
     id: id ?? this.id,
     nodeId: nodeId ?? this.nodeId,
@@ -2210,6 +2339,10 @@ class MemoriesTableData extends DataClass
     tagsJson: tagsJson ?? this.tagsJson,
     createdAt: createdAt ?? this.createdAt,
     isPrivate: isPrivate ?? this.isPrivate,
+    r2FileKey: r2FileKey.present ? r2FileKey.value : this.r2FileKey,
+    r2ThumbnailKey: r2ThumbnailKey.present
+        ? r2ThumbnailKey.value
+        : this.r2ThumbnailKey,
   );
   MemoriesTableData copyWithCompanion(MemoriesTableCompanion data) {
     return MemoriesTableData(
@@ -2231,6 +2364,10 @@ class MemoriesTableData extends DataClass
       tagsJson: data.tagsJson.present ? data.tagsJson.value : this.tagsJson,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       isPrivate: data.isPrivate.present ? data.isPrivate.value : this.isPrivate,
+      r2FileKey: data.r2FileKey.present ? data.r2FileKey.value : this.r2FileKey,
+      r2ThumbnailKey: data.r2ThumbnailKey.present
+          ? data.r2ThumbnailKey.value
+          : this.r2ThumbnailKey,
     );
   }
 
@@ -2248,7 +2385,9 @@ class MemoriesTableData extends DataClass
           ..write('dateTaken: $dateTaken, ')
           ..write('tagsJson: $tagsJson, ')
           ..write('createdAt: $createdAt, ')
-          ..write('isPrivate: $isPrivate')
+          ..write('isPrivate: $isPrivate, ')
+          ..write('r2FileKey: $r2FileKey, ')
+          ..write('r2ThumbnailKey: $r2ThumbnailKey')
           ..write(')'))
         .toString();
   }
@@ -2267,6 +2406,8 @@ class MemoriesTableData extends DataClass
     tagsJson,
     createdAt,
     isPrivate,
+    r2FileKey,
+    r2ThumbnailKey,
   );
   @override
   bool operator ==(Object other) =>
@@ -2283,7 +2424,9 @@ class MemoriesTableData extends DataClass
           other.dateTaken == this.dateTaken &&
           other.tagsJson == this.tagsJson &&
           other.createdAt == this.createdAt &&
-          other.isPrivate == this.isPrivate);
+          other.isPrivate == this.isPrivate &&
+          other.r2FileKey == this.r2FileKey &&
+          other.r2ThumbnailKey == this.r2ThumbnailKey);
 }
 
 class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
@@ -2299,6 +2442,8 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
   final Value<String> tagsJson;
   final Value<DateTime> createdAt;
   final Value<bool> isPrivate;
+  final Value<String?> r2FileKey;
+  final Value<String?> r2ThumbnailKey;
   final Value<int> rowid;
   const MemoriesTableCompanion({
     this.id = const Value.absent(),
@@ -2313,6 +2458,8 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
     this.tagsJson = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.isPrivate = const Value.absent(),
+    this.r2FileKey = const Value.absent(),
+    this.r2ThumbnailKey = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MemoriesTableCompanion.insert({
@@ -2328,6 +2475,8 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
     this.tagsJson = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.isPrivate = const Value.absent(),
+    this.r2FileKey = const Value.absent(),
+    this.r2ThumbnailKey = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        nodeId = Value(nodeId),
@@ -2345,6 +2494,8 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
     Expression<String>? tagsJson,
     Expression<DateTime>? createdAt,
     Expression<bool>? isPrivate,
+    Expression<String>? r2FileKey,
+    Expression<String>? r2ThumbnailKey,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2360,6 +2511,8 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
       if (tagsJson != null) 'tags_json': tagsJson,
       if (createdAt != null) 'created_at': createdAt,
       if (isPrivate != null) 'is_private': isPrivate,
+      if (r2FileKey != null) 'r2_file_key': r2FileKey,
+      if (r2ThumbnailKey != null) 'r2_thumbnail_key': r2ThumbnailKey,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2377,6 +2530,8 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
     Value<String>? tagsJson,
     Value<DateTime>? createdAt,
     Value<bool>? isPrivate,
+    Value<String?>? r2FileKey,
+    Value<String?>? r2ThumbnailKey,
     Value<int>? rowid,
   }) {
     return MemoriesTableCompanion(
@@ -2392,6 +2547,8 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
       tagsJson: tagsJson ?? this.tagsJson,
       createdAt: createdAt ?? this.createdAt,
       isPrivate: isPrivate ?? this.isPrivate,
+      r2FileKey: r2FileKey ?? this.r2FileKey,
+      r2ThumbnailKey: r2ThumbnailKey ?? this.r2ThumbnailKey,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2435,6 +2592,12 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
     if (isPrivate.present) {
       map['is_private'] = Variable<bool>(isPrivate.value);
     }
+    if (r2FileKey.present) {
+      map['r2_file_key'] = Variable<String>(r2FileKey.value);
+    }
+    if (r2ThumbnailKey.present) {
+      map['r2_thumbnail_key'] = Variable<String>(r2ThumbnailKey.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2456,6 +2619,8 @@ class MemoriesTableCompanion extends UpdateCompanion<MemoriesTableData> {
           ..write('tagsJson: $tagsJson, ')
           ..write('createdAt: $createdAt, ')
           ..write('isPrivate: $isPrivate, ')
+          ..write('r2FileKey: $r2FileKey, ')
+          ..write('r2ThumbnailKey: $r2ThumbnailKey, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -7807,6 +7972,723 @@ class SyncQueueTableCompanion extends UpdateCompanion<SyncQueueEntry> {
   }
 }
 
+class $MediaUploadQueueTableTable extends MediaUploadQueueTable
+    with TableInfo<$MediaUploadQueueTableTable, MediaUploadQueueEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MediaUploadQueueTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _memoryIdMeta = const VerificationMeta(
+    'memoryId',
+  );
+  @override
+  late final GeneratedColumn<String> memoryId = GeneratedColumn<String>(
+    'memory_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nodeIdMeta = const VerificationMeta('nodeId');
+  @override
+  late final GeneratedColumn<String> nodeId = GeneratedColumn<String>(
+    'node_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _localPathMeta = const VerificationMeta(
+    'localPath',
+  );
+  @override
+  late final GeneratedColumn<String> localPath = GeneratedColumn<String>(
+    'local_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _r2FileKeyMeta = const VerificationMeta(
+    'r2FileKey',
+  );
+  @override
+  late final GeneratedColumn<String> r2FileKey = GeneratedColumn<String>(
+    'r2_file_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentTypeMeta = const VerificationMeta(
+    'contentType',
+  );
+  @override
+  late final GeneratedColumn<String> contentType = GeneratedColumn<String>(
+    'content_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fileSizeBytesMeta = const VerificationMeta(
+    'fileSizeBytes',
+  );
+  @override
+  late final GeneratedColumn<int> fileSizeBytes = GeneratedColumn<int>(
+    'file_size_bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _retryCountMeta = const VerificationMeta(
+    'retryCount',
+  );
+  @override
+  late final GeneratedColumn<int> retryCount = GeneratedColumn<int>(
+    'retry_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+    'completed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    memoryId,
+    nodeId,
+    localPath,
+    r2FileKey,
+    category,
+    contentType,
+    fileSizeBytes,
+    status,
+    retryCount,
+    createdAt,
+    completedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'media_upload_queue';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MediaUploadQueueEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('memory_id')) {
+      context.handle(
+        _memoryIdMeta,
+        memoryId.isAcceptableOrUnknown(data['memory_id']!, _memoryIdMeta),
+      );
+    }
+    if (data.containsKey('node_id')) {
+      context.handle(
+        _nodeIdMeta,
+        nodeId.isAcceptableOrUnknown(data['node_id']!, _nodeIdMeta),
+      );
+    }
+    if (data.containsKey('local_path')) {
+      context.handle(
+        _localPathMeta,
+        localPath.isAcceptableOrUnknown(data['local_path']!, _localPathMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_localPathMeta);
+    }
+    if (data.containsKey('r2_file_key')) {
+      context.handle(
+        _r2FileKeyMeta,
+        r2FileKey.isAcceptableOrUnknown(data['r2_file_key']!, _r2FileKeyMeta),
+      );
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('content_type')) {
+      context.handle(
+        _contentTypeMeta,
+        contentType.isAcceptableOrUnknown(
+          data['content_type']!,
+          _contentTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_contentTypeMeta);
+    }
+    if (data.containsKey('file_size_bytes')) {
+      context.handle(
+        _fileSizeBytesMeta,
+        fileSizeBytes.isAcceptableOrUnknown(
+          data['file_size_bytes']!,
+          _fileSizeBytesMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_fileSizeBytesMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('retry_count')) {
+      context.handle(
+        _retryCountMeta,
+        retryCount.isAcceptableOrUnknown(data['retry_count']!, _retryCountMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MediaUploadQueueEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MediaUploadQueueEntry(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      memoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}memory_id'],
+      ),
+      nodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}node_id'],
+      ),
+      localPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_path'],
+      )!,
+      r2FileKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}r2_file_key'],
+      ),
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      contentType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_type'],
+      )!,
+      fileSizeBytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}file_size_bytes'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      retryCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}retry_count'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}completed_at'],
+      ),
+    );
+  }
+
+  @override
+  $MediaUploadQueueTableTable createAlias(String alias) {
+    return $MediaUploadQueueTableTable(attachedDatabase, alias);
+  }
+}
+
+class MediaUploadQueueEntry extends DataClass
+    implements Insertable<MediaUploadQueueEntry> {
+  final String id;
+  final String? memoryId;
+  final String? nodeId;
+  final String localPath;
+  final String? r2FileKey;
+  final String category;
+  final String contentType;
+  final int fileSizeBytes;
+  final String status;
+  final int retryCount;
+  final DateTime createdAt;
+  final DateTime? completedAt;
+  const MediaUploadQueueEntry({
+    required this.id,
+    this.memoryId,
+    this.nodeId,
+    required this.localPath,
+    this.r2FileKey,
+    required this.category,
+    required this.contentType,
+    required this.fileSizeBytes,
+    required this.status,
+    required this.retryCount,
+    required this.createdAt,
+    this.completedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || memoryId != null) {
+      map['memory_id'] = Variable<String>(memoryId);
+    }
+    if (!nullToAbsent || nodeId != null) {
+      map['node_id'] = Variable<String>(nodeId);
+    }
+    map['local_path'] = Variable<String>(localPath);
+    if (!nullToAbsent || r2FileKey != null) {
+      map['r2_file_key'] = Variable<String>(r2FileKey);
+    }
+    map['category'] = Variable<String>(category);
+    map['content_type'] = Variable<String>(contentType);
+    map['file_size_bytes'] = Variable<int>(fileSizeBytes);
+    map['status'] = Variable<String>(status);
+    map['retry_count'] = Variable<int>(retryCount);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<DateTime>(completedAt);
+    }
+    return map;
+  }
+
+  MediaUploadQueueTableCompanion toCompanion(bool nullToAbsent) {
+    return MediaUploadQueueTableCompanion(
+      id: Value(id),
+      memoryId: memoryId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(memoryId),
+      nodeId: nodeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nodeId),
+      localPath: Value(localPath),
+      r2FileKey: r2FileKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(r2FileKey),
+      category: Value(category),
+      contentType: Value(contentType),
+      fileSizeBytes: Value(fileSizeBytes),
+      status: Value(status),
+      retryCount: Value(retryCount),
+      createdAt: Value(createdAt),
+      completedAt: completedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAt),
+    );
+  }
+
+  factory MediaUploadQueueEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MediaUploadQueueEntry(
+      id: serializer.fromJson<String>(json['id']),
+      memoryId: serializer.fromJson<String?>(json['memoryId']),
+      nodeId: serializer.fromJson<String?>(json['nodeId']),
+      localPath: serializer.fromJson<String>(json['localPath']),
+      r2FileKey: serializer.fromJson<String?>(json['r2FileKey']),
+      category: serializer.fromJson<String>(json['category']),
+      contentType: serializer.fromJson<String>(json['contentType']),
+      fileSizeBytes: serializer.fromJson<int>(json['fileSizeBytes']),
+      status: serializer.fromJson<String>(json['status']),
+      retryCount: serializer.fromJson<int>(json['retryCount']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'memoryId': serializer.toJson<String?>(memoryId),
+      'nodeId': serializer.toJson<String?>(nodeId),
+      'localPath': serializer.toJson<String>(localPath),
+      'r2FileKey': serializer.toJson<String?>(r2FileKey),
+      'category': serializer.toJson<String>(category),
+      'contentType': serializer.toJson<String>(contentType),
+      'fileSizeBytes': serializer.toJson<int>(fileSizeBytes),
+      'status': serializer.toJson<String>(status),
+      'retryCount': serializer.toJson<int>(retryCount),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'completedAt': serializer.toJson<DateTime?>(completedAt),
+    };
+  }
+
+  MediaUploadQueueEntry copyWith({
+    String? id,
+    Value<String?> memoryId = const Value.absent(),
+    Value<String?> nodeId = const Value.absent(),
+    String? localPath,
+    Value<String?> r2FileKey = const Value.absent(),
+    String? category,
+    String? contentType,
+    int? fileSizeBytes,
+    String? status,
+    int? retryCount,
+    DateTime? createdAt,
+    Value<DateTime?> completedAt = const Value.absent(),
+  }) => MediaUploadQueueEntry(
+    id: id ?? this.id,
+    memoryId: memoryId.present ? memoryId.value : this.memoryId,
+    nodeId: nodeId.present ? nodeId.value : this.nodeId,
+    localPath: localPath ?? this.localPath,
+    r2FileKey: r2FileKey.present ? r2FileKey.value : this.r2FileKey,
+    category: category ?? this.category,
+    contentType: contentType ?? this.contentType,
+    fileSizeBytes: fileSizeBytes ?? this.fileSizeBytes,
+    status: status ?? this.status,
+    retryCount: retryCount ?? this.retryCount,
+    createdAt: createdAt ?? this.createdAt,
+    completedAt: completedAt.present ? completedAt.value : this.completedAt,
+  );
+  MediaUploadQueueEntry copyWithCompanion(MediaUploadQueueTableCompanion data) {
+    return MediaUploadQueueEntry(
+      id: data.id.present ? data.id.value : this.id,
+      memoryId: data.memoryId.present ? data.memoryId.value : this.memoryId,
+      nodeId: data.nodeId.present ? data.nodeId.value : this.nodeId,
+      localPath: data.localPath.present ? data.localPath.value : this.localPath,
+      r2FileKey: data.r2FileKey.present ? data.r2FileKey.value : this.r2FileKey,
+      category: data.category.present ? data.category.value : this.category,
+      contentType: data.contentType.present
+          ? data.contentType.value
+          : this.contentType,
+      fileSizeBytes: data.fileSizeBytes.present
+          ? data.fileSizeBytes.value
+          : this.fileSizeBytes,
+      status: data.status.present ? data.status.value : this.status,
+      retryCount: data.retryCount.present
+          ? data.retryCount.value
+          : this.retryCount,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      completedAt: data.completedAt.present
+          ? data.completedAt.value
+          : this.completedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MediaUploadQueueEntry(')
+          ..write('id: $id, ')
+          ..write('memoryId: $memoryId, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('localPath: $localPath, ')
+          ..write('r2FileKey: $r2FileKey, ')
+          ..write('category: $category, ')
+          ..write('contentType: $contentType, ')
+          ..write('fileSizeBytes: $fileSizeBytes, ')
+          ..write('status: $status, ')
+          ..write('retryCount: $retryCount, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('completedAt: $completedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    memoryId,
+    nodeId,
+    localPath,
+    r2FileKey,
+    category,
+    contentType,
+    fileSizeBytes,
+    status,
+    retryCount,
+    createdAt,
+    completedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MediaUploadQueueEntry &&
+          other.id == this.id &&
+          other.memoryId == this.memoryId &&
+          other.nodeId == this.nodeId &&
+          other.localPath == this.localPath &&
+          other.r2FileKey == this.r2FileKey &&
+          other.category == this.category &&
+          other.contentType == this.contentType &&
+          other.fileSizeBytes == this.fileSizeBytes &&
+          other.status == this.status &&
+          other.retryCount == this.retryCount &&
+          other.createdAt == this.createdAt &&
+          other.completedAt == this.completedAt);
+}
+
+class MediaUploadQueueTableCompanion
+    extends UpdateCompanion<MediaUploadQueueEntry> {
+  final Value<String> id;
+  final Value<String?> memoryId;
+  final Value<String?> nodeId;
+  final Value<String> localPath;
+  final Value<String?> r2FileKey;
+  final Value<String> category;
+  final Value<String> contentType;
+  final Value<int> fileSizeBytes;
+  final Value<String> status;
+  final Value<int> retryCount;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> completedAt;
+  final Value<int> rowid;
+  const MediaUploadQueueTableCompanion({
+    this.id = const Value.absent(),
+    this.memoryId = const Value.absent(),
+    this.nodeId = const Value.absent(),
+    this.localPath = const Value.absent(),
+    this.r2FileKey = const Value.absent(),
+    this.category = const Value.absent(),
+    this.contentType = const Value.absent(),
+    this.fileSizeBytes = const Value.absent(),
+    this.status = const Value.absent(),
+    this.retryCount = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MediaUploadQueueTableCompanion.insert({
+    required String id,
+    this.memoryId = const Value.absent(),
+    this.nodeId = const Value.absent(),
+    required String localPath,
+    this.r2FileKey = const Value.absent(),
+    required String category,
+    required String contentType,
+    required int fileSizeBytes,
+    this.status = const Value.absent(),
+    this.retryCount = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       localPath = Value(localPath),
+       category = Value(category),
+       contentType = Value(contentType),
+       fileSizeBytes = Value(fileSizeBytes);
+  static Insertable<MediaUploadQueueEntry> custom({
+    Expression<String>? id,
+    Expression<String>? memoryId,
+    Expression<String>? nodeId,
+    Expression<String>? localPath,
+    Expression<String>? r2FileKey,
+    Expression<String>? category,
+    Expression<String>? contentType,
+    Expression<int>? fileSizeBytes,
+    Expression<String>? status,
+    Expression<int>? retryCount,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? completedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (memoryId != null) 'memory_id': memoryId,
+      if (nodeId != null) 'node_id': nodeId,
+      if (localPath != null) 'local_path': localPath,
+      if (r2FileKey != null) 'r2_file_key': r2FileKey,
+      if (category != null) 'category': category,
+      if (contentType != null) 'content_type': contentType,
+      if (fileSizeBytes != null) 'file_size_bytes': fileSizeBytes,
+      if (status != null) 'status': status,
+      if (retryCount != null) 'retry_count': retryCount,
+      if (createdAt != null) 'created_at': createdAt,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MediaUploadQueueTableCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? memoryId,
+    Value<String?>? nodeId,
+    Value<String>? localPath,
+    Value<String?>? r2FileKey,
+    Value<String>? category,
+    Value<String>? contentType,
+    Value<int>? fileSizeBytes,
+    Value<String>? status,
+    Value<int>? retryCount,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? completedAt,
+    Value<int>? rowid,
+  }) {
+    return MediaUploadQueueTableCompanion(
+      id: id ?? this.id,
+      memoryId: memoryId ?? this.memoryId,
+      nodeId: nodeId ?? this.nodeId,
+      localPath: localPath ?? this.localPath,
+      r2FileKey: r2FileKey ?? this.r2FileKey,
+      category: category ?? this.category,
+      contentType: contentType ?? this.contentType,
+      fileSizeBytes: fileSizeBytes ?? this.fileSizeBytes,
+      status: status ?? this.status,
+      retryCount: retryCount ?? this.retryCount,
+      createdAt: createdAt ?? this.createdAt,
+      completedAt: completedAt ?? this.completedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (memoryId.present) {
+      map['memory_id'] = Variable<String>(memoryId.value);
+    }
+    if (nodeId.present) {
+      map['node_id'] = Variable<String>(nodeId.value);
+    }
+    if (localPath.present) {
+      map['local_path'] = Variable<String>(localPath.value);
+    }
+    if (r2FileKey.present) {
+      map['r2_file_key'] = Variable<String>(r2FileKey.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (contentType.present) {
+      map['content_type'] = Variable<String>(contentType.value);
+    }
+    if (fileSizeBytes.present) {
+      map['file_size_bytes'] = Variable<int>(fileSizeBytes.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (retryCount.present) {
+      map['retry_count'] = Variable<int>(retryCount.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MediaUploadQueueTableCompanion(')
+          ..write('id: $id, ')
+          ..write('memoryId: $memoryId, ')
+          ..write('nodeId: $nodeId, ')
+          ..write('localPath: $localPath, ')
+          ..write('r2FileKey: $r2FileKey, ')
+          ..write('category: $category, ')
+          ..write('contentType: $contentType, ')
+          ..write('fileSizeBytes: $fileSizeBytes, ')
+          ..write('status: $status, ')
+          ..write('retryCount: $retryCount, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7833,6 +8715,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $FamilyEventsTableTable familyEventsTable =
       $FamilyEventsTableTable(this);
   late final $SyncQueueTableTable syncQueueTable = $SyncQueueTableTable(this);
+  late final $MediaUploadQueueTableTable mediaUploadQueueTable =
+      $MediaUploadQueueTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -7854,6 +8738,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     thenNowTable,
     familyEventsTable,
     syncQueueTable,
+    mediaUploadQueueTable,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -8146,6 +9031,7 @@ typedef $$NodesTableTableCreateCompanionBuilder =
       Value<double> positionX,
       Value<double> positionY,
       Value<String> tagsJson,
+      Value<String?> r2PhotoKey,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -8164,6 +9050,7 @@ typedef $$NodesTableTableUpdateCompanionBuilder =
       Value<double> positionX,
       Value<double> positionY,
       Value<String> tagsJson,
+      Value<String?> r2PhotoKey,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -8258,6 +9145,11 @@ class $$NodesTableTableFilterComposer
 
   ColumnFilters<String> get tagsJson => $composableBuilder(
     column: $table.tagsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get r2PhotoKey => $composableBuilder(
+    column: $table.r2PhotoKey,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8366,6 +9258,11 @@ class $$NodesTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get r2PhotoKey => $composableBuilder(
+    column: $table.r2PhotoKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -8423,6 +9320,11 @@ class $$NodesTableTableAnnotationComposer
 
   GeneratedColumn<String> get tagsJson =>
       $composableBuilder(column: $table.tagsJson, builder: (column) => column);
+
+  GeneratedColumn<String> get r2PhotoKey => $composableBuilder(
+    column: $table.r2PhotoKey,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -8496,6 +9398,7 @@ class $$NodesTableTableTableManager
                 Value<double> positionX = const Value.absent(),
                 Value<double> positionY = const Value.absent(),
                 Value<String> tagsJson = const Value.absent(),
+                Value<String?> r2PhotoKey = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -8512,6 +9415,7 @@ class $$NodesTableTableTableManager
                 positionX: positionX,
                 positionY: positionY,
                 tagsJson: tagsJson,
+                r2PhotoKey: r2PhotoKey,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -8530,6 +9434,7 @@ class $$NodesTableTableTableManager
                 Value<double> positionX = const Value.absent(),
                 Value<double> positionY = const Value.absent(),
                 Value<String> tagsJson = const Value.absent(),
+                Value<String?> r2PhotoKey = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -8546,6 +9451,7 @@ class $$NodesTableTableTableManager
                 positionX: positionX,
                 positionY: positionY,
                 tagsJson: tagsJson,
+                r2PhotoKey: r2PhotoKey,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -9061,6 +9967,8 @@ typedef $$MemoriesTableTableCreateCompanionBuilder =
       Value<String> tagsJson,
       Value<DateTime> createdAt,
       Value<bool> isPrivate,
+      Value<String?> r2FileKey,
+      Value<String?> r2ThumbnailKey,
       Value<int> rowid,
     });
 typedef $$MemoriesTableTableUpdateCompanionBuilder =
@@ -9077,6 +9985,8 @@ typedef $$MemoriesTableTableUpdateCompanionBuilder =
       Value<String> tagsJson,
       Value<DateTime> createdAt,
       Value<bool> isPrivate,
+      Value<String?> r2FileKey,
+      Value<String?> r2ThumbnailKey,
       Value<int> rowid,
     });
 
@@ -9173,6 +10083,16 @@ class $$MemoriesTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get r2FileKey => $composableBuilder(
+    column: $table.r2FileKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get r2ThumbnailKey => $composableBuilder(
+    column: $table.r2ThumbnailKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$NodesTableTableFilterComposer get nodeId {
     final $$NodesTableTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -9261,6 +10181,16 @@ class $$MemoriesTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get r2FileKey => $composableBuilder(
+    column: $table.r2FileKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get r2ThumbnailKey => $composableBuilder(
+    column: $table.r2ThumbnailKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$NodesTableTableOrderingComposer get nodeId {
     final $$NodesTableTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -9333,6 +10263,14 @@ class $$MemoriesTableTableAnnotationComposer
   GeneratedColumn<bool> get isPrivate =>
       $composableBuilder(column: $table.isPrivate, builder: (column) => column);
 
+  GeneratedColumn<String> get r2FileKey =>
+      $composableBuilder(column: $table.r2FileKey, builder: (column) => column);
+
+  GeneratedColumn<String> get r2ThumbnailKey => $composableBuilder(
+    column: $table.r2ThumbnailKey,
+    builder: (column) => column,
+  );
+
   $$NodesTableTableAnnotationComposer get nodeId {
     final $$NodesTableTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -9397,6 +10335,8 @@ class $$MemoriesTableTableTableManager
                 Value<String> tagsJson = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<bool> isPrivate = const Value.absent(),
+                Value<String?> r2FileKey = const Value.absent(),
+                Value<String?> r2ThumbnailKey = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MemoriesTableCompanion(
                 id: id,
@@ -9411,6 +10351,8 @@ class $$MemoriesTableTableTableManager
                 tagsJson: tagsJson,
                 createdAt: createdAt,
                 isPrivate: isPrivate,
+                r2FileKey: r2FileKey,
+                r2ThumbnailKey: r2ThumbnailKey,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -9427,6 +10369,8 @@ class $$MemoriesTableTableTableManager
                 Value<String> tagsJson = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<bool> isPrivate = const Value.absent(),
+                Value<String?> r2FileKey = const Value.absent(),
+                Value<String?> r2ThumbnailKey = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MemoriesTableCompanion.insert(
                 id: id,
@@ -9441,6 +10385,8 @@ class $$MemoriesTableTableTableManager
                 tagsJson: tagsJson,
                 createdAt: createdAt,
                 isPrivate: isPrivate,
+                r2FileKey: r2FileKey,
+                r2ThumbnailKey: r2ThumbnailKey,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -12399,6 +13345,366 @@ typedef $$SyncQueueTableTableProcessedTableManager =
       SyncQueueEntry,
       PrefetchHooks Function()
     >;
+typedef $$MediaUploadQueueTableTableCreateCompanionBuilder =
+    MediaUploadQueueTableCompanion Function({
+      required String id,
+      Value<String?> memoryId,
+      Value<String?> nodeId,
+      required String localPath,
+      Value<String?> r2FileKey,
+      required String category,
+      required String contentType,
+      required int fileSizeBytes,
+      Value<String> status,
+      Value<int> retryCount,
+      Value<DateTime> createdAt,
+      Value<DateTime?> completedAt,
+      Value<int> rowid,
+    });
+typedef $$MediaUploadQueueTableTableUpdateCompanionBuilder =
+    MediaUploadQueueTableCompanion Function({
+      Value<String> id,
+      Value<String?> memoryId,
+      Value<String?> nodeId,
+      Value<String> localPath,
+      Value<String?> r2FileKey,
+      Value<String> category,
+      Value<String> contentType,
+      Value<int> fileSizeBytes,
+      Value<String> status,
+      Value<int> retryCount,
+      Value<DateTime> createdAt,
+      Value<DateTime?> completedAt,
+      Value<int> rowid,
+    });
+
+class $$MediaUploadQueueTableTableFilterComposer
+    extends Composer<_$AppDatabase, $MediaUploadQueueTableTable> {
+  $$MediaUploadQueueTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get memoryId => $composableBuilder(
+    column: $table.memoryId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nodeId => $composableBuilder(
+    column: $table.nodeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localPath => $composableBuilder(
+    column: $table.localPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get r2FileKey => $composableBuilder(
+    column: $table.r2FileKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contentType => $composableBuilder(
+    column: $table.contentType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get fileSizeBytes => $composableBuilder(
+    column: $table.fileSizeBytes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get retryCount => $composableBuilder(
+    column: $table.retryCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MediaUploadQueueTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $MediaUploadQueueTableTable> {
+  $$MediaUploadQueueTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get memoryId => $composableBuilder(
+    column: $table.memoryId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nodeId => $composableBuilder(
+    column: $table.nodeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localPath => $composableBuilder(
+    column: $table.localPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get r2FileKey => $composableBuilder(
+    column: $table.r2FileKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contentType => $composableBuilder(
+    column: $table.contentType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get fileSizeBytes => $composableBuilder(
+    column: $table.fileSizeBytes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get retryCount => $composableBuilder(
+    column: $table.retryCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MediaUploadQueueTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MediaUploadQueueTableTable> {
+  $$MediaUploadQueueTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get memoryId =>
+      $composableBuilder(column: $table.memoryId, builder: (column) => column);
+
+  GeneratedColumn<String> get nodeId =>
+      $composableBuilder(column: $table.nodeId, builder: (column) => column);
+
+  GeneratedColumn<String> get localPath =>
+      $composableBuilder(column: $table.localPath, builder: (column) => column);
+
+  GeneratedColumn<String> get r2FileKey =>
+      $composableBuilder(column: $table.r2FileKey, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get contentType => $composableBuilder(
+    column: $table.contentType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get fileSizeBytes => $composableBuilder(
+    column: $table.fileSizeBytes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get retryCount => $composableBuilder(
+    column: $table.retryCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$MediaUploadQueueTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MediaUploadQueueTableTable,
+          MediaUploadQueueEntry,
+          $$MediaUploadQueueTableTableFilterComposer,
+          $$MediaUploadQueueTableTableOrderingComposer,
+          $$MediaUploadQueueTableTableAnnotationComposer,
+          $$MediaUploadQueueTableTableCreateCompanionBuilder,
+          $$MediaUploadQueueTableTableUpdateCompanionBuilder,
+          (
+            MediaUploadQueueEntry,
+            BaseReferences<
+              _$AppDatabase,
+              $MediaUploadQueueTableTable,
+              MediaUploadQueueEntry
+            >,
+          ),
+          MediaUploadQueueEntry,
+          PrefetchHooks Function()
+        > {
+  $$MediaUploadQueueTableTableTableManager(
+    _$AppDatabase db,
+    $MediaUploadQueueTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MediaUploadQueueTableTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$MediaUploadQueueTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$MediaUploadQueueTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> memoryId = const Value.absent(),
+                Value<String?> nodeId = const Value.absent(),
+                Value<String> localPath = const Value.absent(),
+                Value<String?> r2FileKey = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<String> contentType = const Value.absent(),
+                Value<int> fileSizeBytes = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<int> retryCount = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MediaUploadQueueTableCompanion(
+                id: id,
+                memoryId: memoryId,
+                nodeId: nodeId,
+                localPath: localPath,
+                r2FileKey: r2FileKey,
+                category: category,
+                contentType: contentType,
+                fileSizeBytes: fileSizeBytes,
+                status: status,
+                retryCount: retryCount,
+                createdAt: createdAt,
+                completedAt: completedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> memoryId = const Value.absent(),
+                Value<String?> nodeId = const Value.absent(),
+                required String localPath,
+                Value<String?> r2FileKey = const Value.absent(),
+                required String category,
+                required String contentType,
+                required int fileSizeBytes,
+                Value<String> status = const Value.absent(),
+                Value<int> retryCount = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MediaUploadQueueTableCompanion.insert(
+                id: id,
+                memoryId: memoryId,
+                nodeId: nodeId,
+                localPath: localPath,
+                r2FileKey: r2FileKey,
+                category: category,
+                contentType: contentType,
+                fileSizeBytes: fileSizeBytes,
+                status: status,
+                retryCount: retryCount,
+                createdAt: createdAt,
+                completedAt: completedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MediaUploadQueueTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MediaUploadQueueTableTable,
+      MediaUploadQueueEntry,
+      $$MediaUploadQueueTableTableFilterComposer,
+      $$MediaUploadQueueTableTableOrderingComposer,
+      $$MediaUploadQueueTableTableAnnotationComposer,
+      $$MediaUploadQueueTableTableCreateCompanionBuilder,
+      $$MediaUploadQueueTableTableUpdateCompanionBuilder,
+      (
+        MediaUploadQueueEntry,
+        BaseReferences<
+          _$AppDatabase,
+          $MediaUploadQueueTableTable,
+          MediaUploadQueueEntry
+        >,
+      ),
+      MediaUploadQueueEntry,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -12435,4 +13741,6 @@ class $AppDatabaseManager {
       $$FamilyEventsTableTableTableManager(_db, _db.familyEventsTable);
   $$SyncQueueTableTableTableManager get syncQueueTable =>
       $$SyncQueueTableTableTableManager(_db, _db.syncQueueTable);
+  $$MediaUploadQueueTableTableTableManager get mediaUploadQueueTable =>
+      $$MediaUploadQueueTableTableTableManager(_db, _db.mediaUploadQueueTable);
 }

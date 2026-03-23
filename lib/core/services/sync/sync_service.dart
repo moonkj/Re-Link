@@ -76,6 +76,7 @@ class SyncService {
           name: Value(item['name'] as String),
           nickname: Value(item['nickname'] as String?),
           bio: Value(item['bio'] as String?),
+          r2PhotoKey: Value(item['r2_photo_key'] as String?),
           birthDate: Value(birthMs != null
               ? DateTime.fromMillisecondsSinceEpoch(birthMs)
               : null),
@@ -126,6 +127,8 @@ class SyncService {
           type: Value(item['type'] as String),
           title: Value(item['title'] as String?),
           description: Value(item['description'] as String?),
+          r2FileKey: Value(item['r2_file_key'] as String?),
+          r2ThumbnailKey: Value(item['r2_thumbnail_key'] as String?),
           durationSeconds: Value(item['duration_seconds'] as int?),
           dateTaken: Value(dateTakenMs != null
               ? DateTime.fromMillisecondsSinceEpoch(dateTakenMs)
@@ -161,11 +164,35 @@ class SyncService {
       'memories': 'memory',
     };
 
-    final items = pending.map((entry) {
+    final items = <Map<String, dynamic>>[];
+    for (final entry in pending) {
       final type = typeMap[entry.targetTable] ?? entry.targetTable;
       final data = jsonDecode(entry.payloadJson) as Map<String, dynamic>;
-      return {'type': type, 'data': data};
-    }).toList();
+
+      // R2 키가 있는 항목만 포함 — 업로드 미완료 미디어는 제외
+      if (type == 'memory') {
+        // memory payload에 R2 키 포함 (업로드 완료된 것만)
+        final memoryId = data['id'] as String?;
+        if (memoryId != null) {
+          final memRow = await db.getMemory(memoryId);
+          if (memRow != null) {
+            data['r2_file_key'] = memRow.r2FileKey;
+            data['r2_thumbnail_key'] = memRow.r2ThumbnailKey;
+          }
+        }
+      } else if (type == 'node') {
+        // node payload에 R2 프로필 사진 키 포함
+        final nodeId = data['id'] as String?;
+        if (nodeId != null) {
+          final nodeRow = await db.getNode(nodeId);
+          if (nodeRow != null) {
+            data['r2_photo_key'] = nodeRow.r2PhotoKey;
+          }
+        }
+      }
+
+      items.add({'type': type, 'data': data});
+    }
 
     // 4. POST /sync/push
     try {

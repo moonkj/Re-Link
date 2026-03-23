@@ -7,7 +7,7 @@ part of 'merge_preview_notifier.dart';
 // **************************************************************************
 
 String _$mergePreviewNotifierHash() =>
-    r'51981945fa89c6dcc2ca4787c262268cfa0c78b8';
+    r'db023f5ba55f611e1b55c1b2f301a7523e700cda';
 
 /// See also [MergePreviewNotifier].
 @ProviderFor(MergePreviewNotifier)

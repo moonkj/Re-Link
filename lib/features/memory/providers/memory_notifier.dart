@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/services/media/media_service.dart';
+import '../../../core/services/sync/media_upload_queue_service.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../shared/models/memory_model.dart';
 import '../../../shared/models/user_plan.dart';
 import '../../../shared/repositories/memory_repository.dart';
@@ -33,6 +36,8 @@ class MemoryNotifier extends _$MemoryNotifier {
   MemoryRepository get _repo => ref.read(memoryRepositoryProvider);
   SettingsRepository get _settings => ref.read(settingsRepositoryProvider);
   MediaService get _media => ref.read(mediaServiceProvider);
+  MediaUploadQueueService get _uploadQueue =>
+      ref.read(mediaUploadQueueServiceProvider);
 
   // ── 사진 추가 ────────────────────────────────────────────────────────────
 
@@ -58,6 +63,8 @@ class MemoryNotifier extends _$MemoryNotifier {
         thumbnailPath: result.thumbnailPath,
         dateTaken: dateTaken ?? DateTime.now(),
       );
+      // 패밀리 플랜이면 R2 자동 업로드 큐에 추가
+      await _enqueuePhotoUploadIfCloud(memory);
       state = const AsyncData(null);
       return memory;
     } on PlanLimitError catch (e, st) {
@@ -91,6 +98,8 @@ class MemoryNotifier extends _$MemoryNotifier {
         thumbnailPath: result.thumbnailPath,
         dateTaken: DateTime.now(),
       );
+      // 패밀리 플랜이면 R2 자동 업로드 큐에 추가
+      await _enqueuePhotoUploadIfCloud(memory);
       state = const AsyncData(null);
       return memory;
     } on PlanLimitError catch (e, st) {
@@ -126,6 +135,8 @@ class MemoryNotifier extends _$MemoryNotifier {
         tags: tags,
         isPrivate: isPrivate,
       );
+      // 패밀리 플랜이면 R2 자동 업로드 큐에 추가
+      await _enqueueVoiceUploadIfCloud(memory);
       state = const AsyncData(null);
       return memory;
     } on PlanLimitError catch (e, st) {
@@ -212,6 +223,179 @@ class MemoryNotifier extends _$MemoryNotifier {
         currentPlan: plan.displayName,
         requiredPlan: plan == UserPlan.free ? '플러스' : '패밀리',
       );
+    }
+  }
+
+  // ── 영상 추가 ────────────────────────────────────────────────────────────
+
+  /// 갤러리에서 영상 선택 후 저장
+  Future<MemoryModel?> addVideoFromGallery({
+    required String nodeId,
+    String? title,
+    required int durationSeconds,
+    List<String> tags = const [],
+    bool isPrivate = false,
+  }) async {
+    state = const AsyncLoading();
+    try {
+      final videoPath = await _media.pickAndSaveVideo();
+      if (videoPath == null) {
+        state = const AsyncData(null);
+        return null;
+      }
+      final thumbnailPath = await _media.generateVideoThumbnail(videoPath);
+      final memory = await _repo.create(
+        nodeId: nodeId,
+        type: MemoryType.video,
+        title: title,
+        filePath: videoPath,
+        thumbnailPath: thumbnailPath,
+        durationSeconds: durationSeconds,
+        dateTaken: DateTime.now(),
+        tags: tags,
+        isPrivate: isPrivate,
+      );
+      // 패밀리 플랜이면 R2 자동 업로드 큐에 추가
+      await _enqueueVideoUploadIfCloud(memory);
+      state = const AsyncData(null);
+      return memory;
+    } on PlanLimitError catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return null;
+    }
+  }
+
+  /// 카메라로 영상 촬영 후 저장
+  Future<MemoryModel?> addVideoFromCamera({
+    required String nodeId,
+    required int maxSeconds,
+    String? title,
+    required int durationSeconds,
+    List<String> tags = const [],
+    bool isPrivate = false,
+  }) async {
+    state = const AsyncLoading();
+    try {
+      final videoPath =
+          await _media.captureAndSaveVideo(maxSeconds: maxSeconds);
+      if (videoPath == null) {
+        state = const AsyncData(null);
+        return null;
+      }
+      final thumbnailPath = await _media.generateVideoThumbnail(videoPath);
+      final memory = await _repo.create(
+        nodeId: nodeId,
+        type: MemoryType.video,
+        title: title,
+        filePath: videoPath,
+        thumbnailPath: thumbnailPath,
+        durationSeconds: durationSeconds,
+        dateTaken: DateTime.now(),
+        tags: tags,
+        isPrivate: isPrivate,
+      );
+      // 패밀리 플랜이면 R2 자동 업로드 큐에 추가
+      await _enqueueVideoUploadIfCloud(memory);
+      state = const AsyncData(null);
+      return memory;
+    } on PlanLimitError catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return null;
+    }
+  }
+
+  // ── R2 업로드 큐 자동 등록 ──────────────────────────────────────────────
+
+  /// 패밀리 플랜 여부 확인 (클라우드 업로드 가능 여부)
+  Future<bool> _hasCloudPlan() async {
+    final plan = await _settings.getUserPlan();
+    return plan.hasCloud;
+  }
+
+  /// 사진 메모리 → R2 업로드 큐 등록 (사진 + 썸네일)
+  Future<void> _enqueuePhotoUploadIfCloud(MemoryModel memory) async {
+    if (!await _hasCloudPlan()) return;
+    try {
+      // 사진 파일 업로드
+      if (memory.filePath != null) {
+        final absPath = PathUtils.toAbsolute(memory.filePath) ?? memory.filePath!;
+        await _uploadQueue.enqueue(
+          memoryId: memory.id,
+          localPath: absPath,
+          category: 'photo',
+          contentType: 'image/webp',
+        );
+      }
+      // 썸네일 업로드
+      if (memory.thumbnailPath != null) {
+        final absThumb =
+            PathUtils.toAbsolute(memory.thumbnailPath) ?? memory.thumbnailPath!;
+        await _uploadQueue.enqueue(
+          memoryId: memory.id,
+          localPath: absThumb,
+          category: 'thumbnail',
+          contentType: 'image/webp',
+        );
+      }
+      debugPrint('[MemoryNotifier] 사진 R2 업로드 큐 등록: ${memory.id}');
+    } catch (e) {
+      debugPrint('[MemoryNotifier] R2 큐 등록 오류 (무시): $e');
+    }
+  }
+
+  /// 음성 메모리 → R2 업로드 큐 등록
+  Future<void> _enqueueVoiceUploadIfCloud(MemoryModel memory) async {
+    if (!await _hasCloudPlan()) return;
+    try {
+      if (memory.filePath != null) {
+        final absPath = PathUtils.toAbsolute(memory.filePath) ?? memory.filePath!;
+        await _uploadQueue.enqueue(
+          memoryId: memory.id,
+          localPath: absPath,
+          category: 'voice',
+          contentType: 'audio/m4a',
+        );
+      }
+      debugPrint('[MemoryNotifier] 음성 R2 업로드 큐 등록: ${memory.id}');
+    } catch (e) {
+      debugPrint('[MemoryNotifier] R2 큐 등록 오류 (무시): $e');
+    }
+  }
+
+  /// 영상 메모리 → R2 업로드 큐 등록 (영상 + 썸네일)
+  Future<void> _enqueueVideoUploadIfCloud(MemoryModel memory) async {
+    if (!await _hasCloudPlan()) return;
+    try {
+      // 영상 파일 업로드
+      if (memory.filePath != null) {
+        final absPath = PathUtils.toAbsolute(memory.filePath) ?? memory.filePath!;
+        await _uploadQueue.enqueue(
+          memoryId: memory.id,
+          localPath: absPath,
+          category: 'video',
+          contentType: 'video/mp4',
+        );
+      }
+      // 영상 썸네일 업로드
+      if (memory.thumbnailPath != null) {
+        final absThumb =
+            PathUtils.toAbsolute(memory.thumbnailPath) ?? memory.thumbnailPath!;
+        await _uploadQueue.enqueue(
+          memoryId: memory.id,
+          localPath: absThumb,
+          category: 'thumbnail',
+          contentType: 'image/jpeg',
+        );
+      }
+      debugPrint('[MemoryNotifier] 영상 R2 업로드 큐 등록: ${memory.id}');
+    } catch (e) {
+      debugPrint('[MemoryNotifier] R2 큐 등록 오류 (무시): $e');
     }
   }
 }

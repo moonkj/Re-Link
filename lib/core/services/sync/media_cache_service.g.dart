@@ -1,28 +1,28 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'my_node_provider.dart';
+part of 'media_cache_service.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$myNodeNotifierHash() => r'55626a0eb304879c56414b804533426942cb70a9';
+String _$mediaCacheServiceHash() => r'4c10f6cae11946a94868e9ffff52dca9baae1346';
 
-/// 내 노드 ID 상태 관리
-///
-/// Copied from [MyNodeNotifier].
-@ProviderFor(MyNodeNotifier)
-final myNodeNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<MyNodeNotifier, String?>.internal(
-      MyNodeNotifier.new,
-      name: r'myNodeNotifierProvider',
+/// See also [mediaCacheService].
+@ProviderFor(mediaCacheService)
+final mediaCacheServiceProvider =
+    AutoDisposeProvider<MediaCacheService>.internal(
+      mediaCacheService,
+      name: r'mediaCacheServiceProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
           ? null
-          : _$myNodeNotifierHash,
+          : _$mediaCacheServiceHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
-typedef _$MyNodeNotifier = AutoDisposeAsyncNotifier<String?>;
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef MediaCacheServiceRef = AutoDisposeProviderRef<MediaCacheService>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

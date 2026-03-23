@@ -18,6 +18,7 @@ import 'tables/voice_legacy_table.dart';
 import 'tables/then_now_table.dart';
 import 'tables/family_events_table.dart';
 import 'tables/sync_queue_table.dart';
+import 'tables/media_upload_queue_table.dart';
 
 part 'app_database.g.dart';
 
@@ -38,6 +39,7 @@ part 'app_database.g.dart';
   ThenNowTable,
   FamilyEventsTable,
   SyncQueueTable,
+  MediaUploadQueueTable,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -50,7 +52,7 @@ class AppDatabase extends _$AppDatabase {
       : super(NativeDatabase(File(path)));
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -107,6 +109,13 @@ class AppDatabase extends _$AppDatabase {
           // v8 → v9: bouquets.is_read 컬럼 추가 (받은 마음 읽음 처리)
           if (from < 9) {
             await m.addColumn(bouquetsTable, bouquetsTable.isRead);
+          }
+          // v9 → v10: R2 미디어 키 컬럼 + 업로드 큐 테이블
+          if (from < 10) {
+            await m.addColumn(memoriesTable, memoriesTable.r2FileKey);
+            await m.addColumn(memoriesTable, memoriesTable.r2ThumbnailKey);
+            await m.addColumn(nodesTable, nodesTable.r2PhotoKey);
+            await m.createTable(mediaUploadQueueTable);
           }
         },
       );
@@ -638,6 +647,105 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> deleteNodeLocation(String id) =>
       (delete(nodeLocationsTable)..where((t) => t.id.equals(id))).go();
+
+  // ── MediaUploadQueue (R2 미디어 업로드 대기열) ──────────────────────────────
+
+  /// 업로드 큐에 항목 추가
+  Future<void> enqueueMediaUpload(MediaUploadQueueTableCompanion entry) =>
+      into(mediaUploadQueueTable).insertOnConflictUpdate(entry);
+
+  /// pending 상태 항목 조회 (createdAt 오름차순, 최대 limit개)
+  Future<List<MediaUploadQueueEntry>> getPendingMediaUploads({
+    int limit = 10,
+  }) =>
+      (select(mediaUploadQueueTable)
+            ..where((t) => t.status.equals('pending'))
+            ..orderBy([(t) => OrderingTerm.asc(t.createdAt)])
+            ..limit(limit))
+          .get();
+
+  /// failed 상태 중 재시도 가능한 항목 조회 (retryCount < maxRetry)
+  Future<List<MediaUploadQueueEntry>> getRetryableMediaUploads({
+    int maxRetry = 5,
+    int limit = 10,
+  }) =>
+      (select(mediaUploadQueueTable)
+            ..where((t) =>
+                t.status.equals('failed') &
+                t.retryCount.isSmallerThanValue(maxRetry))
+            ..orderBy([(t) => OrderingTerm.asc(t.createdAt)])
+            ..limit(limit))
+          .get();
+
+  /// 업로드 상태 업데이트
+  Future<void> updateMediaUploadStatus(
+    String id, {
+    required String status,
+    String? r2FileKey,
+    DateTime? completedAt,
+  }) async {
+    final companion = MediaUploadQueueTableCompanion(
+      status: Value(status),
+      r2FileKey: r2FileKey != null ? Value(r2FileKey) : const Value.absent(),
+      completedAt:
+          completedAt != null ? Value(completedAt) : const Value.absent(),
+    );
+    await (update(mediaUploadQueueTable)..where((t) => t.id.equals(id)))
+        .write(companion);
+  }
+
+  /// 업로드 재시도 횟수 증가 + failed 상태로 변경
+  Future<void> incrementMediaUploadRetry(String id) async {
+    final entry = await (select(mediaUploadQueueTable)
+          ..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
+    if (entry == null) return;
+    await (update(mediaUploadQueueTable)..where((t) => t.id.equals(id))).write(
+      MediaUploadQueueTableCompanion(
+        retryCount: Value(entry.retryCount + 1),
+        status: const Value('failed'),
+      ),
+    );
+  }
+
+  /// 특정 memory의 업로드 큐 항목 조회
+  Future<List<MediaUploadQueueEntry>> getMediaUploadsByMemoryId(
+      String memoryId) =>
+      (select(mediaUploadQueueTable)
+            ..where((t) => t.memoryId.equals(memoryId)))
+          .get();
+
+  /// 특정 node의 업로드 큐 항목 조회
+  Future<List<MediaUploadQueueEntry>> getMediaUploadsByNodeId(
+      String nodeId) =>
+      (select(mediaUploadQueueTable)
+            ..where((t) => t.nodeId.equals(nodeId)))
+          .get();
+
+  /// 상태별 카운트 조회
+  Future<Map<String, int>> getMediaUploadQueueStatus() async {
+    final all = await select(mediaUploadQueueTable).get();
+    final result = <String, int>{
+      'pending': 0,
+      'uploading': 0,
+      'completed': 0,
+      'failed': 0,
+    };
+    for (final entry in all) {
+      result[entry.status] = (result[entry.status] ?? 0) + 1;
+    }
+    return result;
+  }
+
+  /// 완료된 항목 정리
+  Future<void> cleanCompletedMediaUploads() =>
+      (delete(mediaUploadQueueTable)
+            ..where((t) => t.status.equals('completed')))
+          .go();
+
+  /// 특정 항목 삭제
+  Future<int> deleteMediaUpload(String id) =>
+      (delete(mediaUploadQueueTable)..where((t) => t.id.equals(id))).go();
 }
 
 /// DB 파일 연결 — LazyDatabase로 비동기 경로 해결 (background isolate 없음)

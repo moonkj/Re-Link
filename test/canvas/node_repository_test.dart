@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:re_link/core/database/app_database.dart';
 import 'package:re_link/shared/models/node_model.dart';
 import 'package:re_link/shared/repositories/node_repository.dart';
+import '../helpers/test_helpers.dart';
 
 void main() {
   late AppDatabase db;
@@ -14,7 +15,7 @@ void main() {
         rawDb.execute('PRAGMA foreign_keys = ON');
       }),
     );
-    repo = NodeRepository(db);
+    repo = createTestNodeRepository(db);
   });
 
   tearDown(() async {

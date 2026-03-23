@@ -12,7 +12,7 @@ import 'cloud_backup_provider.dart';
 ///   Runner → Signing & Capabilities → + Capability → iCloud → Documents 체크
 ///   Containers: iCloud.com.relink 추가
 class ICloudBackup implements CloudBackupProvider {
-  static const String _containerId = 'iCloud.com.relink';
+  static const String _containerId = 'iCloud.com.relink.app';
 
   @override
   Future<bool> isAvailable() async {
@@ -62,13 +62,32 @@ class ICloudBackup implements CloudBackupProvider {
     final tmpDir = await getTemporaryDirectory();
     final localPath = p.join(tmpDir.path, filename);
 
+    // 기존 파일 삭제 (이전 다운로드 잔여물 방지)
+    final existing = File(localPath);
+    if (await existing.exists()) {
+      await existing.delete();
+    }
+
     await ICloudStorage.download(
       containerId: _containerId,
       relativePath: filename,
       destinationFilePath: localPath,
     );
 
-    return File(localPath);
+    // 다운로드 완료 대기 (iCloud는 비동기 다운로드)
+    final file = File(localPath);
+    for (int i = 0; i < 30; i++) {
+      if (await file.exists() && await file.length() > 0) {
+        return file;
+      }
+      await Future.delayed(const Duration(seconds: 1));
+    }
+
+    if (!await file.exists() || await file.length() == 0) {
+      throw Exception('iCloud에서 파일 다운로드에 실패했습니다. 네트워크를 확인해주세요.');
+    }
+
+    return file;
   }
 
   @override

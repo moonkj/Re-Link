@@ -30,6 +30,12 @@ class MemoriesTable extends Table {
   /// Privacy Layer: 개인 메모 잠금 여부
   BoolColumn get isPrivate => boolean().withDefault(const Constant(false))();
 
+  /// R2 클라우드 파일 키 (패밀리/패밀리플러스 전용)
+  TextColumn get r2FileKey => text().nullable()();
+
+  /// R2 클라우드 썸네일 키 (패밀리/패밀리플러스 전용)
+  TextColumn get r2ThumbnailKey => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
