@@ -930,53 +930,73 @@ class _SyncStatusDot extends StatelessWidget {
 // ── 자동 백업 토글 ──────────────────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
 
-class _AutoBackupToggle extends ConsumerWidget {
+class _AutoBackupToggle extends ConsumerStatefulWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return FutureBuilder<bool>(
-      future: ref.read(settingsRepositoryProvider).isAutoBackupEnabled(),
-      builder: (context, snap) {
-        final enabled = snap.data ?? true;
-        return GlassCard(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.schedule_outlined, color: AppColors.info, size: 22),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '자동 백업',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    Text(
-                      '24시간마다 자동으로 클라우드에 백업',
-                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                    ),
-                  ],
+  ConsumerState<_AutoBackupToggle> createState() => _AutoBackupToggleState();
+}
+
+class _AutoBackupToggleState extends ConsumerState<_AutoBackupToggle> {
+  bool _enabled = true;
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadValue();
+  }
+
+  Future<void> _loadValue() async {
+    final value = await ref.read(settingsRepositoryProvider).isAutoBackupEnabled();
+    if (mounted) {
+      setState(() {
+        _enabled = value;
+        _loaded = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.schedule_outlined, color: AppColors.info, size: 22),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '자동 백업',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-              ),
-              Switch.adaptive(
-                value: enabled,
-                onChanged: (v) {
-                  ref.read(settingsRepositoryProvider).setAutoBackup(v);
-                  (context as Element).markNeedsBuild();
-                },
-                activeTrackColor: AppColors.primary,
-              ),
-            ],
+                Text(
+                  '24시간마다 자동으로 클라우드에 백업',
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
           ),
-        );
-      },
+          Switch.adaptive(
+            value: _enabled,
+            onChanged: _loaded
+                ? (v) {
+                    setState(() => _enabled = v);
+                    ref.read(settingsRepositoryProvider).setAutoBackup(v);
+                  }
+                : null,
+            activeTrackColor: AppColors.primary,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -985,53 +1005,73 @@ class _AutoBackupToggle extends ConsumerWidget {
 // ── 자동 동기화 토글 ────────────────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
 
-class _AutoSyncToggle extends ConsumerWidget {
+class _AutoSyncToggle extends ConsumerStatefulWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return FutureBuilder<bool>(
-      future: ref.read(settingsRepositoryProvider).isAutoSyncEnabled(),
-      builder: (context, snap) {
-        final enabled = snap.data ?? true;
-        return GlassCard(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.autorenew_outlined, color: AppColors.success, size: 22),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '자동 동기화',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    Text(
-                      '앱 사용 중 자동으로 업로드/다운로드',
-                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                    ),
-                  ],
+  ConsumerState<_AutoSyncToggle> createState() => _AutoSyncToggleState();
+}
+
+class _AutoSyncToggleState extends ConsumerState<_AutoSyncToggle> {
+  bool _enabled = true;
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadValue();
+  }
+
+  Future<void> _loadValue() async {
+    final value = await ref.read(settingsRepositoryProvider).isAutoSyncEnabled();
+    if (mounted) {
+      setState(() {
+        _enabled = value;
+        _loaded = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.autorenew_outlined, color: AppColors.success, size: 22),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '자동 동기화',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-              ),
-              Switch.adaptive(
-                value: enabled,
-                onChanged: (v) {
-                  ref.read(settingsRepositoryProvider).setAutoSync(v);
-                  (context as Element).markNeedsBuild();
-                },
-                activeTrackColor: AppColors.primary,
-              ),
-            ],
+                Text(
+                  '앱 사용 중 자동으로 업로드/다운로드',
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
           ),
-        );
-      },
+          Switch.adaptive(
+            value: _enabled,
+            onChanged: _loaded
+                ? (v) {
+                    setState(() => _enabled = v);
+                    ref.read(settingsRepositoryProvider).setAutoSync(v);
+                  }
+                : null,
+            activeTrackColor: AppColors.primary,
+          ),
+        ],
+      ),
     );
   }
 }
