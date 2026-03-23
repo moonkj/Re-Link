@@ -99,11 +99,29 @@ abstract final class AppRoutes {
   static String snapshotPath(String memoryId) => '/snapshot/$memoryId';
 }
 
+/// 외부 앱에서 열린 .rlink 파일 경로 (복원 대기)
+String? _pendingRlinkPath;
+
+/// 외부에서 대기 중인 .rlink 파일 경로를 가져오고 초기화
+String? consumePendingRlinkPath() {
+  final path = _pendingRlinkPath;
+  _pendingRlinkPath = null;
+  return path;
+}
+
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: AppRoutes.splash,
     redirect: (BuildContext context, GoRouterState state) {
       final location = state.matchedLocation;
+      final fullUri = state.uri.toString();
+
+      // .rlink 파일 URI 가로채기 (카카오톡 등 외부 앱에서 열기)
+      if (fullUri.contains('.rlink') || location.contains('.rlink')) {
+        // 파일 경로를 글로벌 키로 저장 → 스플래시 이후 복원 처리
+        _pendingRlinkPath = Uri.decodeComponent(fullUri.replaceFirst('file://', ''));
+        return AppRoutes.splash;
+      }
       // 패밀리 전용 보호 라우트 (#18)
       const protectedRoutes = [
         AppRoutes.familyMembers,

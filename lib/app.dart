@@ -117,6 +117,7 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
     WidgetsBinding.instance.addObserver(this);
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _checkChangelog();
+      _checkPendingRlink();
     });
     _initDeepLinks();
   }
@@ -181,6 +182,18 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
       if (token.isNotEmpty) {
         router.go('${AppRoutes.acceptInvite}?token=${Uri.encodeComponent(token)}');
       }
+    }
+  }
+
+  /// GoRouter redirect에서 잡힌 .rlink 파일 경로 처리
+  void _checkPendingRlink() {
+    final path = consumePendingRlinkPath();
+    if (path == null || path.isEmpty) return;
+    if (!mounted) return;
+
+    final file = File(path);
+    if (file.existsSync()) {
+      _showRlinkRestoreDialog(file);
     }
   }
 
