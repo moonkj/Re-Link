@@ -309,6 +309,19 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
         text: 'Re-Link 앱에서 열어주세요 (.rlink)',
         sharePositionOrigin: origin,
       );
+      // 내보내기 완료 후 안내 메시지
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            '백업 파일이 공유되었습니다.\n'
+            '공유받은 분은 Re-Link 앱에서\n'
+            '\'파일에서 가져오기\'로 복원할 수 있습니다.',
+          ),
+          backgroundColor: AppColors.success,
+          duration: const Duration(seconds: 4),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -320,9 +333,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   Future<void> _importFile() async {
     // 먼저 파일을 선택하고, 확인 후 복원 (파일 선택을 먼저 하면 사용자가 취소할 수 있음)
     try {
+      // iOS에서 .rlink 커스텀 확장자가 인식되지 않는 문제 대비:
+      // FileType.any로 모든 파일을 표시하고 선택 후 확장자를 검증
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['rlink'],
+        type: FileType.any,
       );
       if (result == null || result.files.isEmpty) return;
 
@@ -333,6 +347,19 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           SnackBar(
             content: const Text('파일 경로를 가져올 수 없습니다.'),
             backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+
+      // 확장자 검증: .rlink 파일만 허용
+      if (!path.toLowerCase().endsWith('.rlink')) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('.rlink 파일만 가져올 수 있습니다.\nRe-Link 백업 파일을 선택해주세요.'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
           ),
         );
         return;

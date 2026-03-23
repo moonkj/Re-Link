@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -165,6 +166,13 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
   void _handleDeepLink(Uri uri) {
     if (!mounted) return;
     final router = ref.read(goRouterProvider);
+
+    // .rlink 백업 파일 열기: 외부 앱(카카오톡 등)에서 .rlink 파일 탭 시
+    if (uri.path.toLowerCase().endsWith('.rlink')) {
+      _handleRlinkFile(uri);
+      return;
+    }
+
     // 초대 링크: relink://invite/accept?token=xxx
     if (uri.pathSegments.length >= 2 &&
         uri.pathSegments[0] == 'invite' &&
@@ -173,6 +181,125 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
       if (token.isNotEmpty) {
         router.go('${AppRoutes.acceptInvite}?token=${Uri.encodeComponent(token)}');
       }
+    }
+  }
+
+  /// 외부 앱에서 .rlink 파일을 열었을 때 복원 확인 대화상자 표시
+  void _handleRlinkFile(Uri uri) {
+    if (!mounted) return;
+
+    // file:// URI에서 파일 경로 추출
+    final String filePath;
+    if (uri.scheme == 'file') {
+      filePath = uri.toFilePath();
+    } else {
+      filePath = uri.path;
+    }
+
+    debugPrint('[DeepLink] .rlink 파일 수신: $filePath');
+
+    final file = File(filePath);
+    if (!file.existsSync()) {
+      debugPrint('[DeepLink] .rlink 파일이 존재하지 않습니다: $filePath');
+      return;
+    }
+
+    // 복원 확인 대화상자 표시
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _showRlinkRestoreDialog(file);
+    });
+  }
+
+  /// .rlink 파일 복원 확인 대화상자
+  void _showRlinkRestoreDialog(File file) {
+    final fileName = file.path.split('/').last;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgElevated,
+        title: Row(
+          children: [
+            Icon(Icons.file_present_outlined, color: AppColors.primary, size: 24),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '백업 파일 복원',
+                style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          '$fileName 파일에서 가족 트리를 복원하시겠습니까?\n\n현재 데이터가 백업 파일로 덮어쓰여집니다.',
+          style: TextStyle(color: AppColors.textSecondary, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _restoreRlinkFile(file);
+            },
+            child: Text('복원', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// .rlink 파일 복원 실행
+  Future<void> _restoreRlinkFile(File file) async {
+    final manifest = await ref
+        .read(backupNotifierProvider.notifier)
+        .restoreFromFile(file);
+
+    if (!mounted) return;
+
+    if (manifest != null) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppColors.bgElevated,
+          title: Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: AppColors.success, size: 24),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '복원 완료',
+                  style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            '노드 ${manifest.nodeCount}개, 기억 ${manifest.memoryCount}개가 복원되었습니다.\n\n데이터를 적용하려면 앱을 재시작해야 합니다.',
+            style: TextStyle(color: AppColors.textSecondary, height: 1.5),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                ref.read(goRouterProvider).go('/');
+              },
+              child: Text('확인', style: TextStyle(color: AppColors.primary)),
+            ),
+          ],
+        ),
+      );
+    } else {
+      final err = ref.read(backupNotifierProvider).error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(err ?? '복원에 실패했습니다.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
   }
 

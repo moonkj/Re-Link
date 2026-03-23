@@ -57,15 +57,13 @@ class BackupManifest {
 
   String toJsonString() => jsonEncode(toJson());
 
-  /// 파일명 형식: backup_20260319_143022.rlink
+  /// 파일명 형식: ReLink_백업_20260319.rlink
+  /// 사용자가 알아보기 쉬운 한글 포함 파일명 사용
   static String generateFilename(DateTime dt) {
     final y = dt.year.toString().padLeft(4, '0');
     final mo = dt.month.toString().padLeft(2, '0');
     final d = dt.day.toString().padLeft(2, '0');
-    final h = dt.hour.toString().padLeft(2, '0');
-    final mi = dt.minute.toString().padLeft(2, '0');
-    final s = dt.second.toString().padLeft(2, '0');
-    return 'backup_$y$mo${d}_$h$mi$s.rlink';
+    return 'ReLink_백업_$y$mo$d.rlink';
   }
 
   /// 버전 관리 파일명 형식: backup_v3_20260319_143022.rlink
