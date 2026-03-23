@@ -2,18 +2,27 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/services/backup/backup_format.dart';
 import '../../../core/services/backup/backup_service.dart';
+import '../../../core/services/sync/media_upload_queue_service.dart';
+import '../../../core/services/sync/r2_media_service.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/user_plan.dart';
 import '../../../shared/repositories/settings_repository.dart';
+import '../../family_sync/providers/family_sync_notifier.dart';
 import '../../subscription/providers/plan_notifier.dart';
 import '../providers/backup_notifier.dart';
 
-/// 백업 & 복원 화면
+/// 백업 & 복원 화면 — 4섹션 구성
+/// 섹션 1: 로컬 백업 (모든 플랜)
+/// 섹션 2: 클라우드 백업 (패밀리/패밀리플러스)
+/// 섹션 3: 서버 동기화 (패밀리/패밀리플러스)
+/// 섹션 4: 버전 관리 (패밀리플러스)
 class BackupScreen extends ConsumerStatefulWidget {
   const BackupScreen({super.key});
 
@@ -32,13 +41,21 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(backupNotifierProvider);
+    final backupState = ref.watch(backupNotifierProvider);
+    final planAsync = ref.watch(planNotifierProvider);
+    final currentPlan = planAsync.valueOrNull ?? UserPlan.free;
 
     return Scaffold(
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
-        title: Text('백업 & 복원',
-            style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
+        title: Text(
+          '백업 & 복원',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -51,30 +68,21 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           ListView(
             padding: const EdgeInsets.all(AppSpacing.pagePadding),
             children: [
-              // 마지막 백업 상태 카드
-              _StatusCard(state: state),
-              const SizedBox(height: AppSpacing.lg),
-
-              // 지금 백업
-              _ActionTile(
-                icon: Icons.backup_outlined,
-                title: '지금 백업',
-                subtitle: Platform.isIOS ? 'iCloud Drive에 저장' : 'Google Drive에 저장',
-                loading: state.isLoading,
-                onTap: _backup,
+              // ── 섹션 1: 로컬 백업 (모든 플랜) ──────────────────────────
+              _SectionHeader(
+                icon: Icons.inventory_2_outlined,
+                title: '로컬 백업',
+                subtitle: '기기 내 파일로 저장/복원',
+                iconColor: AppColors.primary,
               ),
-              const SizedBox(height: AppSpacing.md),
-
-              // 파일로 내보내기
+              const SizedBox(height: AppSpacing.sm),
               _ActionTile(
                 icon: Icons.ios_share_outlined,
                 title: '파일로 내보내기',
-                subtitle: 'AirDrop / 카카오 등으로 가족과 공유',
+                subtitle: '.rlink 파일로 저장/공유 (AirDrop, 카카오 등)',
                 onTap: _exportFile,
               ),
-              const SizedBox(height: AppSpacing.md),
-
-              // 파일에서 가져오기
+              const SizedBox(height: AppSpacing.sm),
               _ActionTile(
                 icon: Icons.file_download_outlined,
                 title: '파일에서 가져오기',
@@ -83,69 +91,183 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 isDestructive: true,
               ),
 
-              // 클라우드 백업 목록
-              if (state.cloudBackups.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.xxl),
-                Text(
-                  '클라우드 백업 목록',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
-                  ),
+              const SizedBox(height: AppSpacing.xxl),
+
+              // ── 섹션 2: 클라우드 백업 (패밀리/패밀리플러스) ────────────
+              if (currentPlan.hasCloud) ...[
+                _SectionHeader(
+                  icon: Icons.cloud_outlined,
+                  title: '클라우드 백업',
+                  subtitle: Platform.isIOS ? 'iCloud Drive' : 'Google Drive',
+                  iconColor: AppColors.info,
+                  badge: currentPlan.displayName,
+                  badgeColor: currentPlan == UserPlan.familyPlus
+                      ? AppColors.planFamilyPlus
+                      : AppColors.planFamily,
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                ...state.cloudBackups.map((b) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: _BackupListTile(
-                        backup: b,
-                        onRestore: () => _restoreFromCloud(b),
-                      ),
-                    )),
-              ],
 
-              // 버전 관리 백업 (패밀리플러스 전용)
-              _VersionHistorySection(
-                versionHistory: state.versionHistory,
-                onRestore: _restoreFromVersion,
-              ),
+                // 마지막 백업 상태
+                _CloudBackupStatusCard(state: backupState),
+                const SizedBox(height: AppSpacing.sm),
 
-              // 에러
-              if (state.error != null) ...[
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  '오류: ${state.error}',
-                  style: const TextStyle(fontSize: 12, color: AppColors.error),
+                // 지금 백업
+                _ActionTile(
+                  icon: Icons.backup_outlined,
+                  title: '지금 백업',
+                  subtitle: Platform.isIOS
+                      ? 'iCloud Drive에 전체 백업'
+                      : 'Google Drive에 전체 백업',
+                  loading: backupState.isLoading,
+                  onTap: _backup,
                 ),
+                const SizedBox(height: AppSpacing.sm),
+
+                // 클라우드 백업 목록
+                if (backupState.cloudBackups.isNotEmpty)
+                  _ActionTile(
+                    icon: Icons.folder_outlined,
+                    title: '클라우드 백업 목록',
+                    subtitle: '${backupState.cloudBackups.length}개 — 이전 백업에서 복원',
+                    onTap: () => _showCloudBackupList(backupState),
+                  ),
+                if (backupState.cloudBackups.isNotEmpty)
+                  const SizedBox(height: AppSpacing.sm),
+
+                // 자동 백업 토글
+                _AutoBackupToggle(),
+
+                const SizedBox(height: AppSpacing.xxl),
+              ] else ...[
+                // 업그레이드 유도 — 클라우드 백업
+                _UpgradeBanner(
+                  icon: Icons.cloud_outlined,
+                  title: '클라우드 백업',
+                  description: 'iCloud/Google Drive에 자동 백업하고\n이전 백업에서 복원할 수 있습니다.',
+                  requiredPlan: '패밀리 플랜',
+                ),
+                const SizedBox(height: AppSpacing.xxl),
               ],
 
-              const SizedBox(height: AppSpacing.xxxl),
+              // ── 섹션 3: 서버 동기화 (패밀리/패밀리플러스) ──────────────
+              if (currentPlan.hasCloud) ...[
+                _SectionHeader(
+                  icon: Icons.sync_outlined,
+                  title: '서버 동기화',
+                  subtitle: '가족 공유용 클라우드 동기화',
+                  iconColor: AppColors.success,
+                  badge: currentPlan.displayName,
+                  badgeColor: currentPlan == UserPlan.familyPlus
+                      ? AppColors.planFamilyPlus
+                      : AppColors.planFamily,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _ServerSyncSection(
+                  plan: currentPlan,
+                ),
 
-              // 자동 백업 토글
-              _AutoBackupToggle(),
+                const SizedBox(height: AppSpacing.xxl),
+              ] else ...[
+                // 업그레이드 유도 — 서버 동기화
+                _UpgradeBanner(
+                  icon: Icons.sync_outlined,
+                  title: '서버 동기화',
+                  description: '가족과 실시간 데이터를 동기화하고\n클라우드에 안전하게 저장합니다.',
+                  requiredPlan: '패밀리 플랜',
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+              ],
 
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                '• 백업 파일(.rlink)에는 모든 인물 정보, 사진, 음성이 포함됩니다\n'
-                '• 파일로 내보내기를 통해 가족과 트리를 공유할 수 있습니다\n'
-                '• 복원 시 현재 데이터가 덮어쓰여집니다',
-                style: TextStyle(fontSize: 12, color: AppColors.textTertiary, height: 1.8),
+              // ── 섹션 4: 버전 관리 (패밀리플러스) ──────────────────────
+              if (currentPlan.hasVersionedBackup) ...[
+                _SectionHeader(
+                  icon: Icons.history_outlined,
+                  title: '버전 관리 백업',
+                  subtitle: '최근 5개 버전 보관',
+                  iconColor: AppColors.planFamilyPlus,
+                  badge: '패밀리플러스',
+                  badgeColor: AppColors.planFamilyPlus,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _VersionHistorySection(
+                  versionHistory: backupState.versionHistory,
+                  onRestore: _restoreFromVersion,
+                ),
+
+                const SizedBox(height: AppSpacing.xxl),
+              ] else if (currentPlan.hasCloud) ...[
+                // 패밀리 사용자에게 패밀리플러스 유도
+                _UpgradeBanner(
+                  icon: Icons.history_outlined,
+                  title: '버전 관리 백업',
+                  description: '최근 5개 버전의 백업 이력을 보관합니다.\n실수로 덮어쓴 데이터를 복구할 수 있습니다.',
+                  requiredPlan: '패밀리플러스',
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+              ],
+
+              // ── 에러 메시지 ────────────────────────────────────────────
+              if (backupState.error != null) ...[
+                GlassCard(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Row(
+                    children: [
+                      Icon(Icons.error_outline, color: AppColors.error, size: 20),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          backupState.error!,
+                          style: TextStyle(fontSize: 12, color: AppColors.error),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+              ],
+
+              // ── 안내 문구 ──────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                child: Text(
+                  '${String.fromCharCode(0x2022)} 백업 파일(.rlink)에는 모든 인물 정보, 사진, 음성이 포함됩니다\n'
+                  '${String.fromCharCode(0x2022)} 파일로 내보내기를 통해 가족과 트리를 공유할 수 있습니다\n'
+                  '${String.fromCharCode(0x2022)} 복원 시 현재 데이터가 덮어쓰여집니다',
+                  style: TextStyle(fontSize: 12, color: AppColors.textTertiary, height: 1.8),
+                ),
               ),
+              const SizedBox(height: AppSpacing.xxxl),
             ],
           ),
 
           // 로딩 오버레이
-          if (state.isLoading)
+          if (backupState.isLoading)
             Container(
               color: Colors.black38,
               child: Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: AppColors.primary),
+                    const SizedBox(height: AppSpacing.lg),
+                    Text(
+                      '처리 중...',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
         ],
       ),
     );
   }
+
+  // ── 액션 핸들러 ──────────────────────────────────────────────────────────
 
   Future<void> _backup() async {
     final file = await ref.read(backupNotifierProvider.notifier).backup();
@@ -212,7 +334,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '복원 완료 — 노드 ${manifest.nodeCount}개, 기억 ${manifest.memoryCount}개\n앱을 재시작합니다.',
+              '복원 완료 -- 노드 ${manifest.nodeCount}개, 기억 ${manifest.memoryCount}개\n앱을 재시작합니다.',
             ),
             backgroundColor: AppColors.success,
             duration: const Duration(seconds: 4),
@@ -243,7 +365,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(ok ? '복원 완료 — 앱을 재시작합니다.' : '복원 실패'),
+        content: Text(ok ? '복원 완료 -- 앱을 재시작합니다.' : '복원 실패'),
         backgroundColor: ok ? AppColors.success : AppColors.error,
       ),
     );
@@ -262,7 +384,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '버전 ${entry.version} 복원 완료 — 노드 ${manifest.nodeCount}개, 기억 ${manifest.memoryCount}개\n앱을 재시작합니다.',
+            '버전 ${entry.version} 복원 완료 -- 노드 ${manifest.nodeCount}개, 기억 ${manifest.memoryCount}개\n앱을 재시작합니다.',
           ),
           backgroundColor: AppColors.success,
           duration: const Duration(seconds: 4),
@@ -271,9 +393,29 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     } else {
       final err = ref.read(backupNotifierProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('복원 실패: ${err ?? '알 수 없는 오류'}'), backgroundColor: AppColors.error),
+        SnackBar(
+          content: Text('복원 실패: ${err ?? '알 수 없는 오류'}'),
+          backgroundColor: AppColors.error,
+        ),
       );
     }
+  }
+
+  void _showCloudBackupList(BackupState state) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.bgSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => _CloudBackupListSheet(
+        backups: state.cloudBackups,
+        onRestore: (backup) {
+          Navigator.of(ctx).pop();
+          _restoreFromCloud(backup);
+        },
+      ),
+    );
   }
 
   Future<bool> _confirmRestore() async {
@@ -287,7 +429,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           style: TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('취소'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('복원', style: TextStyle(color: AppColors.error)),
@@ -299,10 +444,91 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   }
 }
 
-// ── 상태 카드 ──────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// ── 섹션 헤더 ─────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
 
-class _StatusCard extends StatelessWidget {
-  const _StatusCard({required this.state});
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.iconColor,
+    this.badge,
+    this.badgeColor,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color iconColor;
+  final String? badge;
+  final Color? badgeColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: iconColor),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    if (badge != null) ...[
+                      const SizedBox(width: AppSpacing.sm),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: (badgeColor ?? AppColors.primary).withAlpha(30),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: (badgeColor ?? AppColors.primary).withAlpha(60),
+                          ),
+                        ),
+                        child: Text(
+                          badge!,
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: badgeColor ?? AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── 클라우드 백업 상태 카드 ──────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _CloudBackupStatusCard extends StatelessWidget {
+  const _CloudBackupStatusCard({required this.state});
   final BackupState state;
 
   @override
@@ -312,28 +538,50 @@ class _StatusCard extends StatelessWidget {
       'google' => 'Google Drive',
       _ => '클라우드 미연결',
     };
+    final hasBackup = state.lastBackupAt != null;
+
     return GlassCard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
         children: [
-          Icon(
-            state.cloudProvider == 'none' ? Icons.cloud_off_outlined : Icons.cloud_done_outlined,
-            color: state.cloudProvider == 'none' ? AppColors.textTertiary : AppColors.primary,
-            size: 32,
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: (hasBackup ? AppColors.success : AppColors.textTertiary).withAlpha(20),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              hasBackup ? Icons.cloud_done_outlined : Icons.cloud_off_outlined,
+              color: hasBackup ? AppColors.success : AppColors.textTertiary,
+              size: 24,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('마지막 백업', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                 Text(
-                  state.lastBackupAt == null
-                      ? '아직 백업이 없습니다'
-                      : _formatDate(state.lastBackupAt!),
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  '마지막 백업',
+                  style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
                 ),
-                Text(providerLabel, style: TextStyle(fontSize: 12, color: AppColors.secondary)),
+                const SizedBox(height: 2),
+                Text(
+                  hasBackup
+                      ? _formatDate(state.lastBackupAt!)
+                      : '아직 백업이 없습니다',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  providerLabel,
+                  style: TextStyle(fontSize: 11, color: AppColors.info),
+                ),
               ],
             ),
           ),
@@ -347,7 +595,474 @@ class _StatusCard extends StatelessWidget {
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 }
 
-// ── 백업 목록 타일 ─────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// ── 서버 동기화 섹션 ─────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _ServerSyncSection extends ConsumerStatefulWidget {
+  const _ServerSyncSection({required this.plan});
+  final UserPlan plan;
+
+  @override
+  ConsumerState<_ServerSyncSection> createState() => _ServerSyncSectionState();
+}
+
+class _ServerSyncSectionState extends ConsumerState<_ServerSyncSection> {
+  int _cloudUsageBytes = 0;
+  int _pendingUploadCount = 0;
+  DateTime? _lastSyncAt;
+  bool _loadingUsage = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSyncInfo();
+  }
+
+  Future<void> _loadSyncInfo() async {
+    try {
+      final r2Service = ref.read(r2MediaServiceProvider);
+      final queueService = ref.read(mediaUploadQueueServiceProvider);
+      final settings = ref.read(settingsRepositoryProvider);
+
+      // 병렬로 조회
+      final results = await Future.wait([
+        r2Service.getCloudUsageBytes(),
+        queueService.getQueueStatus(),
+        settings.getLastSyncAt(),
+      ]);
+
+      final usageBytes = results[0] as int;
+      final queueStatus = results[1] as Map<String, int>;
+      final lastSync = results[2] as DateTime?;
+
+      final pending = (queueStatus['pending'] ?? 0) + (queueStatus['uploading'] ?? 0);
+
+      if (mounted) {
+        setState(() {
+          _cloudUsageBytes = usageBytes;
+          _pendingUploadCount = pending;
+          _lastSyncAt = lastSync;
+          _loadingUsage = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadingUsage = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final syncState = ref.watch(familySyncNotifierProvider);
+    final limitGB = widget.plan.cloudStorageGB;
+    final usedGB = _cloudUsageBytes / (1024 * 1024 * 1024);
+    final usagePercent = limitGB > 0 ? (usedGB / limitGB).clamp(0.0, 1.0) : 0.0;
+
+    return Column(
+      children: [
+        // 동기화 상태 + 저장 공간
+        GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 동기화 상태
+              Row(
+                children: [
+                  _SyncStatusDot(status: syncState.status),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      _syncStatusLabel(syncState),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: AppSpacing.lg),
+
+              // 저장 공간
+              Row(
+                children: [
+                  Icon(Icons.storage_outlined, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    '저장 공간',
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  ),
+                  const Spacer(),
+                  if (_loadingUsage)
+                    SizedBox(
+                      width: 12,
+                      height: 12,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.5,
+                        color: AppColors.textTertiary,
+                      ),
+                    )
+                  else
+                    Text(
+                      '${usedGB.toStringAsFixed(1)} GB / $limitGB GB',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              // 프로그레스 바
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: usagePercent,
+                  backgroundColor: AppColors.bgElevated,
+                  valueColor: AlwaysStoppedAnimation(
+                    usagePercent > 0.85
+                        ? AppColors.error
+                        : usagePercent > 0.6
+                            ? AppColors.warning
+                            : AppColors.success,
+                  ),
+                  minHeight: 6,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                '${(usagePercent * 100).toStringAsFixed(0)}% 사용 중',
+                style: TextStyle(fontSize: 10, color: AppColors.textTertiary),
+              ),
+
+              // 업로드 대기
+              if (_pendingUploadCount > 0) ...[
+                const SizedBox(height: AppSpacing.md),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withAlpha(15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.warning.withAlpha(40)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.cloud_upload_outlined, size: 16, color: AppColors.warning),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        '업로드 대기: $_pendingUploadCount개 파일',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.warning,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+
+        const SizedBox(height: AppSpacing.sm),
+
+        // 지금 동기화 버튼
+        _ActionTile(
+          icon: Icons.sync_outlined,
+          title: '지금 동기화',
+          subtitle: '서버와 수동 동기화',
+          loading: syncState.isSyncing,
+          onTap: _triggerSync,
+        ),
+
+        const SizedBox(height: AppSpacing.sm),
+
+        // 자동 동기화 토글
+        _AutoSyncToggle(),
+
+        // 동기화 에러
+        if (syncState.errorMessage != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          GlassCard(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              children: [
+                Icon(Icons.warning_amber_outlined, size: 16, color: AppColors.error),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    syncState.errorMessage!,
+                    style: TextStyle(fontSize: 11, color: AppColors.error),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  String _syncStatusLabel(FamilySyncState state) {
+    if (state.isSyncing) return '동기화 중...';
+
+    final syncTime = _lastSyncAt ?? state.lastSyncAt;
+    if (syncTime != null) {
+      final diff = DateTime.now().difference(syncTime);
+      if (diff.inMinutes < 1) return '방금 동기화됨';
+      if (diff.inMinutes < 60) return '${diff.inMinutes}분 전 동기화됨';
+      if (diff.inHours < 24) return '${diff.inHours}시간 전 동기화됨';
+      return '${diff.inDays}일 전 동기화됨';
+    }
+
+    if (state.status == SyncStatus.error) return '동기화 오류';
+    return '아직 동기화되지 않음';
+  }
+
+  Future<void> _triggerSync() async {
+    // 1. 서버 동기화
+    await ref.read(familySyncNotifierProvider.notifier).sync();
+
+    // 2. 업로드 큐 처리
+    try {
+      await ref.read(mediaUploadQueueServiceProvider).processQueue();
+    } catch (_) {
+      // 큐 처리 오류는 무시 — 동기화는 성공
+    }
+
+    // 3. 상태 갱신
+    if (mounted) {
+      _loadSyncInfo();
+    }
+  }
+}
+
+// ── 동기화 상태 점 ──────────────────────────────────────────────────────────
+
+class _SyncStatusDot extends StatelessWidget {
+  const _SyncStatusDot({required this.status});
+  final SyncStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (status) {
+      SyncStatus.idle => AppColors.textTertiary,
+      SyncStatus.syncing => AppColors.info,
+      SyncStatus.success => AppColors.success,
+      SyncStatus.error => AppColors.error,
+    };
+
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── 자동 백업 토글 ──────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _AutoBackupToggle extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return FutureBuilder<bool>(
+      future: ref.read(settingsRepositoryProvider).isAutoBackupEnabled(),
+      builder: (context, snap) {
+        final enabled = snap.data ?? true;
+        return GlassCard(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.schedule_outlined, color: AppColors.info, size: 22),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '자동 백업',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      '24시간마다 자동으로 클라우드에 백업',
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              Switch.adaptive(
+                value: enabled,
+                onChanged: (v) {
+                  ref.read(settingsRepositoryProvider).setAutoBackup(v);
+                  (context as Element).markNeedsBuild();
+                },
+                activeTrackColor: AppColors.primary,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── 자동 동기화 토글 ────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _AutoSyncToggle extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return FutureBuilder<bool>(
+      future: ref.read(settingsRepositoryProvider).isAutoSyncEnabled(),
+      builder: (context, snap) {
+        final enabled = snap.data ?? true;
+        return GlassCard(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.autorenew_outlined, color: AppColors.success, size: 22),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '자동 동기화',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      '앱 사용 중 5분마다 자동 동기화',
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              Switch.adaptive(
+                value: enabled,
+                onChanged: (v) {
+                  ref.read(settingsRepositoryProvider).setAutoSync(v);
+                  (context as Element).markNeedsBuild();
+                },
+                activeTrackColor: AppColors.primary,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── 클라우드 백업 목록 바텀시트 ─────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _CloudBackupListSheet extends StatelessWidget {
+  const _CloudBackupListSheet({
+    required this.backups,
+    required this.onRestore,
+  });
+
+  final List<BackupInfo> backups;
+  final void Function(BackupInfo) onRestore;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 핸들
+        Container(
+          margin: const EdgeInsets.only(top: 12, bottom: 8),
+          width: 36,
+          height: 4,
+          decoration: BoxDecoration(
+            color: AppColors.textTertiary.withAlpha(80),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.pagePadding,
+            vertical: AppSpacing.sm,
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.folder_outlined, color: AppColors.info, size: 20),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                '클라우드 백업 목록',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${backups.length}개',
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        Flexible(
+          child: ListView.builder(
+            shrinkWrap: true,
+            padding: const EdgeInsets.all(AppSpacing.pagePadding),
+            itemCount: backups.length,
+            itemBuilder: (ctx, i) {
+              final backup = backups[i];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: _BackupListTile(
+                  backup: backup,
+                  onRestore: () => onRestore(backup),
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(height: MediaQuery.of(context).padding.bottom + AppSpacing.lg),
+      ],
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── 백업 목록 타일 ──────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
 
 class _BackupListTile extends StatelessWidget {
   const _BackupListTile({required this.backup, required this.onRestore});
@@ -357,7 +1072,10 @@ class _BackupListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassCard(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       child: Row(
         children: [
           Icon(Icons.folder_zip_outlined, color: AppColors.secondary, size: 24),
@@ -368,7 +1086,11 @@ class _BackupListTile extends StatelessWidget {
               children: [
                 Text(
                   backup.filename,
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
@@ -380,7 +1102,10 @@ class _BackupListTile extends StatelessWidget {
           ),
           TextButton(
             onPressed: onRestore,
-            child: Text('복원', style: TextStyle(color: AppColors.primary, fontSize: 13)),
+            child: Text(
+              '복원',
+              style: TextStyle(color: AppColors.primary, fontSize: 13),
+            ),
           ),
         ],
       ),
@@ -388,44 +1113,82 @@ class _BackupListTile extends StatelessWidget {
   }
 }
 
-// ── 자동 백업 토글 ─────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// ── 업그레이드 유도 배너 ────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
 
-class _AutoBackupToggle extends ConsumerWidget {
+class _UpgradeBanner extends StatelessWidget {
+  const _UpgradeBanner({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.requiredPlan,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final String requiredPlan;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return FutureBuilder<bool>(
-      future: ref.read(settingsRepositoryProvider).isAutoBackupEnabled(),
-      builder: (context, snap) {
-        final enabled = snap.data ?? true;
-        return GlassCard(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-          child: Row(
-            children: [
-              Icon(Icons.schedule_outlined, color: AppColors.primary, size: 24),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('자동 백업', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                    Text('24시간마다 자동으로 백업', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                  ],
-                ),
-              ),
-              Switch(
-                value: enabled,
-                onChanged: (v) => ref.read(settingsRepositoryProvider).setAutoBackup(v),
-                activeThumbColor: AppColors.primary,
-              ),
-            ],
+  Widget build(BuildContext context) {
+    return GlassCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        children: [
+          Icon(icon, size: 36, color: AppColors.textTertiary),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
           ),
-        );
-      },
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            description,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          SizedBox(
+            width: double.infinity,
+            child: GlassButton(
+              onPressed: () => context.push(AppRoutes.subscription),
+              backgroundColor: AppColors.primary.withAlpha(15),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.rocket_launch_outlined, size: 16, color: AppColors.primary),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    '$requiredPlan으로 업그레이드',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-// ── 액션 타일 ──────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// ── 액션 타일 ───────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
 
 class _ActionTile extends StatelessWidget {
   const _ActionTile({
@@ -451,7 +1214,11 @@ class _ActionTile extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
         children: [
-          Icon(icon, color: isDestructive ? AppColors.error : AppColors.primary, size: 28),
+          Icon(
+            icon,
+            color: isDestructive ? AppColors.error : AppColors.primary,
+            size: 24,
+          ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
@@ -460,29 +1227,40 @@ class _ActionTile extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: isDestructive ? AppColors.error : AppColors.textPrimary,
                   ),
                 ),
-                Text(subtitle, style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Text(
+                  subtitle,
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
               ],
             ),
           ),
           if (loading)
-            SizedBox(width: 20, height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.primary,
+              ),
+            )
           else
-            Icon(Icons.chevron_right, color: AppColors.textTertiary),
+            Icon(Icons.chevron_right, color: AppColors.textTertiary, size: 20),
         ],
       ),
     );
   }
 }
 
-// ── 버전 관리 백업 섹션 (패밀리플러스 전용) ─────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// ── 버전 관리 백업 섹션 (패밀리플러스 전용) ─────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
 
-class _VersionHistorySection extends ConsumerWidget {
+class _VersionHistorySection extends StatelessWidget {
   const _VersionHistorySection({
     required this.versionHistory,
     required this.onRestore,
@@ -492,90 +1270,45 @@ class _VersionHistorySection extends ConsumerWidget {
   final void Function(BackupVersionEntry) onRestore;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final planAsync = ref.watch(planNotifierProvider);
-    final currentPlan = planAsync.valueOrNull ?? UserPlan.free;
-
-    // 패밀리플러스가 아니면 표시하지 않음
-    if (!currentPlan.hasVersionedBackup) return const SizedBox.shrink();
+  Widget build(BuildContext context) {
+    if (versionHistory.isEmpty) {
+      return GlassCard(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.inventory_2_outlined, size: 32, color: AppColors.textTertiary),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                '아직 버전 관리 백업이 없습니다',
+                style: TextStyle(fontSize: 13, color: AppColors.textTertiary),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '백업을 생성하면 자동으로 버전이 기록됩니다.',
+                style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: AppSpacing.xxl),
-        Row(
-          children: [
-            Icon(Icons.history_outlined, size: 18, color: AppColors.planFamilyPlus),
-            const SizedBox(width: AppSpacing.xs),
-            Text(
-              '버전 관리 백업',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-              decoration: BoxDecoration(
-                color: AppColors.planFamilyPlus.withAlpha(30),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppColors.planFamilyPlus.withAlpha(60)),
-              ),
-              child: Text(
-                '패밀리플러스',
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.planFamilyPlus,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          '최근 5개 버전의 백업 이력을 보관합니다.',
-          style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-
-        if (versionHistory.isEmpty)
-          GlassCard(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Center(
-              child: Column(
-                children: [
-                  Icon(Icons.inventory_2_outlined, size: 32, color: AppColors.textTertiary),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    '아직 버전 관리 백업이 없습니다',
-                    style: TextStyle(fontSize: 13, color: AppColors.textTertiary),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '백업을 생성하면 자동으로 버전이 기록됩니다.',
-                    style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
-                  ),
-                ],
-              ),
-            ),
-          )
-        else
-          ...versionHistory.map((entry) => Padding(
+      children: versionHistory
+          .map((entry) => Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: _VersionEntryTile(
                   entry: entry,
                   onRestore: () => onRestore(entry),
                 ),
-              )),
-      ],
+              ))
+          .toList(),
     );
   }
 }
 
-// ── 버전 항목 타일 ──────────────────────────────────────────────────────────────
+// ── 버전 항목 타일 ──────────────────────────────────────────────────────────
 
 class _VersionEntryTile extends StatelessWidget {
   const _VersionEntryTile({

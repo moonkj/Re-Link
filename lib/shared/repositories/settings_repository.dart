@@ -267,6 +267,14 @@ class SettingsRepository {
 
   Future<void> setLastSyncAt(DateTime dt) =>
       set(SettingsKey.lastSyncAt, dt.toIso8601String());
+
+  // ── 자동 동기화 ──────────────────────────────────────────────────────────
+
+  Future<bool> isAutoSyncEnabled() =>
+      getBool(SettingsKey.autoSync, defaultValue: true);
+
+  Future<void> setAutoSync(bool enabled) =>
+      set(SettingsKey.autoSync, enabled.toString());
 }
 
 // ── 백업 버전 엔트리 모델 ─────────────────────────────────────────────────────

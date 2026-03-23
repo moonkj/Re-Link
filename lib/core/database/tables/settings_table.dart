@@ -94,4 +94,5 @@ abstract final class SettingsKey {
   static const String deviceId       = 'device_id';          // 기기 고유 UUID
   static const String lastSyncAt     = 'last_sync_at';       // ISO8601
   static const String cloudPlan      = 'cloud_plan';         // 'family' | 'familyPlus'
+  static const String autoSync       = 'auto_sync';          // true / false
 }
