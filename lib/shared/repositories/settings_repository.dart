@@ -147,6 +147,19 @@ class SettingsRepository {
   Future<void> clearMyNodeId() =>
       set(SettingsKey.myNodeId, '');
 
+  // ── 내 노드 PIN ──────────────────────────────────────────────────────────
+
+  Future<String?> getMyNodePin() async {
+    final v = await get(SettingsKey.myNodePin);
+    return (v == null || v.isEmpty) ? null : v;
+  }
+
+  Future<void> setMyNodePin(String pin) =>
+      set(SettingsKey.myNodePin, pin);
+
+  Future<void> clearMyNodePin() =>
+      set(SettingsKey.myNodePin, '');
+
   // ── 스트릭 ────────────────────────────────────────────────────────────────
 
   Future<int> getStreakCount() async {

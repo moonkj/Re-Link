@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../utils/path_utils.dart';
 
 part 'media_service.g.dart';
 
@@ -107,10 +108,14 @@ class MediaService {
     // 썸네일 실패 시 원본 복사
     if (thumb == null) await source.copy(thumbPath);
 
-    return (photoPath: photoPath, thumbnailPath: thumbPath);
+    // DB에는 Documents 기준 상대 경로 저장 (iOS 컨테이너 경로 변경 대비)
+    final relativePhoto = PathUtils.toRelative(photoPath) ?? photoPath;
+    final relativeThumb = PathUtils.toRelative(thumbPath) ?? thumbPath;
+    return (photoPath: relativePhoto, thumbnailPath: relativeThumb);
   }
 
   /// 아바타(프로필/노드) 사진 저장 — UUID 고유 경로 + 반환값 검증
+  /// 반환: Documents 기준 상대 경로 (예: media/photos/avatar_xxx.webp)
   Future<String?> pickAndSaveAvatar() async {
     final picked = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -131,7 +136,8 @@ class MediaService {
       minHeight: 256,
     );
     if (result == null) return null;
-    return avatarPath;
+    // DB에는 Documents 기준 상대 경로 저장 (iOS 컨테이너 경로 변경 대비)
+    return PathUtils.toRelative(avatarPath) ?? avatarPath;
   }
 
   // ── 음성 ─────────────────────────────────────────────────────────────────
@@ -166,30 +172,36 @@ class MediaService {
     return _saveVideoFile(File(picked.path));
   }
 
-  /// 영상 파일을 Documents/media/videos/에 복사 후 경로 반환
+  /// 영상 파일을 Documents/media/videos/에 복사 후 상대 경로 반환
   Future<String?> _saveVideoFile(File src) async {
     final dir = await _videoDir;
     final uuid = _uuid.v4();
     final dest = File(p.join(dir.path, '$uuid.mp4'));
     await src.copy(dest.path);
-    return dest.path;
+    // DB에는 Documents 기준 상대 경로 저장
+    return PathUtils.toRelative(dest.path) ?? dest.path;
   }
 
   /// 영상에서 첫 프레임 썸네일 이미지 생성 (JPG)
+  /// videoPath는 상대/절대 모두 지원
   Future<String?> generateVideoThumbnail(String videoPath) async {
     try {
       final thumbsDir = await _thumbsDir;
       final id = _uuid.v4();
       final thumbPath = p.join(thumbsDir.path, 'video_thumb_$id.jpg');
+      // videoPath가 상대 경로일 수 있으므로 절대 경로로 변환
+      final absoluteVideoPath = PathUtils.toAbsolute(videoPath) ?? videoPath;
       final result = await VideoThumbnail.thumbnailFile(
-        video: videoPath,
+        video: absoluteVideoPath,
         thumbnailPath: thumbPath,
         imageFormat: ImageFormat.JPEG,
         maxWidth: 600,
         quality: 80,
         timeMs: 0,
       );
-      return result;
+      if (result == null) return null;
+      // 상대 경로로 반환
+      return PathUtils.toRelative(result) ?? result;
     } catch (_) {
       return null;
     }
@@ -199,12 +211,14 @@ class MediaService {
 
   Future<void> deleteFile(String? path) async {
     if (path == null) return;
-    final file = File(path);
+    final absolutePath = PathUtils.toAbsolute(path) ?? path;
+    final file = File(absolutePath);
     if (await file.exists()) await file.delete();
   }
 
   Future<void> deleteVideo(String path) async {
-    final f = File(path);
+    final absolutePath = PathUtils.toAbsolute(path) ?? path;
+    final f = File(absolutePath);
     if (f.existsSync()) f.deleteSync();
   }
 

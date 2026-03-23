@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -119,7 +120,8 @@ class _Avatar extends StatelessWidget {
         ),
         image: photoPath != null
             ? DecorationImage(
-                image: FileImage(File(photoPath!)),
+                image: PathUtils.resolveFileImage(photoPath) ??
+                    FileImage(File(photoPath!)),
                 fit: BoxFit.cover,
               )
             : null,

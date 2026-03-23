@@ -3214,6 +3214,19 @@ class $BouquetsTableTable extends BouquetsTable
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _isReadMeta = const VerificationMeta('isRead');
+  @override
+  late final GeneratedColumn<bool> isRead = GeneratedColumn<bool>(
+    'is_read',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_read" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3222,6 +3235,7 @@ class $BouquetsTableTable extends BouquetsTable
     flowerType,
     date,
     createdAt,
+    isRead,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3281,6 +3295,12 @@ class $BouquetsTableTable extends BouquetsTable
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
+    if (data.containsKey('is_read')) {
+      context.handle(
+        _isReadMeta,
+        isRead.isAcceptableOrUnknown(data['is_read']!, _isReadMeta),
+      );
+    }
     return context;
   }
 
@@ -3314,6 +3334,10 @@ class $BouquetsTableTable extends BouquetsTable
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      isRead: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_read'],
+      )!,
     );
   }
 
@@ -3331,6 +3355,9 @@ class BouquetsTableData extends DataClass
   final String flowerType;
   final DateTime date;
   final DateTime createdAt;
+
+  /// 수신자가 확인했는지 여부 (읽음 처리)
+  final bool isRead;
   const BouquetsTableData({
     required this.id,
     required this.fromNodeId,
@@ -3338,6 +3365,7 @@ class BouquetsTableData extends DataClass
     required this.flowerType,
     required this.date,
     required this.createdAt,
+    required this.isRead,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3348,6 +3376,7 @@ class BouquetsTableData extends DataClass
     map['flower_type'] = Variable<String>(flowerType);
     map['date'] = Variable<DateTime>(date);
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['is_read'] = Variable<bool>(isRead);
     return map;
   }
 
@@ -3359,6 +3388,7 @@ class BouquetsTableData extends DataClass
       flowerType: Value(flowerType),
       date: Value(date),
       createdAt: Value(createdAt),
+      isRead: Value(isRead),
     );
   }
 
@@ -3374,6 +3404,7 @@ class BouquetsTableData extends DataClass
       flowerType: serializer.fromJson<String>(json['flowerType']),
       date: serializer.fromJson<DateTime>(json['date']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      isRead: serializer.fromJson<bool>(json['isRead']),
     );
   }
   @override
@@ -3386,6 +3417,7 @@ class BouquetsTableData extends DataClass
       'flowerType': serializer.toJson<String>(flowerType),
       'date': serializer.toJson<DateTime>(date),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'isRead': serializer.toJson<bool>(isRead),
     };
   }
 
@@ -3396,6 +3428,7 @@ class BouquetsTableData extends DataClass
     String? flowerType,
     DateTime? date,
     DateTime? createdAt,
+    bool? isRead,
   }) => BouquetsTableData(
     id: id ?? this.id,
     fromNodeId: fromNodeId ?? this.fromNodeId,
@@ -3403,6 +3436,7 @@ class BouquetsTableData extends DataClass
     flowerType: flowerType ?? this.flowerType,
     date: date ?? this.date,
     createdAt: createdAt ?? this.createdAt,
+    isRead: isRead ?? this.isRead,
   );
   BouquetsTableData copyWithCompanion(BouquetsTableCompanion data) {
     return BouquetsTableData(
@@ -3416,6 +3450,7 @@ class BouquetsTableData extends DataClass
           : this.flowerType,
       date: data.date.present ? data.date.value : this.date,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      isRead: data.isRead.present ? data.isRead.value : this.isRead,
     );
   }
 
@@ -3427,14 +3462,22 @@ class BouquetsTableData extends DataClass
           ..write('toNodeId: $toNodeId, ')
           ..write('flowerType: $flowerType, ')
           ..write('date: $date, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('isRead: $isRead')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, fromNodeId, toNodeId, flowerType, date, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    fromNodeId,
+    toNodeId,
+    flowerType,
+    date,
+    createdAt,
+    isRead,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3444,7 +3487,8 @@ class BouquetsTableData extends DataClass
           other.toNodeId == this.toNodeId &&
           other.flowerType == this.flowerType &&
           other.date == this.date &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.isRead == this.isRead);
 }
 
 class BouquetsTableCompanion extends UpdateCompanion<BouquetsTableData> {
@@ -3454,6 +3498,7 @@ class BouquetsTableCompanion extends UpdateCompanion<BouquetsTableData> {
   final Value<String> flowerType;
   final Value<DateTime> date;
   final Value<DateTime> createdAt;
+  final Value<bool> isRead;
   final Value<int> rowid;
   const BouquetsTableCompanion({
     this.id = const Value.absent(),
@@ -3462,6 +3507,7 @@ class BouquetsTableCompanion extends UpdateCompanion<BouquetsTableData> {
     this.flowerType = const Value.absent(),
     this.date = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.isRead = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   BouquetsTableCompanion.insert({
@@ -3471,6 +3517,7 @@ class BouquetsTableCompanion extends UpdateCompanion<BouquetsTableData> {
     required String flowerType,
     required DateTime date,
     this.createdAt = const Value.absent(),
+    this.isRead = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        fromNodeId = Value(fromNodeId),
@@ -3484,6 +3531,7 @@ class BouquetsTableCompanion extends UpdateCompanion<BouquetsTableData> {
     Expression<String>? flowerType,
     Expression<DateTime>? date,
     Expression<DateTime>? createdAt,
+    Expression<bool>? isRead,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3493,6 +3541,7 @@ class BouquetsTableCompanion extends UpdateCompanion<BouquetsTableData> {
       if (flowerType != null) 'flower_type': flowerType,
       if (date != null) 'date': date,
       if (createdAt != null) 'created_at': createdAt,
+      if (isRead != null) 'is_read': isRead,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3504,6 +3553,7 @@ class BouquetsTableCompanion extends UpdateCompanion<BouquetsTableData> {
     Value<String>? flowerType,
     Value<DateTime>? date,
     Value<DateTime>? createdAt,
+    Value<bool>? isRead,
     Value<int>? rowid,
   }) {
     return BouquetsTableCompanion(
@@ -3513,6 +3563,7 @@ class BouquetsTableCompanion extends UpdateCompanion<BouquetsTableData> {
       flowerType: flowerType ?? this.flowerType,
       date: date ?? this.date,
       createdAt: createdAt ?? this.createdAt,
+      isRead: isRead ?? this.isRead,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3538,6 +3589,9 @@ class BouquetsTableCompanion extends UpdateCompanion<BouquetsTableData> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (isRead.present) {
+      map['is_read'] = Variable<bool>(isRead.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3553,6 +3607,7 @@ class BouquetsTableCompanion extends UpdateCompanion<BouquetsTableData> {
           ..write('flowerType: $flowerType, ')
           ..write('date: $date, ')
           ..write('createdAt: $createdAt, ')
+          ..write('isRead: $isRead, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -9868,6 +9923,7 @@ typedef $$BouquetsTableTableCreateCompanionBuilder =
       required String flowerType,
       required DateTime date,
       Value<DateTime> createdAt,
+      Value<bool> isRead,
       Value<int> rowid,
     });
 typedef $$BouquetsTableTableUpdateCompanionBuilder =
@@ -9878,6 +9934,7 @@ typedef $$BouquetsTableTableUpdateCompanionBuilder =
       Value<String> flowerType,
       Value<DateTime> date,
       Value<DateTime> createdAt,
+      Value<bool> isRead,
       Value<int> rowid,
     });
 
@@ -9917,6 +9974,11 @@ class $$BouquetsTableTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isRead => $composableBuilder(
+    column: $table.isRead,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -9959,6 +10021,11 @@ class $$BouquetsTableTableOrderingComposer
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isRead => $composableBuilder(
+    column: $table.isRead,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$BouquetsTableTableAnnotationComposer
@@ -9991,6 +10058,9 @@ class $$BouquetsTableTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isRead =>
+      $composableBuilder(column: $table.isRead, builder: (column) => column);
 }
 
 class $$BouquetsTableTableTableManager
@@ -10034,6 +10104,7 @@ class $$BouquetsTableTableTableManager
                 Value<String> flowerType = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<bool> isRead = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BouquetsTableCompanion(
                 id: id,
@@ -10042,6 +10113,7 @@ class $$BouquetsTableTableTableManager
                 flowerType: flowerType,
                 date: date,
                 createdAt: createdAt,
+                isRead: isRead,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -10052,6 +10124,7 @@ class $$BouquetsTableTableTableManager
                 required String flowerType,
                 required DateTime date,
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<bool> isRead = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BouquetsTableCompanion.insert(
                 id: id,
@@ -10060,6 +10133,7 @@ class $$BouquetsTableTableTableManager
                 flowerType: flowerType,
                 date: date,
                 createdAt: createdAt,
+                isRead: isRead,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

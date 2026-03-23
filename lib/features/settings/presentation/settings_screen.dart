@@ -8,6 +8,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/database/tables/settings_table.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/privacy/privacy_service.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_radius.dart';
@@ -23,6 +24,8 @@ import '../providers/spouse_snap_notifier.dart';
 import '../../../shared/widgets/section_label.dart';
 import '../providers/theme_mode_notifier.dart';
 import '../../auth/providers/auth_notifier.dart';
+import '../../canvas/providers/my_node_provider.dart';
+import '../../../core/utils/pin_recovery_helper.dart';
 
 /// 관리자 모드 활성화 여부 (DB 연동)
 final _adminEnabledProvider = FutureProvider<bool>((ref) async {
@@ -140,7 +143,8 @@ class _ProfileSectionState extends ConsumerState<_ProfileSection> {
                       Border.all(color: AppColors.primary, width: 2),
                   image: _profilePhotoPath != null
                       ? DecorationImage(
-                          image: FileImage(File(_profilePhotoPath!)),
+                          image: PathUtils.resolveFileImage(_profilePhotoPath) ??
+                              FileImage(File(_profilePhotoPath!)),
                           fit: BoxFit.cover,
                         )
                       : null,
@@ -721,10 +725,156 @@ class _AccessibilitySection extends ConsumerWidget {
               Divider(color: AppColors.glassBorder, height: 1),
               // Privacy Layer (생체인증 연동)
               _PrivacyToggle(),
+              Divider(color: AppColors.glassBorder, height: 1),
+              // PIN 초기화
+              const _PinResetTile(),
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+// ── "나 설정 PIN 초기화" 타일 ───────────────────────────────────────────────
+
+class _PinResetTile extends ConsumerStatefulWidget {
+  const _PinResetTile();
+
+  @override
+  ConsumerState<_PinResetTile> createState() => _PinResetTileState();
+}
+
+class _PinResetTileState extends ConsumerState<_PinResetTile> {
+  bool _hasPin = false;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPinState();
+  }
+
+  Future<void> _loadPinState() async {
+    final pin = await ref.read(myNodeNotifierProvider.notifier).getPin();
+    if (!mounted) return;
+    setState(() {
+      _hasPin = pin != null;
+      _loading = false;
+    });
+  }
+
+  Future<void> _onTap() async {
+    if (!_hasPin) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('등록된 PIN이 없습니다'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final user = ref.read(authNotifierProvider).valueOrNull;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('로그인 상태에서만 PIN을 초기화할 수 있습니다'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    // 확인 다이얼로그
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('PIN 초기화'),
+        content: Text(
+          '${_providerLabel(user.provider)} 재인증 후 PIN을 초기화합니다.\n'
+          '이후 새 PIN을 등록할 수 있습니다.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              '초기화',
+              style: TextStyle(color: AppColors.primary),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final success = await PinRecoveryHelper.recover(
+      context: context,
+      ref: ref,
+    );
+
+    if (success && mounted) {
+      _loadPinState(); // PIN 상태 갱신
+    }
+  }
+
+  String _providerLabel(String provider) {
+    switch (provider) {
+      case 'apple':
+        return 'Apple ID';
+      case 'google':
+        return 'Google';
+      case 'kakao':
+        return '카카오';
+      default:
+        return '소셜 로그인';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const ListTile(
+        leading: Icon(Icons.pin_outlined, color: AppColors.accent),
+        title: Text('나 설정 PIN 초기화'),
+        trailing: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    return ListTile(
+      leading: Icon(
+        Icons.pin_outlined,
+        color: _hasPin ? AppColors.accent : AppColors.textDisabled,
+      ),
+      title: Text(
+        '나 설정 PIN 초기화',
+        style: TextStyle(
+          fontSize: 15,
+          color: _hasPin ? AppColors.textPrimary : AppColors.textDisabled,
+        ),
+      ),
+      subtitle: Text(
+        _hasPin ? '로그인 재인증으로 PIN 재설정' : 'PIN이 등록되어 있지 않습니다',
+        style: TextStyle(
+          fontSize: 12,
+          color: AppColors.textSecondary,
+        ),
+      ),
+      trailing: Icon(
+        Icons.chevron_right,
+        color: _hasPin ? AppColors.textSecondary : AppColors.textDisabled,
+        size: 20,
+      ),
+      onTap: _hasPin ? _onTap : null,
     );
   }
 }

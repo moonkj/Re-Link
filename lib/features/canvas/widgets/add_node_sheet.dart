@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/services/media/media_service.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -275,7 +276,11 @@ class _PhotoButton extends StatelessWidget {
         border: Border.all(color: AppColors.primary, width: 1.5),
         color: AppColors.glassSurface,
         image: photoPath != null
-            ? DecorationImage(image: FileImage(File(photoPath!)), fit: BoxFit.cover)
+            ? DecorationImage(
+                image: PathUtils.resolveFileImage(photoPath) ??
+                    FileImage(File(photoPath!)),
+                fit: BoxFit.cover,
+              )
             : null,
       ),
       child: photoPath == null

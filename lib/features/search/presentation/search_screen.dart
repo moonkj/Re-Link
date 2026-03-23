@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_radius.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -178,7 +179,8 @@ class _NodeResultTile extends StatelessWidget {
           color: AppColors.glassSurface,
           image: node.photoPath != null
               ? DecorationImage(
-                  image: FileImage(File(node.photoPath!)),
+                  image: PathUtils.resolveFileImage(node.photoPath) ??
+                      FileImage(File(node.photoPath!)),
                   fit: BoxFit.cover,
                 )
               : null,

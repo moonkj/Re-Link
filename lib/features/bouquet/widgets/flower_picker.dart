@@ -7,7 +7,7 @@ import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/bouquet_model.dart';
 import '../providers/bouquet_notifier.dart';
 
-/// 꽃 선택 바텀시트 — 5종 꽃을 그리드로 표시
+/// 감정 이모티콘 선택 바텀시트 — 5종 감성 이모티콘 그리드
 class FlowerPickerSheet extends ConsumerWidget {
   const FlowerPickerSheet({
     super.key,
@@ -39,7 +39,7 @@ class FlowerPickerSheet extends ConsumerWidget {
 
           // 헤더
           Text(
-            '$toNodeName에게 꽃 보내기',
+            '$toNodeName에게 마음 보내기',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -48,7 +48,7 @@ class FlowerPickerSheet extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            '마음을 담아 꽃을 보내보세요',
+            '오늘의 감정을 골라 보내보세요',
             style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
           ),
           const SizedBox(height: AppSpacing.xxl),

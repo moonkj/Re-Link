@@ -22,8 +22,7 @@ import '../../features/memorial/presentation/memorial_screen.dart';
 import '../../features/capsule/presentation/capsule_list_screen.dart';
 import '../../features/badges/presentation/badge_list_screen.dart';
 import '../../features/hyodo/presentation/hyodo_screen.dart';
-import '../../features/jokbo/presentation/jokbo_import_screen.dart';
-import '../../features/jokbo/presentation/palgojodo_screen.dart';
+// jokbo/palgojodo 기능 삭제됨 — import 제거
 import '../../features/clan/presentation/clan_explorer_screen.dart';
 import '../../features/birthday/presentation/birthday_screen.dart';
 import '../../features/invite/presentation/invite_screen.dart';
@@ -71,8 +70,7 @@ abstract final class AppRoutes {
   static const String capsules = '/capsules';
   static const String badges = '/badges';
   static const String hyodo = '/hyodo';
-  static const String jokbo = '/jokbo';
-  static const String palgojodo = '/palgojodo';
+  // jokbo/palgojodo 라우트 삭제됨
   static const String clan = '/clan';
   static const String invite = '/invite';
   static const String snapshot = '/snapshot/:memoryId';
@@ -240,14 +238,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.hyodo,
         builder: (_, s) => const HyodoScreen(),
       ),
-      GoRoute(
-        path: AppRoutes.jokbo,
-        builder: (_, s) => const JokboImportScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.palgojodo,
-        builder: (_, s) => const PalgojodoScreen(),
-      ),
+      // jokbo/palgojodo GoRoute 삭제됨
       GoRoute(
         path: AppRoutes.clan,
         builder: (_, s) => const ClanExplorerScreen(),

@@ -50,7 +50,7 @@ class AppDatabase extends _$AppDatabase {
       : super(NativeDatabase(File(path)));
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -103,6 +103,10 @@ class AppDatabase extends _$AppDatabase {
           // v7 → v8: sync_queue (클라우드 동기화 대기열)
           if (from < 8) {
             await m.createTable(syncQueueTable);
+          }
+          // v8 → v9: bouquets.is_read 컬럼 추가 (받은 마음 읽음 처리)
+          if (from < 9) {
+            await m.addColumn(bouquetsTable, bouquetsTable.isRead);
           }
         },
       );
@@ -315,6 +319,27 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> deleteBouquet(String id) =>
       (delete(bouquetsTable)..where((t) => t.id.equals(id))).go();
+
+  /// 특정 노드가 받은 모든 꽃 (받은 마음 목록)
+  Future<List<BouquetsTableData>> getReceivedBouquets(String toNodeId) =>
+      (select(bouquetsTable)
+            ..where((t) => t.toNodeId.equals(toNodeId))
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  /// 특정 노드가 받은 읽지 않은 꽃 수
+  Future<int> getUnreadBouquetCount(String toNodeId) async {
+    final rows = await (select(bouquetsTable)
+          ..where(
+              (t) => t.toNodeId.equals(toNodeId) & t.isRead.equals(false)))
+        .get();
+    return rows.length;
+  }
+
+  /// 특정 노드가 받은 모든 꽃을 읽음 처리
+  Future<void> markBouquetsAsRead(String toNodeId) =>
+      (update(bouquetsTable)..where((t) => t.toNodeId.equals(toNodeId)))
+          .write(const BouquetsTableCompanion(isRead: Value(true)));
 
   // ── Capsules (Memory Capsule) ─────────────────────────────────────────────
 

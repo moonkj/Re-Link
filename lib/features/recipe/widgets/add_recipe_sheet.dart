@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/utils/haptic_service.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -91,7 +92,8 @@ class _AddRecipeSheetState extends ConsumerState<AddRecipeSheet> {
                       Border.all(color: AppColors.glassBorder, width: 0.5),
                   image: _photoPath != null
                       ? DecorationImage(
-                          image: FileImage(File(_photoPath!)),
+                          image: PathUtils.resolveFileImage(_photoPath) ??
+                              FileImage(File(_photoPath!)),
                           fit: BoxFit.cover,
                         )
                       : null,

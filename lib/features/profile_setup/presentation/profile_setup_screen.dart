@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/media/media_service.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -92,7 +93,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                           ),
                           image: _photoPath != null
                               ? DecorationImage(
-                                  image: FileImage(File(_photoPath!)),
+                                  image: PathUtils.resolveFileImage(_photoPath) ??
+                                      FileImage(File(_photoPath!)),
                                   fit: BoxFit.cover,
                                 )
                               : null,

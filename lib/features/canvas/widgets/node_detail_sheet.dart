@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_radius.dart';
@@ -17,8 +18,12 @@ import '../providers/node_notifier.dart';
 import '../../temperature/widgets/quick_temp_entry.dart';
 import '../../bouquet/widgets/bouquet_on_node.dart';
 import '../../bouquet/widgets/flower_picker.dart';
+import '../../bouquet/widgets/received_bouquets_sheet.dart';
+import '../../bouquet/providers/bouquet_notifier.dart';
 import '../../art_card/presentation/art_card_screen.dart';
 import '../providers/my_node_provider.dart';
+import '../../../shared/widgets/pin_dialog.dart';
+import '../../../core/utils/pin_recovery_helper.dart';
 import 'edit_node_sheet.dart';
 import 'node_card.dart';
 import 'vibe_meter_sheet.dart';
@@ -348,7 +353,7 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
               ),
             ),
 
-            // ── "나" 설정 ─────────────────────────────────────────────
+            // ── "나" 설정 (PIN 잠금) ─────────────────────────────────
             Builder(builder: (context) {
               final myNodeId = ref.watch(myNodeNotifierProvider).valueOrNull;
               final isMe = myNodeId == node.id;
@@ -358,29 +363,7 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
                   vertical: AppSpacing.xs,
                 ),
                 child: GlassCard(
-                  onTap: () async {
-                    if (isMe) {
-                      await ref.read(myNodeNotifierProvider.notifier).clearMyNode();
-                    } else {
-                      await ref.read(myNodeNotifierProvider.notifier).setMyNode(node.id);
-                    }
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            isMe ? '"나" 설정이 해제되었습니다' : '"나"로 설정되었습니다',
-                            style: TextStyle(color: AppColors.textPrimary),
-                          ),
-                          backgroundColor: AppColors.bgSurface,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppRadius.radiusMd,
-                          ),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  },
+                  onTap: () => _handleMyNodeTap(context, ref, node.id, isMe),
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.md,
                     vertical: AppSpacing.sm,
@@ -410,13 +393,24 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
                             color: AppColors.primary.withAlpha(30),
                             borderRadius: AppRadius.radiusSm,
                           ),
-                          child: Text(
-                            '현재 나',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.lock_outline,
+                                size: 10,
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                '현재 나',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       if (!isMe)
@@ -471,12 +465,25 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: _FlowerActionButton(
-                      nodeId: node.id,
-                      onTap: () => _showFlowerPicker(context, ref, node),
-                    ),
-                  ),
+                  Builder(builder: (ctx) {
+                    final myNodeId = ref.watch(myNodeNotifierProvider).valueOrNull;
+                    final isMe = myNodeId == node.id;
+                    if (isMe) {
+                      return Expanded(
+                        child: _ReceivedFlowerActionButton(
+                          nodeId: node.id,
+                          onTap: () => _showReceivedBouquets(context, ref, node),
+                        ),
+                      );
+                    } else {
+                      return Expanded(
+                        child: _FlowerActionButton(
+                          nodeId: node.id,
+                          onTap: () => _showFlowerPicker(context, ref, node),
+                        ),
+                      );
+                    }
+                  }),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: _ActionButton(
@@ -550,14 +557,25 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
   // ── 꽃 보내기 (Memory Bouquet) ─────────────────────────────────────────
   void _showFlowerPicker(
       BuildContext context, WidgetRef ref, NodeModel node) {
+    final myNodeId = ref.read(myNodeNotifierProvider).valueOrNull ?? 'self';
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => FlowerPickerSheet(
-        fromNodeId: 'self',
+        fromNodeId: myNodeId,
         toNodeId: node.id,
         toNodeName: node.name,
       ),
+    );
+  }
+
+  // ── 받은 마음 확인 (나 노드 전용) ─────────────────────────────────────────
+  void _showReceivedBouquets(
+      BuildContext context, WidgetRef ref, NodeModel node) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ReceivedBouquetsSheet(myNodeId: node.id),
     );
   }
 
@@ -585,6 +603,85 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => EditNodeSheet(node: node.copyWith(isGhost: false)),
+    );
+  }
+
+  // ── "나로 설정" PIN 잠금 핸들러 ─────────────────────────────────────────
+  Future<void> _handleMyNodeTap(
+    BuildContext context,
+    WidgetRef ref,
+    String nodeId,
+    bool isMe,
+  ) async {
+    final notifier = ref.read(myNodeNotifierProvider.notifier);
+    final savedPin = await notifier.getPin();
+
+    if (!context.mounted) return;
+
+    if (savedPin == null) {
+      // ── PIN 미등록: 최초 "나" 설정 → PIN 등록 ──
+      final result = await showPinDialog(
+        context: context,
+        mode: PinDialogMode.register,
+      );
+      if (result == null || !result.success || result.pin == null) return;
+      if (!context.mounted) return;
+
+      // PIN 저장 + 나 설정
+      await notifier.setPin(result.pin!);
+      if (isMe) {
+        await notifier.clearMyNode();
+      } else {
+        await notifier.setMyNode(nodeId);
+      }
+      if (context.mounted) {
+        _showMyNodeSnackBar(
+          context,
+          isMe ? '"나" 설정이 해제되었습니다' : '"나"로 설정되었습니다',
+        );
+      }
+    } else {
+      // ── PIN 등록됨: 검증 필요 ──
+      final result = await showPinDialog(
+        context: context,
+        mode: PinDialogMode.verify,
+        savedPin: savedPin,
+        onForgotPin: () async {
+          if (!context.mounted) return;
+          await PinRecoveryHelper.recover(context: context, ref: ref);
+        },
+      );
+      if (result == null || !result.success) return;
+      if (!context.mounted) return;
+
+      if (isMe) {
+        await notifier.clearMyNode();
+      } else {
+        await notifier.setMyNode(nodeId);
+      }
+      if (context.mounted) {
+        _showMyNodeSnackBar(
+          context,
+          isMe ? '"나" 설정이 해제되었습니다' : '"나"로 설정되었습니다',
+        );
+      }
+    }
+  }
+
+  void _showMyNodeSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: TextStyle(color: AppColors.textPrimary),
+        ),
+        backgroundColor: AppColors.bgSurface,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadius.radiusMd,
+        ),
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 
@@ -663,7 +760,8 @@ class _Header extends StatelessWidget {
                   color: AppColors.glassSurface,
                   image: node.photoPath != null
                       ? DecorationImage(
-                          image: FileImage(File(node.photoPath!)),
+                          image: PathUtils.resolveFileImage(node.photoPath) ??
+                              FileImage(File(node.photoPath!)),
                           fit: BoxFit.cover,
                         )
                       : null,
@@ -1230,8 +1328,8 @@ class _RelationTab extends ConsumerWidget {
                     border: Border.all(color: relationColor.withAlpha(80)),
                     image: otherNode?.photoPath != null
                         ? DecorationImage(
-                            image:
-                                FileImage(File(otherNode!.photoPath!)),
+                            image: PathUtils.resolveFileImage(otherNode!.photoPath) ??
+                                FileImage(File(otherNode.photoPath!)),
                             fit: BoxFit.cover,
                           )
                         : null,
@@ -1595,11 +1693,11 @@ class _FlowerActionButton extends ConsumerWidget {
         children: [
           Column(
             children: [
-              Icon(Icons.local_florist_outlined,
+              Icon(Icons.favorite_outline_rounded,
                   color: AppColors.accent, size: 22),
               const SizedBox(height: 4),
               Text(
-                '꽃',
+                '마음',
                 style: TextStyle(fontSize: 11, color: AppColors.accent),
               ),
             ],
@@ -1609,6 +1707,71 @@ class _FlowerActionButton extends ConsumerWidget {
             right: -4,
             child: BouquetBadge(toNodeId: nodeId),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 받은 마음 확인 액션 버튼 — "나" 노드 전용, 읽지 않은 마음 수 뱃지 포함
+class _ReceivedFlowerActionButton extends ConsumerWidget {
+  const _ReceivedFlowerActionButton({
+    required this.nodeId,
+    required this.onTap,
+  });
+
+  final String nodeId;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unreadCountAsync =
+        ref.watch(unreadBouquetCountProvider(nodeId));
+    final unreadCount = unreadCountAsync.valueOrNull ?? 0;
+
+    return GlassCard(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          Column(
+            children: [
+              Icon(Icons.favorite_rounded,
+                  color: AppColors.accent, size: 22),
+              const SizedBox(height: 4),
+              Text(
+                '받은마음',
+                style: TextStyle(fontSize: 11, color: AppColors.accent),
+              ),
+            ],
+          ),
+          if (unreadCount > 0)
+            Positioned(
+              top: -4,
+              right: -4,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: AppColors.accent,
+                  shape: BoxShape.circle,
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 18,
+                  minHeight: 18,
+                ),
+                child: Text(
+                  '$unreadCount',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
         ],
       ),
     );

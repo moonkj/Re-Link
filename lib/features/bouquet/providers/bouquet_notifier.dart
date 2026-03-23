@@ -15,6 +15,16 @@ Future<List<Bouquet>> bouquetsThisWeek(Ref ref, String toNodeId) =>
 Future<List<Bouquet>> bouquetsForNode(Ref ref, String toNodeId) =>
     ref.watch(bouquetRepositoryProvider).getForNode(toNodeId);
 
+/// 내가 받은 마음 목록
+@riverpod
+Future<List<Bouquet>> receivedBouquets(Ref ref, String toNodeId) =>
+    ref.watch(bouquetRepositoryProvider).getReceivedBouquets(toNodeId);
+
+/// 읽지 않은 마음 수 (N 뱃지용)
+@riverpod
+Future<int> unreadBouquetCount(Ref ref, String toNodeId) =>
+    ref.watch(bouquetRepositoryProvider).getUnreadCount(toNodeId);
+
 /// 꽃 보내기 CRUD 오퍼레이션
 @riverpod
 class BouquetNotifier extends _$BouquetNotifier {
@@ -37,13 +47,29 @@ class BouquetNotifier extends _$BouquetNotifier {
         flowerType: flowerType,
       );
       state = const AsyncData(null);
-      // 주간 캐시 무효화
+      // 캐시 무효화
       ref.invalidate(bouquetsThisWeekProvider(toNodeId));
       ref.invalidate(bouquetsForNodeProvider(toNodeId));
+      ref.invalidate(receivedBouquetsProvider(toNodeId));
+      ref.invalidate(unreadBouquetCountProvider(toNodeId));
       return bouquet;
     } catch (e, st) {
       state = AsyncError(e, st);
       return null;
+    }
+  }
+
+  /// 받은 마음 모두 읽음 처리
+  Future<void> markAllAsRead(String toNodeId) async {
+    state = const AsyncLoading();
+    try {
+      await _repo.markAllAsRead(toNodeId);
+      state = const AsyncData(null);
+      // 캐시 무효화
+      ref.invalidate(receivedBouquetsProvider(toNodeId));
+      ref.invalidate(unreadBouquetCountProvider(toNodeId));
+    } catch (e, st) {
+      state = AsyncError(e, st);
     }
   }
 
@@ -56,6 +82,8 @@ class BouquetNotifier extends _$BouquetNotifier {
       // 캐시 무효화
       ref.invalidate(bouquetsThisWeekProvider(toNodeId));
       ref.invalidate(bouquetsForNodeProvider(toNodeId));
+      ref.invalidate(receivedBouquetsProvider(toNodeId));
+      ref.invalidate(unreadBouquetCountProvider(toNodeId));
     } catch (e, st) {
       state = AsyncError(e, st);
     }

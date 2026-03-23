@@ -8,6 +8,7 @@ import '../../../shared/widgets/feature_tile.dart';
 import '../../../shared/widgets/section_label.dart';
 import '../../../shared/widgets/tile_divider.dart';
 import '../../art_card/presentation/art_card_screen.dart';
+import '../../export/presentation/full_tree_export_screen.dart';
 
 /// 탐색 탭 — 뿌리/특별한 기억/성과 허브
 class ExploreHubScreen extends StatelessWidget {
@@ -43,19 +44,27 @@ class ExploreHubScreen extends StatelessWidget {
             child: Column(
               children: [
                 FeatureTile(
-                  icon: Icons.account_tree_outlined,
+                  icon: Icons.palette_outlined,
                   iconColor: AppColors.secondary,
-                  title: '족보 가져오기',
-                  subtitle: '세대별 가족 일괄 입력',
-                  onTap: () => context.push(AppRoutes.jokbo),
+                  title: '아트 카드',
+                  subtitle: '수채화 \u00b7 미니멀 \u00b7 한지 \u00b7 모던',
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const ArtCardScreen(),
+                    ),
+                  ),
                 ),
                 const TileDivider(),
                 FeatureTile(
-                  icon: Icons.park_outlined,
-                  iconColor: AppColors.secondary,
-                  title: '팔고조도',
-                  subtitle: '8세대 조상 트리 시각화',
-                  onTap: () => context.push(AppRoutes.palgojodo),
+                  icon: Icons.image_outlined,
+                  iconColor: AppColors.primary,
+                  title: '전체 족보 저장',
+                  subtitle: '가족 트리 전체를 고해상도 이미지로 저장',
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const FullTreeExportScreen(),
+                    ),
+                  ),
                 ),
                 const TileDivider(),
                 FeatureTile(
@@ -67,10 +76,10 @@ class ExploreHubScreen extends StatelessWidget {
                 ),
                 const TileDivider(),
                 FeatureTile(
-                  icon: Icons.auto_stories,
+                  icon: Icons.brightness_7_outlined,
                   iconColor: AppColors.primary,
-                  title: '제사 순서 안내',
-                  subtitle: '전통 제사/차례 절차 가이드',
+                  title: '추모 가이드',
+                  subtitle: '우리 가족에게 맞는 추모 방식을 선택해 보세요',
                   onTap: () => context.push(AppRoutes.ritualGuide),
                 ),
                 const TileDivider(),
@@ -132,18 +141,6 @@ class ExploreHubScreen extends StatelessWidget {
                   title: '연말 가족 리뷰',
                   subtitle: '올해의 가족 기억 돌아보기',
                   onTap: () => context.push(AppRoutes.wrapped),
-                ),
-                const TileDivider(),
-                FeatureTile(
-                  icon: Icons.palette_outlined,
-                  iconColor: AppColors.secondary,
-                  title: '아트 카드',
-                  subtitle: '수채화 \u00b7 미니멀 \u00b7 한지 \u00b7 모던',
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const ArtCardScreen(),
-                    ),
-                  ),
                 ),
               ],
             ),

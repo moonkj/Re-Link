@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/services/privacy/privacy_service.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_radius.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -219,7 +220,7 @@ class _ArchiveGroup extends StatelessWidget {
                   color: AppColors.primary.withAlpha(60),
                   image: group.node.photoPath != null
                       ? DecorationImage(
-                          image: FileImage(File(group.node.photoPath!)),
+                          image: PathUtils.resolveFileImage(group.node.photoPath) ?? FileImage(File(group.node.photoPath!)),
                           fit: BoxFit.cover,
                         )
                       : null,
@@ -454,7 +455,7 @@ class _StoryFeedTab extends ConsumerWidget {
                         color: AppColors.primary.withAlpha(60),
                         image: item.nodePhotoPath != null
                             ? DecorationImage(
-                                image: FileImage(File(item.nodePhotoPath!)),
+                                image: PathUtils.resolveFileImage(item.nodePhotoPath) ?? FileImage(File(item.nodePhotoPath!)),
                                 fit: BoxFit.cover,
                               )
                             : null,

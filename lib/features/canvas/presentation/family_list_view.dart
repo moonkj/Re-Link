@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -519,7 +520,7 @@ class _FamilyMemberTile extends StatelessWidget {
         ),
         child: ClipOval(
           child: Image.file(
-            File(node.photoPath!),
+            PathUtils.resolveFile(node.photoPath) ?? File(node.photoPath!),
             width: _avatarSize,
             height: _avatarSize,
             fit: BoxFit.cover,

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/privacy/privacy_service.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -477,13 +478,13 @@ class _BlurredPreview extends StatelessWidget {
       case MemoryType.photo:
         if (memory.thumbnailPath != null) {
           return Image.file(
-            File(memory.thumbnailPath!),
+            PathUtils.resolveFile(memory.thumbnailPath) ?? File(memory.thumbnailPath!),
             fit: BoxFit.cover,
           );
         }
         if (memory.filePath != null) {
           return Image.file(
-            File(memory.filePath!),
+            PathUtils.resolveFile(memory.filePath) ?? File(memory.filePath!),
             fit: BoxFit.cover,
           );
         }

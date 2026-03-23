@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'app.dart';
 import 'core/services/notification/notification_service.dart';
+import 'core/utils/path_utils.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,6 +67,9 @@ Future<void> main() async {
       statusBarIconBrightness: Brightness.light,
     ),
   );
+
+  // Documents 경로 캐시 (미디어 상대 경로 복원용, 빠름)
+  await PathUtils.initialize();
 
   // 앱 실행 — DB는 첫 쿼리 시 LazyDatabase가 자동 생성
   runApp(const ProviderScope(child: ReLink()));

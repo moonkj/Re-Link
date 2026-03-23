@@ -1,10 +1,13 @@
-/// 꽃 타입 (Memory Bouquet)
+/// 꽃 타입 (Memory Bouquet) — Z세대 감성 이모티콘
 enum FlowerType {
-  rose('rose', '\u{1F339}', '장미'),
-  tulip('tulip', '\u{1F337}', '튤립'),
-  sunflower('sunflower', '\u{1F33B}', '해바라기'),
-  lily('lily', '\u{1FAB7}', '백합'),
-  cherryBlossom('cherry_blossom', '\u{1F338}', '벚꽃');
+  sparkleHeart('rose', '✨', '두근두근'),
+  fireHeart('tulip', '🔥', '불타는맘'),
+  bubble('sunflower', '🫧', '나비야'),
+  bolt('lily', '⚡', '응원해'),
+  healingHeart('cherry_blossom', '🤍', '힐링'),
+  star('star', '⭐', '최고야'),
+  moon('moon', '🌙', '굿나잇'),
+  clover('clover', '🍀', '행운을');
 
   const FlowerType(this.dbValue, this.emoji, this.label);
 
@@ -20,7 +23,7 @@ enum FlowerType {
   /// DB 문자열에서 enum으로 변환
   static FlowerType fromDb(String value) => FlowerType.values.firstWhere(
         (e) => e.dbValue == value,
-        orElse: () => FlowerType.rose,
+        orElse: () => FlowerType.sparkleHeart,
       );
 }
 
@@ -33,6 +36,7 @@ class Bouquet {
     required this.flowerType,
     required this.date,
     required this.createdAt,
+    this.isRead = false,
   });
 
   final String id;
@@ -41,6 +45,7 @@ class Bouquet {
   final FlowerType flowerType;
   final DateTime date;
   final DateTime createdAt;
+  final bool isRead;
 
   Bouquet copyWith({
     String? id,
@@ -49,6 +54,7 @@ class Bouquet {
     FlowerType? flowerType,
     DateTime? date,
     DateTime? createdAt,
+    bool? isRead,
   }) {
     return Bouquet(
       id: id ?? this.id,
@@ -57,6 +63,7 @@ class Bouquet {
       flowerType: flowerType ?? this.flowerType,
       date: date ?? this.date,
       createdAt: createdAt ?? this.createdAt,
+      isRead: isRead ?? this.isRead,
     );
   }
 

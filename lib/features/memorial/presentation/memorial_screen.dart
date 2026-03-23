@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/haptic_service.dart';
 import '../../../core/utils/lunar_calendar.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
@@ -317,7 +318,8 @@ class _MemorialHeader extends StatelessWidget {
               color: AppColors.glassSurface,
               image: photoPath != null
                   ? DecorationImage(
-                      image: FileImage(File(photoPath!)),
+                      image: PathUtils.resolveFileImage(photoPath) ??
+                          FileImage(File(photoPath!)),
                       fit: BoxFit.cover,
                       colorFilter: ColorFilter.mode(
                         Colors.black.withAlpha(30),

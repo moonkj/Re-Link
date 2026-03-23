@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart'; // duration 체크용 임시 컨트롤러
 import '../../../core/errors/app_error.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -383,7 +384,7 @@ class _PhotoForm extends StatelessWidget {
         if (photoPath != null)
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.file(File(photoPath!), height: 200, width: double.infinity, fit: BoxFit.cover),
+            child: Image.file(PathUtils.resolveFile(photoPath) ?? File(photoPath!), height: 200, width: double.infinity, fit: BoxFit.cover),
           )
         else
           Row(
@@ -730,7 +731,7 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
                 children: [
                   // 썸네일 이미지 (정적 프레임)
                   _thumbPath != null
-                      ? Image.file(File(_thumbPath!), fit: BoxFit.cover)
+                      ? Image.file(PathUtils.resolveFile(_thumbPath) ?? File(_thumbPath!), fit: BoxFit.cover)
                       : Container(color: AppColors.bgSurface),
                   // 재생 아이콘 (시각적 힌트)
                   Center(

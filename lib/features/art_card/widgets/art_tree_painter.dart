@@ -1,29 +1,86 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../../../shared/models/node_model.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../models/art_card_config.dart';
 
-/// 아트 카드용 가족트리 CustomPainter
+/// 4세대 가족트리 레이아웃 결과
+class FamilyGenerationLayout {
+  const FamilyGenerationLayout({
+    required this.grandparents,
+    required this.parents,
+    required this.myGeneration,
+    required this.children,
+    required this.allIncludedIds,
+    required this.relevantEdges,
+  });
+
+  /// 1줄: 조부모 (나의 부모의 부모)
+  final List<String> grandparents;
+
+  /// 2줄: 부모 세대 (나의 부모 + 부모의 형제)
+  final List<String> parents;
+
+  /// 3줄: 나 세대 (나, 배우자, 형제/자매, 사촌)
+  final List<String> myGeneration;
+
+  /// 4줄: 자녀 세대 (내 자녀들)
+  final List<String> children;
+
+  /// 표시 대상 전체 노드 ID
+  final Set<String> allIncludedIds;
+
+  /// 표시 대상 노드들 사이의 엣지만
+  final List<NodeEdge> relevantEdges;
+
+  int get totalCount =>
+      grandparents.length +
+      parents.length +
+      myGeneration.length +
+      children.length;
+}
+
+/// _computeLayout 결과 — 노드 좌표 + 커플 쌍
+class _LayoutResult {
+  const _LayoutResult({
+    required this.positions,
+    required this.couplePairs,
+  });
+  final Map<String, Offset> positions;
+  final List<(String, String)> couplePairs;
+}
+
+/// 아트 카드용 가족트리 CustomPainter — "나" 기준 4세대 레이아웃
 class ArtTreePainter extends CustomPainter {
   const ArtTreePainter({
     required this.nodes,
     required this.edges,
     required this.style,
     required this.palette,
+    this.myNodeId,
     this.showWatermark = true,
+    this.nodeImages = const {},
   });
 
   final List<NodeModel> nodes;
   final List<NodeEdge> edges;
   final ArtStyle style;
   final ArtPalette palette;
+  final String? myNodeId;
   final bool showWatermark;
+
+  /// 노드 ID → 미리 로드된 프로필 사진 (dart:ui.Image)
+  final Map<String, ui.Image> nodeImages;
+
+  /// 한 줄에 표시할 최대 노드 수
+  static const int _maxPerRow = 6;
+
+  /// 전체 최대 인원
+  static const int _maxTotal = 20;
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (nodes.isEmpty) return;
-
     // 배경
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.width, size.height),
@@ -33,132 +90,404 @@ class ArtTreePainter extends CustomPainter {
     // 스타일별 배경 데코
     _drawBackgroundDecoration(canvas, size);
 
-    // 노드 레이아웃 계산 (compact centered tree)
-    final layout = _computeLayout(size);
+    if (nodes.isEmpty) {
+      _drawTitle(canvas, size, 0);
+      if (showWatermark) _drawWatermark(canvas, size);
+      return;
+    }
 
-    // 엣지 그리기
-    _drawEdges(canvas, size, layout);
+    // "나" 기준 4세대 분류
+    final familyLayout = _buildFamilyGenerations();
+
+    // 노드 레이아웃 계산 (커플 그룹핑 포함)
+    final layoutResult = _computeLayout(size, familyLayout);
+    final layout = layoutResult.positions;
+
+    // 엣지 그리기 (부모↔자녀 세로선만, 형제/배우자 제외)
+    _drawEdges(canvas, size, layout, familyLayout.relevantEdges);
+
+    // 커플 하트 그리기 (배우자 관계를 하트로 표현)
+    _drawCoupleHearts(canvas, layout, layoutResult.couplePairs);
 
     // 노드 그리기
-    _drawNodes(canvas, size, layout);
+    _drawNodes(canvas, size, layout, familyLayout);
 
     // 타이틀
-    _drawTitle(canvas, size);
+    _drawTitle(canvas, size, familyLayout.totalCount);
+
+    // 세대 라벨
+    _drawGenerationLabels(canvas, size, familyLayout);
 
     // 워터마크
     if (showWatermark) _drawWatermark(canvas, size);
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // ── 컴팩트 트리 레이아웃 계산 ──────────────────────────────────────────────
+  // ── "나" 기준 4세대 분류 ──────────────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  /// 노드들을 세대(generation) 기반으로 행/열 배치
-  /// 캔버스 positionX/Y 무시 — 카드 사이즈에 맞춰 재계산
-  Map<String, Offset> _computeLayout(Size size) {
-    final positions = <String, Offset>{};
-    if (nodes.isEmpty) return positions;
+  FamilyGenerationLayout _buildFamilyGenerations() {
+    final nodeMap = {for (final n in nodes) n.id: n};
 
-    // ── 1) 부부 쌍 찾기 ──────────────────────────────────────────────────
-    final spousePairs = <String, String>{};
+    // ── 관계 인덱스 구축 ─────────────────────────────────────────────────
+    // parent → children
+    final parentToChildren = <String, Set<String>>{};
+    // child → parents
+    final childToParents = <String, Set<String>>{};
+    // spouse pairs
+    final spouseOf = <String, Set<String>>{};
+    // sibling pairs
+    final siblingOf = <String, Set<String>>{};
+
     for (final e in edges) {
-      if (e.relation == RelationType.spouse) {
-        spousePairs[e.fromNodeId] = e.toNodeId;
-        spousePairs[e.toNodeId] = e.fromNodeId;
+      switch (e.relation) {
+        case RelationType.child:
+          // fromNodeId is parent, toNodeId is child
+          parentToChildren.putIfAbsent(e.fromNodeId, () => {}).add(e.toNodeId);
+          childToParents.putIfAbsent(e.toNodeId, () => {}).add(e.fromNodeId);
+        case RelationType.parent:
+          // fromNodeId is child, toNodeId is parent
+          childToParents.putIfAbsent(e.fromNodeId, () => {}).add(e.toNodeId);
+          parentToChildren.putIfAbsent(e.toNodeId, () => {}).add(e.fromNodeId);
+        case RelationType.spouse:
+          spouseOf.putIfAbsent(e.fromNodeId, () => {}).add(e.toNodeId);
+          spouseOf.putIfAbsent(e.toNodeId, () => {}).add(e.fromNodeId);
+        case RelationType.sibling:
+          siblingOf.putIfAbsent(e.fromNodeId, () => {}).add(e.toNodeId);
+          siblingOf.putIfAbsent(e.toNodeId, () => {}).add(e.fromNodeId);
+        case RelationType.other:
+          break;
       }
     }
 
-    // ── 2) 부모→자녀 인접 리스트 구성 ────────────────────────────────────
-    final parentToChildren = <String, List<String>>{};
-    for (final e in edges) {
-      if (e.relation == RelationType.child ||
-          e.relation == RelationType.parent) {
-        final parentId =
-            e.relation == RelationType.child ? e.fromNodeId : e.toNodeId;
-        final childId =
-            e.relation == RelationType.child ? e.toNodeId : e.fromNodeId;
-        parentToChildren.putIfAbsent(parentId, () => []).add(childId);
+    final meId = myNodeId;
+    if (meId == null || !nodeMap.containsKey(meId)) {
+      // "나" 없으면 기존 전체 표시 (fallback)
+      return _fallbackLayout();
+    }
+
+    // ── 3줄: 나 세대 ──────────────────────────────────────────────────────
+    final myGen = <String>{meId};
+
+    // 내 배우자
+    for (final sid in spouseOf[meId] ?? <String>{}) {
+      if (nodeMap.containsKey(sid)) myGen.add(sid);
+    }
+
+    // 내 형제/자매
+    for (final sid in siblingOf[meId] ?? <String>{}) {
+      if (nodeMap.containsKey(sid)) {
+        myGen.add(sid);
+        // 형제의 배우자도 포함
+        for (final ssid in spouseOf[sid] ?? <String>{}) {
+          if (nodeMap.containsKey(ssid)) myGen.add(ssid);
+        }
       }
     }
 
-    // ── 3) 루트 노드 찾기 (부모가 없는 노드) ────────────────────────────
-    final allChildIds =
-        parentToChildren.values.expand((v) => v).toSet();
-    final rootIds = nodes
-        .where((n) => !allChildIds.contains(n.id))
-        .map((n) => n.id)
+    // ── 2줄: 부모 세대 ────────────────────────────────────────────────────
+    final parentsGen = <String>{};
+    final myParentIds = childToParents[meId] ?? <String>{};
+
+    for (final pid in myParentIds) {
+      if (nodeMap.containsKey(pid)) {
+        parentsGen.add(pid);
+        // 부모의 배우자 (다른 부/모)
+        for (final sid in spouseOf[pid] ?? <String>{}) {
+          if (nodeMap.containsKey(sid)) parentsGen.add(sid);
+        }
+        // 부모의 형제 (삼촌/이모)
+        for (final sibId in siblingOf[pid] ?? <String>{}) {
+          if (nodeMap.containsKey(sibId)) {
+            parentsGen.add(sibId);
+            // 삼촌/이모의 배우자
+            for (final ssid in spouseOf[sibId] ?? <String>{}) {
+              if (nodeMap.containsKey(ssid)) parentsGen.add(ssid);
+            }
+          }
+        }
+      }
+    }
+
+    // 부모 형제의 자녀 = 사촌 → 나 세대에 추가
+    for (final pid in parentsGen) {
+      // 부모 형제의 자녀 (내 부모 제외한 parentsGen 멤버의 자녀)
+      if (!myParentIds.contains(pid)) {
+        for (final cousinId in parentToChildren[pid] ?? <String>{}) {
+          if (nodeMap.containsKey(cousinId) && !parentsGen.contains(cousinId)) {
+            myGen.add(cousinId);
+            // 사촌의 배우자
+            for (final ssid in spouseOf[cousinId] ?? <String>{}) {
+              if (nodeMap.containsKey(ssid)) myGen.add(ssid);
+            }
+          }
+        }
+      }
+    }
+
+    // ── 1줄: 조부모 세대 ──────────────────────────────────────────────────
+    final grandparentsGen = <String>{};
+    for (final pid in myParentIds) {
+      for (final gpid in childToParents[pid] ?? <String>{}) {
+        if (nodeMap.containsKey(gpid)) {
+          grandparentsGen.add(gpid);
+          // 조부모의 배우자
+          for (final sid in spouseOf[gpid] ?? <String>{}) {
+            if (nodeMap.containsKey(sid)) grandparentsGen.add(sid);
+          }
+        }
+      }
+    }
+
+    // ── 4줄: 자녀 세대 ────────────────────────────────────────────────────
+    final childrenGen = <String>{};
+    for (final childId in parentToChildren[meId] ?? <String>{}) {
+      if (nodeMap.containsKey(childId)) childrenGen.add(childId);
+    }
+    // 배우자의 자녀도 포함
+    for (final sid in spouseOf[meId] ?? <String>{}) {
+      for (final childId in parentToChildren[sid] ?? <String>{}) {
+        if (nodeMap.containsKey(childId)) childrenGen.add(childId);
+      }
+    }
+
+    // ── 세대 간 중복 제거 (우선순위: 나세대 > 부모 > 조부모 > 자녀) ──────
+    // 나 세대에서 부모/조부모 제거
+    myGen.removeAll(parentsGen);
+    myGen.removeAll(grandparentsGen);
+    // 자녀에서 나세대/부모 제거
+    childrenGen.removeAll(myGen);
+    childrenGen.removeAll(parentsGen);
+
+    // ── 줄당 최대 수 제한 ─────────────────────────────────────────────────
+    var gpList = _limitRow(grandparentsGen.toList(), meId, nodeMap);
+    var pList = _limitRow(parentsGen.toList(), meId, nodeMap);
+    final myList = _limitRow(myGen.toList(), meId, nodeMap, ensureId: meId);
+    var cList = _limitRow(childrenGen.toList(), meId, nodeMap);
+
+    // 총 10명 제한 (우선순위: 나세대 > 부모 > 자녀 > 조부모)
+    var total = myList.length + pList.length + cList.length + gpList.length;
+    if (total > _maxTotal) {
+      final budget = _maxTotal - myList.length; // 나는 반드시 포함
+      var pBudget = pList.length.clamp(0, budget);
+      var cBudget = cList.length.clamp(0, (budget - pBudget));
+      var gpBudget = gpList.length.clamp(0, (budget - pBudget - cBudget));
+      gpList = gpList.take(gpBudget).toList();
+      pList = pList.take(pBudget).toList();
+      cList = cList.take(cBudget).toList();
+    }
+
+    final allIds = <String>{...gpList, ...pList, ...myList, ...cList};
+
+    // 관련 엣지만 필터링
+    final relevantEdges = edges
+        .where((e) =>
+            allIds.contains(e.fromNodeId) && allIds.contains(e.toNodeId))
         .toList();
-    if (rootIds.isEmpty) {
-      // 순환 관계 — 첫 번째 노드를 루트로 사용
-      rootIds.add(nodes.first.id);
+
+    return FamilyGenerationLayout(
+      grandparents: gpList,
+      parents: pList,
+      myGeneration: myList,
+      children: cList,
+      allIncludedIds: allIds,
+      relevantEdges: relevantEdges,
+    );
+  }
+
+  /// 줄당 최대 _maxPerRow 명으로 제한 (ensureId는 반드시 포함)
+  List<String> _limitRow(
+    List<String> ids,
+    String meId,
+    Map<String, NodeModel> nodeMap, {
+    String? ensureId,
+  }) {
+    if (ids.length <= _maxPerRow) return ids;
+
+    // ensureId가 있으면 반드시 포함
+    if (ensureId != null && ids.contains(ensureId)) {
+      ids.remove(ensureId);
+      ids.insert(0, ensureId);
+    }
+    return ids.take(_maxPerRow).toList();
+  }
+
+  /// "나" 없을 때 폴백 — 전체 노드를 BFS로 세대 분류 (기존 로직 축소판)
+  FamilyGenerationLayout _fallbackLayout() {
+    // 모든 노드를 나 세대에 넣되, 최대 _maxPerRow * 4개만
+    final limited = nodes.take(_maxPerRow * 4).toList();
+    final ids = limited.map((n) => n.id).toSet();
+    final relevantEdges = edges
+        .where((e) => ids.contains(e.fromNodeId) && ids.contains(e.toNodeId))
+        .toList();
+
+    // 간단히 4줄로 나누기
+    final perRow = (limited.length / 4).ceil().clamp(1, _maxPerRow);
+    final rows = <List<String>>[];
+    for (int i = 0; i < limited.length; i += perRow) {
+      rows.add(limited
+          .skip(i)
+          .take(perRow)
+          .map((n) => n.id)
+          .toList());
     }
 
-    // ── 4) BFS로 세대 할당 ───────────────────────────────────────────────
-    final generations = <String, int>{};
-    final queue = <String>[...rootIds];
-    for (final id in rootIds) {
-      generations[id] = 0;
-    }
-    final visited = <String>{...rootIds};
+    return FamilyGenerationLayout(
+      grandparents: rows.isNotEmpty ? rows[0] : [],
+      parents: rows.length > 1 ? rows[1] : [],
+      myGeneration: rows.length > 2 ? rows[2] : [],
+      children: rows.length > 3 ? rows[3] : [],
+      allIncludedIds: ids,
+      relevantEdges: relevantEdges,
+    );
+  }
 
-    while (queue.isNotEmpty) {
-      final current = queue.removeAt(0);
-      final gen = generations[current]!;
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── 레이아웃 좌표 계산 ─────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
 
-      // 자녀 → 다음 세대
-      for (final childId in parentToChildren[current] ?? <String>[]) {
-        if (!visited.contains(childId)) {
-          generations[childId] = gen + 1;
-          visited.add(childId);
-          queue.add(childId);
+  /// 같은 줄(row)에서 spouse 관계를 기반으로 커플 그룹을 감지한다.
+  /// 반환: [[A, B], [C], [D, E]] 형태 — 커플은 함께, 싱글은 단독 그룹
+  static List<List<String>> _groupCouplesBySpouse(
+    List<String> row,
+    Set<String> spousePairSet,
+  ) {
+    final visited = <String>{};
+    final groups = <List<String>>[];
+
+    for (final id in row) {
+      if (visited.contains(id)) continue;
+      visited.add(id);
+
+      // 같은 줄에서 배우자 찾기
+      String? spouseInRow;
+      for (final otherId in row) {
+        if (otherId == id || visited.contains(otherId)) continue;
+        final pairKey1 = '$id|$otherId';
+        final pairKey2 = '$otherId|$id';
+        if (spousePairSet.contains(pairKey1) ||
+            spousePairSet.contains(pairKey2)) {
+          spouseInRow = otherId;
+          break;
         }
       }
 
-      // 배우자 → 같은 세대
-      final spouseId = spousePairs[current];
-      if (spouseId != null && !visited.contains(spouseId)) {
-        generations[spouseId] = gen;
-        visited.add(spouseId);
-        queue.add(spouseId);
+      if (spouseInRow != null) {
+        visited.add(spouseInRow);
+        groups.add([id, spouseInRow]);
+      } else {
+        groups.add([id]);
+      }
+    }
+    return groups;
+  }
+
+  _LayoutResult _computeLayout(
+    Size size,
+    FamilyGenerationLayout family,
+  ) {
+    final positions = <String, Offset>{};
+    final couplePairs = <(String, String)>[];
+
+    // 실제 내용이 있는 줄만 수집
+    final activeRows = <List<String>>[];
+    if (family.grandparents.isNotEmpty) activeRows.add(family.grandparents);
+    if (family.parents.isNotEmpty) activeRows.add(family.parents);
+    if (family.myGeneration.isNotEmpty) activeRows.add(family.myGeneration);
+    if (family.children.isNotEmpty) activeRows.add(family.children);
+
+    if (activeRows.isEmpty) {
+      return _LayoutResult(positions: positions, couplePairs: couplePairs);
+    }
+
+    // spouse 관계 쌍 빌드 (빠른 조회용)
+    final spousePairSet = <String>{};
+    for (final e in edges) {
+      if (e.relation == RelationType.spouse) {
+        spousePairSet.add('${e.fromNodeId}|${e.toNodeId}');
       }
     }
 
-    // 세대에 할당되지 않은 고립 노드
-    for (final node in nodes) {
-      if (!generations.containsKey(node.id)) {
-        generations[node.id] = 0;
-      }
-    }
-
-    // ── 5) 세대별 그룹핑 ─────────────────────────────────────────────────
-    final genGroups = <int, List<String>>{};
-    for (final entry in generations.entries) {
-      genGroups.putIfAbsent(entry.value, () => []).add(entry.key);
-    }
-
-    // ── 6) 좌표 계산 ────────────────────────────────────────────────────
-    final maxGen =
-        genGroups.keys.isEmpty ? 0 : genGroups.keys.reduce(math.max);
-    const padding = 60.0;
-    const titleReserved = 60.0;
+    const padding = 50.0;
+    const titleReserved = 65.0;
+    const bottomReserved = 40.0;
     final usableWidth = size.width - padding * 2;
-    final usableHeight = size.height - padding * 2 - titleReserved;
-    final rowHeight =
-        maxGen > 0 ? usableHeight / (maxGen + 1) : usableHeight;
+    final usableHeight =
+        size.height - padding * 2 - titleReserved - bottomReserved;
+    final rowCount = activeRows.length;
+    // 각 줄 높이: 노드(20) + 하이라이트(8) + 이름(15) + 여백 = 최소 80px
+    final rowHeight = (usableHeight / rowCount).clamp(80.0, 140.0);
+    final totalRowsHeight = rowHeight * rowCount;
+    final startY = padding + titleReserved + (usableHeight - totalRowsHeight) / 2;
 
-    for (int gen = 0; gen <= maxGen; gen++) {
-      final group = genGroups[gen] ?? [];
-      if (group.isEmpty) continue;
-      final colWidth = usableWidth / group.length;
-      for (int i = 0; i < group.length; i++) {
-        positions[group[i]] = Offset(
-          padding + colWidth * i + colWidth / 2,
-          padding + titleReserved + rowHeight * gen + rowHeight / 2,
-        );
+    // 인원 수에 따라 노드 크기 동적 계산 (간격 계산에 필요)
+    final total = family.totalCount;
+    final double nodeDiameter;
+    if (total <= 7) {
+      nodeDiameter = (style == ArtStyle.minimal ? 20.0 : 22.0) * 2;
+    } else if (total <= 12) {
+      nodeDiameter = (style == ArtStyle.minimal ? 16.0 : 18.0) * 2;
+    } else {
+      nodeDiameter = (style == ArtStyle.minimal ? 12.0 : 14.0) * 2;
+    }
+
+    for (int row = 0; row < rowCount; row++) {
+      final rowIds = activeRows[row];
+      if (rowIds.isEmpty) continue;
+
+      final y = startY + rowHeight * row + rowHeight / 2;
+
+      // 커플 그룹으로 분리
+      final groups = _groupCouplesBySpouse(rowIds, spousePairSet);
+
+      // 커플 쌍 기록
+      for (final g in groups) {
+        if (g.length == 2) {
+          couplePairs.add((g[0], g[1]));
+        }
+      }
+
+      // 그룹 내 간격(커플 사이): 좁게
+      final coupleGap = nodeDiameter + 10;
+      // 그룹 간 간격(다른 가족 단위): 넓게
+      final groupGap = nodeDiameter * 2 + 30;
+
+      // 전체 필요 너비 계산
+      double totalWidth = 0;
+      for (int gi = 0; gi < groups.length; gi++) {
+        final g = groups[gi];
+        // 그룹 내 너비: (멤버수 - 1) * coupleGap
+        totalWidth += (g.length - 1) * coupleGap;
+        // 그룹 간 간격
+        if (gi < groups.length - 1) {
+          totalWidth += groupGap;
+        }
+      }
+
+      // 사용 가능 너비 내에서 중앙 배치 (스케일 적용)
+      double scale = 1.0;
+      if (totalWidth > usableWidth && totalWidth > 0) {
+        scale = usableWidth / totalWidth;
+      }
+
+      final startX = padding + (usableWidth - totalWidth * scale) / 2;
+      double curX = startX;
+
+      for (int gi = 0; gi < groups.length; gi++) {
+        final g = groups[gi];
+        for (int mi = 0; mi < g.length; mi++) {
+          positions[g[mi]] = Offset(curX, y);
+          if (mi < g.length - 1) {
+            curX += coupleGap * scale;
+          }
+        }
+        if (gi < groups.length - 1) {
+          curX += groupGap * scale;
+        }
       }
     }
 
-    return positions;
+    return _LayoutResult(positions: positions, couplePairs: couplePairs);
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -208,14 +537,24 @@ class ArtTreePainter extends CustomPainter {
   // ── 엣지(관계선) 그리기 ─────────────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  void _drawEdges(Canvas canvas, Size size, Map<String, Offset> layout) {
+  void _drawEdges(
+    Canvas canvas,
+    Size size,
+    Map<String, Offset> layout,
+    List<NodeEdge> relevantEdges,
+  ) {
     final paint = Paint()
       ..color = palette.edgeColor
       ..strokeWidth = style == ArtStyle.minimal ? 1.0 : 1.5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    for (final edge in edges) {
+    for (final edge in relevantEdges) {
+      // 형제/자매 관계선 스킵
+      if (edge.relation == RelationType.sibling) continue;
+      // 배우자 관계선 스킵 (하트로 대체)
+      if (edge.relation == RelationType.spouse) continue;
+
       final from = layout[edge.fromNodeId];
       final to = layout[edge.toNodeId];
       if (from == null || to == null) continue;
@@ -250,20 +589,83 @@ class ArtTreePainter extends CustomPainter {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
+  // ── 커플 하트 그리기 (배우자 관계를 하트로 표현) ─────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  void _drawCoupleHearts(
+    Canvas canvas,
+    Map<String, Offset> layout,
+    List<(String, String)> couplePairs,
+  ) {
+    for (final (idA, idB) in couplePairs) {
+      final posA = layout[idA];
+      final posB = layout[idB];
+      if (posA == null || posB == null) continue;
+
+      // 두 노드의 중간 지점
+      final midX = (posA.dx + posB.dx) / 2;
+      final midY = (posA.dy + posB.dy) / 2;
+
+      final heartStyle = TextStyle(
+        fontSize: 10,
+        color: palette.accentColor.withAlpha(180),
+      );
+      final tp = TextPainter(
+        text: TextSpan(text: '\u2665', style: heartStyle), // ♥
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(
+        canvas,
+        Offset(midX - tp.width / 2, midY - tp.height / 2),
+      );
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
   // ── 노드 그리기 ────────────────────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  void _drawNodes(Canvas canvas, Size size, Map<String, Offset> layout) {
-    final nodeRadius = style == ArtStyle.minimal ? 22.0 : 26.0;
+  void _drawNodes(
+    Canvas canvas,
+    Size size,
+    Map<String, Offset> layout,
+    FamilyGenerationLayout family,
+  ) {
+    // 인원 수에 따라 노드 크기 동적 조절
+    final total = family.totalCount;
+    final double nodeRadius;
+    if (total <= 7) {
+      nodeRadius = style == ArtStyle.minimal ? 20.0 : 22.0;
+    } else if (total <= 12) {
+      nodeRadius = style == ArtStyle.minimal ? 16.0 : 18.0;
+    } else {
+      nodeRadius = style == ArtStyle.minimal ? 12.0 : 14.0;
+    }
     final nodeMap = {for (final n in nodes) n.id: n};
+    final isMe = myNodeId;
 
     for (final entry in layout.entries) {
       final node = nodeMap[entry.key];
       if (node == null) continue;
       final pos = entry.value;
+      final isMeNode = node.id == isMe;
 
       // 온도 기반 테두리 색상
       final tempColor = AppColors.tempColor(node.temperature);
+
+      // "나" 노드 하이라이트 링
+      if (isMeNode) {
+        final highlightPaint = Paint()
+          ..color = AppColors.primary.withAlpha(40)
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(pos, nodeRadius + 8, highlightPaint);
+
+        final ringPaint = Paint()
+          ..color = AppColors.primary.withAlpha(120)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0;
+        canvas.drawCircle(pos, nodeRadius + 5, ringPaint);
+      }
 
       // 노드 배경
       final fillPaint = Paint()
@@ -278,12 +680,17 @@ class ArtTreePainter extends CustomPainter {
             ? palette.nodeStroke.withAlpha(100)
             : tempColor
         ..style = PaintingStyle.stroke
-        ..strokeWidth = style == ArtStyle.minimal ? 1.5 : 2.0;
+        ..strokeWidth = isMeNode
+            ? 2.5
+            : (style == ArtStyle.minimal ? 1.5 : 2.0);
 
       // Ghost 노드 — 점선 효과
       if (node.isGhost) {
         strokePaint.strokeWidth = 1.5;
       }
+
+      // 프로필 사진 존재 여부 확인
+      final profileImage = nodeImages[node.id];
 
       switch (style) {
         case ArtStyle.watercolor:
@@ -294,11 +701,17 @@ class ArtTreePainter extends CustomPainter {
             Paint()..color = tempColor.withAlpha(30),
           );
           canvas.drawCircle(pos, nodeRadius, fillPaint);
+          if (profileImage != null) {
+            _drawClippedImage(canvas, pos, nodeRadius, profileImage);
+          }
           canvas.drawCircle(pos, nodeRadius, strokePaint);
         case ArtStyle.hanji:
           // 한지 — 원 + 두꺼운 붓 터치 테두리
           canvas.drawCircle(pos, nodeRadius, fillPaint);
-          strokePaint.strokeWidth = 2.5;
+          if (profileImage != null) {
+            _drawClippedImage(canvas, pos, nodeRadius, profileImage);
+          }
+          strokePaint.strokeWidth = isMeNode ? 3.0 : 2.5;
           canvas.drawCircle(pos, nodeRadius, strokePaint);
         case ArtStyle.modern:
           // 모던 — 둥근 사각형
@@ -311,29 +724,172 @@ class ArtTreePainter extends CustomPainter {
             const Radius.circular(8),
           );
           canvas.drawRRect(rect, fillPaint);
+          if (profileImage != null) {
+            _drawClippedImageRRect(canvas, pos, nodeRadius, 8.0, profileImage);
+          }
           canvas.drawRRect(rect, strokePaint);
         case ArtStyle.minimal:
           // 미니멀 — 깔끔한 원
           canvas.drawCircle(pos, nodeRadius, fillPaint);
+          if (profileImage != null) {
+            _drawClippedImage(canvas, pos, nodeRadius, profileImage);
+          }
           canvas.drawCircle(pos, nodeRadius, strokePaint);
       }
 
       // 이름 텍스트 (노드 아래)
+      final nameText = isMeNode ? '${node.name} (나)' : node.name;
       final nameStyle = TextStyle(
-        fontSize: style == ArtStyle.minimal ? 9 : 10,
-        color: palette.textColor,
-        fontWeight: FontWeight.w600,
+        fontSize: style == ArtStyle.minimal ? 8 : 9,
+        color: isMeNode
+            ? palette.textColor
+            : palette.textColor.withAlpha(200),
+        fontWeight: isMeNode ? FontWeight.w700 : FontWeight.w500,
       );
       final tp = TextPainter(
-        text: TextSpan(text: node.name, style: nameStyle),
+        text: TextSpan(text: nameText, style: nameStyle),
         textDirection: TextDirection.ltr,
         maxLines: 1,
         ellipsis: '..',
-      )..layout(maxWidth: nodeRadius * 3);
+      )..layout(maxWidth: nodeRadius * 3.5);
       tp.paint(
         canvas,
-        Offset(pos.dx - tp.width / 2, pos.dy + nodeRadius + 4),
+        Offset(pos.dx - tp.width / 2, pos.dy + nodeRadius + 3),
       );
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── 프로필 사진 원형/RRect 클리핑 ─────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  /// 원형 클리핑으로 프로필 이미지를 그린다 (watercolor, hanji, minimal)
+  void _drawClippedImage(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    ui.Image image,
+  ) {
+    canvas.save();
+    final clipPath = Path()
+      ..addOval(Rect.fromCircle(center: center, radius: radius));
+    canvas.clipPath(clipPath);
+
+    // 이미지를 정사각형 중앙 크롭하여 원 안에 맞춤
+    final imgWidth = image.width.toDouble();
+    final imgHeight = image.height.toDouble();
+    final side = math.min(imgWidth, imgHeight);
+    final srcRect = Rect.fromCenter(
+      center: Offset(imgWidth / 2, imgHeight / 2),
+      width: side,
+      height: side,
+    );
+    final dstRect = Rect.fromCircle(center: center, radius: radius);
+
+    canvas.drawImageRect(
+      image,
+      srcRect,
+      dstRect,
+      Paint()..filterQuality = FilterQuality.medium,
+    );
+    canvas.restore();
+  }
+
+  /// 둥근 사각형 클리핑으로 프로필 이미지를 그린다 (modern 스타일)
+  void _drawClippedImageRRect(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    double cornerRadius,
+    ui.Image image,
+  ) {
+    canvas.save();
+    final rrect = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: center,
+        width: radius * 2,
+        height: radius * 2,
+      ),
+      Radius.circular(cornerRadius),
+    );
+    canvas.clipRRect(rrect);
+
+    final imgWidth = image.width.toDouble();
+    final imgHeight = image.height.toDouble();
+    final side = math.min(imgWidth, imgHeight);
+    final srcRect = Rect.fromCenter(
+      center: Offset(imgWidth / 2, imgHeight / 2),
+      width: side,
+      height: side,
+    );
+    final dstRect = Rect.fromCenter(
+      center: center,
+      width: radius * 2,
+      height: radius * 2,
+    );
+
+    canvas.drawImageRect(
+      image,
+      srcRect,
+      dstRect,
+      Paint()..filterQuality = FilterQuality.medium,
+    );
+    canvas.restore();
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── 세대 라벨 ─────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  void _drawGenerationLabels(
+    Canvas canvas,
+    Size size,
+    FamilyGenerationLayout family,
+  ) {
+    if (myNodeId == null) return;
+
+    const padding = 50.0;
+    const titleReserved = 65.0;
+    const bottomReserved = 40.0;
+    final usableHeight =
+        size.height - padding * 2 - titleReserved - bottomReserved;
+
+    final activeRows = <List<String>>[];
+    final labels = <String>[];
+    if (family.grandparents.isNotEmpty) {
+      activeRows.add(family.grandparents);
+      labels.add('조부모');
+    }
+    if (family.parents.isNotEmpty) {
+      activeRows.add(family.parents);
+      labels.add('부모');
+    }
+    if (family.myGeneration.isNotEmpty) {
+      activeRows.add(family.myGeneration);
+      labels.add('나');
+    }
+    if (family.children.isNotEmpty) {
+      activeRows.add(family.children);
+      labels.add('자녀');
+    }
+
+    if (activeRows.isEmpty) return;
+    final rowHeight = (usableHeight / activeRows.length).clamp(80.0, 140.0);
+    final totalRowsHeight = rowHeight * activeRows.length;
+    final startY = padding + titleReserved + (usableHeight - totalRowsHeight) / 2;
+
+    for (int i = 0; i < activeRows.length; i++) {
+      final y = startY + rowHeight * i + rowHeight / 2;
+      final labelStyle = TextStyle(
+        fontSize: 8,
+        color: palette.textColor.withAlpha(80),
+        fontWeight: FontWeight.w400,
+      );
+      final tp = TextPainter(
+        text: TextSpan(text: labels[i], style: labelStyle),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, Offset(8, y - tp.height / 2));
     }
   }
 
@@ -341,7 +897,7 @@ class ArtTreePainter extends CustomPainter {
   // ── 타이틀 ─────────────────────────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  void _drawTitle(Canvas canvas, Size size) {
+  void _drawTitle(Canvas canvas, Size size, int count) {
     final titleStyle = TextStyle(
       fontSize: 18,
       color: palette.textColor,
@@ -355,15 +911,15 @@ class ArtTreePainter extends CustomPainter {
     tp.paint(canvas, Offset((size.width - tp.width) / 2, 20));
 
     // 노드 수 서브타이틀
+    final subText = count > 0
+        ? '$count명의 소중한 사람들'
+        : '가족을 추가해보세요';
     final subStyle = TextStyle(
       fontSize: 11,
       color: palette.textColor.withAlpha(150),
     );
     final sub = TextPainter(
-      text: TextSpan(
-        text: '${nodes.length}명의 소중한 사람들',
-        style: subStyle,
-      ),
+      text: TextSpan(text: subText, style: subStyle),
       textDirection: TextDirection.ltr,
     )..layout();
     sub.paint(canvas, Offset((size.width - sub.width) / 2, 42));
@@ -397,5 +953,19 @@ class ArtTreePainter extends CustomPainter {
       oldDelegate.nodes != nodes ||
       oldDelegate.edges != edges ||
       oldDelegate.style != style ||
-      oldDelegate.showWatermark != showWatermark;
+      oldDelegate.myNodeId != myNodeId ||
+      oldDelegate.showWatermark != showWatermark ||
+      !_imagesEqual(oldDelegate.nodeImages, nodeImages);
+
+  /// 두 이미지 맵이 같은 키와 같은 ui.Image 인스턴스를 갖는지 비교
+  bool _imagesEqual(
+    Map<String, ui.Image> a,
+    Map<String, ui.Image> b,
+  ) {
+    if (a.length != b.length) return false;
+    for (final key in a.keys) {
+      if (!b.containsKey(key) || !identical(a[key], b[key])) return false;
+    }
+    return true;
+  }
 }

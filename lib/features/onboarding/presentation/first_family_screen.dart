@@ -10,6 +10,7 @@ import '../../../features/canvas/providers/node_notifier.dart';
 import '../../../shared/models/node_model.dart';
 import '../../../shared/repositories/profile_repository.dart';
 import '../../../shared/repositories/settings_repository.dart';
+import '../../../shared/widgets/pin_dialog.dart';
 
 /// 온보딩 Step 2 — 첫 가족 연결 화면
 /// 프로필 설정 후, 캔버스 진입 전에 최초 가족 구성원을 빠르게 추가
@@ -125,11 +126,21 @@ class _FirstFamilyScreenState extends ConsumerState<FirstFamilyScreen>
         _ => Offset(200 + idx * 120.0, 0),
       };
 
-  void _finish() {
+  Future<void> _finish() async {
     if (_entries.isNotEmpty) {
       HapticService.heavy();
     }
-    context.go(AppRoutes.canvas);
+    // "나" 보호를 위한 PIN 등록
+    if (mounted) {
+      final result = await showPinDialog(
+        context: context,
+        mode: PinDialogMode.register,
+      );
+      if (result != null && result.success && result.pin != null) {
+        await ref.read(settingsRepositoryProvider).setMyNodePin(result.pin!);
+      }
+    }
+    if (mounted) context.go(AppRoutes.canvas);
   }
 
   @override

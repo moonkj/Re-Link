@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../core/utils/haptic_service.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -125,7 +126,8 @@ class LocationCard extends StatelessWidget {
         ),
         image: pin.photoPath != null
             ? DecorationImage(
-                image: FileImage(File(pin.photoPath!)),
+                image: PathUtils.resolveFileImage(pin.photoPath) ??
+                    FileImage(File(pin.photoPath!)),
                 fit: BoxFit.cover,
               )
             : null,

@@ -40,6 +40,7 @@ abstract final class SettingsKey {
 
   // ── 내 노드 ──────────────────────────────────────────────────────────────
   static const String myNodeId = 'my_node_id';             // 나로 설정한 노드 ID
+  static const String myNodePin = 'my_node_pin';           // 나로 설정 보호 4자리 PIN
 
   // ── 스트릭 ────────────────────────────────────────────────────────────────
   static const String streakCount = 'streak_count';         // int as string
@@ -72,6 +73,11 @@ abstract final class SettingsKey {
   static const String adminPlanOverride = 'admin_plan_override';       // free / plus / family / familyPlus (null=실제 플랜)
   static const String adminAllBadges = 'admin_all_badges';             // true / false
   static const String adminDummyGenerated = 'admin_dummy_generated';   // true / false
+
+  // ── 추모 가이드 체크리스트 ──────────────────────────────────────────────
+  static const String ritualCheckTraditional = 'ritual_check_traditional'; // comma-separated indices
+  static const String ritualCheckReligious = 'ritual_check_religious';
+  static const String ritualCheckModern = 'ritual_check_modern';
 
   // ── 초대 코드 ──────────────────────────────────────────────────────────
   static const String inviteCode     = 'invite_code';         // 6자리 가족 초대 코드

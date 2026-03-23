@@ -1,6 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../core/utils/haptic_service.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/motion/app_motion.dart';
 import '../../../shared/models/node_model.dart';
 import '../../../design/tokens/app_colors.dart';
@@ -51,6 +51,7 @@ class NodeCard extends StatefulWidget {
     this.earnedBadgeIds,
     this.showHolidayGlow = false,
     this.isMe = false,
+    this.unreadBouquetCount = 0,
   });
 
   final NodeModel node;
@@ -69,6 +70,9 @@ class NodeCard extends StatefulWidget {
 
   /// 이 노드가 "나"인지 여부
   final bool isMe;
+
+  /// 읽지 않은 받은 마음 수 ("나" 노드에서 N 뱃지 표시용)
+  final int unreadBouquetCount;
 
   @override
   State<NodeCard> createState() => _NodeCardState();
@@ -182,6 +186,7 @@ class _NodeCardState extends State<NodeCard>
             child: node.isGhost
                 ? _GhostContent(node: node, ghostLabel: ghostLabelText)
                 : Stack(
+                    clipBehavior: Clip.none,
                     children: [
                       _NormalContent(node: node, tempColor: tempColor),
                       if (!node.isAlive)
@@ -230,6 +235,36 @@ class _NodeCardState extends State<NodeCard>
                           right: 4,
                           child: _BadgeIcon(
                             badgeId: widget.earnedBadgeIds!.first,
+                          ),
+                        ),
+                      // 읽지 않은 마음 N 뱃지 ("나" 노드 우상단)
+                      if (widget.isMe && widget.unreadBouquetCount > 0)
+                        Positioned(
+                          top: -4,
+                          right: -4,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: AppColors.accent,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.bgBase,
+                                width: 1.5,
+                              ),
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 20,
+                              minHeight: 20,
+                            ),
+                            child: Text(
+                              '${widget.unreadBouquetCount}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
                     ],
@@ -420,20 +455,23 @@ class _NodeAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasPhoto = node.photoPath != null;
+    // 상대 경로를 절대 경로로 복원 (레거시 절대 경로도 호환)
+    final resolvedFile = hasPhoto ? PathUtils.resolveFile(node.photoPath) : null;
+    final fileExists = resolvedFile != null && resolvedFile.existsSync();
     final avatar = Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: AppColors.primary.withAlpha(60),
-        image: hasPhoto
+        image: fileExists
             ? DecorationImage(
-                image: FileImage(File(node.photoPath!)),
+                image: FileImage(resolvedFile),
                 fit: BoxFit.cover,
               )
             : null,
       ),
-      child: hasPhoto
+      child: fileExists
           ? null
           : Center(
               child: Icon(
@@ -498,6 +536,7 @@ class NodeCardLod extends StatelessWidget {
     this.earnedBadgeIds,
     this.showHolidayGlow = false,
     this.isMe = false,
+    this.unreadBouquetCount = 0,
   });
 
   final NodeModel node;
@@ -518,6 +557,9 @@ class NodeCardLod extends StatelessWidget {
   /// 이 노드가 "나"인지 여부
   final bool isMe;
 
+  /// 읽지 않은 받은 마음 수 ("나" 노드에서 N 뱃지 표시용)
+  final int unreadBouquetCount;
+
   @override
   Widget build(BuildContext context) {
     // 모든 줌 레벨에서 항상 풀 카드 표시 (LOD 점/아바타 모드 제거)
@@ -530,6 +572,7 @@ class NodeCardLod extends StatelessWidget {
       earnedBadgeIds: earnedBadgeIds,
       showHolidayGlow: showHolidayGlow,
       isMe: isMe,
+      unreadBouquetCount: unreadBouquetCount,
     );
   }
 }

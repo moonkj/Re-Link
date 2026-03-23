@@ -14,6 +14,9 @@ class BouquetsTable extends Table {
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime)();
 
+  /// 수신자가 확인했는지 여부 (읽음 처리)
+  BoolColumn get isRead => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }

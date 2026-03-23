@@ -26,4 +26,30 @@ class MyNodeNotifier extends _$MyNodeNotifier {
     await repo.set(SettingsKey.myNodeId, '');
     state = const AsyncData(null);
   }
+
+  // ── PIN 관련 ────────────────────────────────────────────────────────────
+
+  /// 저장된 PIN 가져오기 (null이면 미등록)
+  Future<String?> getPin() async {
+    final repo = ref.read(settingsRepositoryProvider);
+    return repo.getMyNodePin();
+  }
+
+  /// PIN 저장
+  Future<void> setPin(String pin) async {
+    final repo = ref.read(settingsRepositoryProvider);
+    await repo.setMyNodePin(pin);
+  }
+
+  /// PIN 검증
+  Future<bool> verifyPin(String pin) async {
+    final savedPin = await getPin();
+    return savedPin == pin;
+  }
+
+  /// PIN 삭제 (초기화)
+  Future<void> clearPin() async {
+    final repo = ref.read(settingsRepositoryProvider);
+    await repo.clearMyNodePin();
+  }
 }

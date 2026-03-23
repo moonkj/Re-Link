@@ -64,6 +64,22 @@ class BouquetRepository {
     return rows.map(_rowToModel).toList();
   }
 
+  // ── 받은 마음 조회 ──────────────────────────────────────────────────────
+
+  /// 내가 받은 모든 마음 (받은 마음 목록)
+  Future<List<Bouquet>> getReceivedBouquets(String toNodeId) async {
+    final rows = await _db.getReceivedBouquets(toNodeId);
+    return rows.map(_rowToModel).toList();
+  }
+
+  /// 읽지 않은 마음 수
+  Future<int> getUnreadCount(String toNodeId) =>
+      _db.getUnreadBouquetCount(toNodeId);
+
+  /// 받은 마음 모두 읽음 처리
+  Future<void> markAllAsRead(String toNodeId) =>
+      _db.markBouquetsAsRead(toNodeId);
+
   // ── 삭제 ──────────────────────────────────────────────────────────────────
 
   Future<void> delete(String id) => _db.deleteBouquet(id);
@@ -77,5 +93,6 @@ class BouquetRepository {
         flowerType: FlowerType.fromDb(row.flowerType),
         date: row.date,
         createdAt: row.createdAt,
+        isRead: row.isRead,
       );
 }

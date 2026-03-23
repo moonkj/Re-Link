@@ -1,7 +1,15 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import '../../../core/router/app_router.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -28,6 +36,7 @@ import '../../holiday/providers/holiday_notifier.dart';
 import '../../badges/providers/badge_notifier.dart';
 import '../../badges/widgets/badge_earned_dialog.dart';
 import '../providers/my_node_provider.dart';
+import '../../bouquet/providers/bouquet_notifier.dart';
 import '../../tree_growth/widgets/tree_growth_overlay.dart';
 import '../utils/quad_tree.dart';
 import '../utils/lod_utils.dart';
@@ -48,6 +57,12 @@ const double _kViewportMargin = 200.0;
 class _CanvasScreenState extends ConsumerState<CanvasScreen>
     with SingleTickerProviderStateMixin {
   final TransformationController _transformCtrl = TransformationController();
+
+  /// 캔버스 내보내기용 RepaintBoundary 키
+  final GlobalKey _canvasRepaintKey = GlobalKey();
+
+  /// 내보내기 진행 중 상태
+  bool _isExporting = false;
 
   /// FAB 브리딩 애니메이션 컨트롤러
   late final AnimationController _fabBreathCtrl = AnimationController(
@@ -251,6 +266,11 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
     // "나" 노드 ID
     final myNodeId = ref.watch(myNodeNotifierProvider).valueOrNull;
 
+    // "나" 노드의 읽지 않은 마음 수
+    final myUnreadCount = myNodeId != null
+        ? ref.watch(unreadBouquetCountProvider(myNodeId)).valueOrNull ?? 0
+        : 0;
+
     final reduceMotion = ref.watch(reduceMotionNotifierProvider).valueOrNull ?? false;
 
     // FAB 호흡 애니메이션 — 모션 줄이기 시 중단
@@ -294,6 +314,22 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
       });
     }
 
+    // Time Slider: 연도 필터링된 노드 ID 세트 + 필터링된 엣지
+    // EdgePainter와 노드 카드 모두에서 동일한 필터를 공유
+    final Set<String> timeVisibleNodeIds;
+    final List<NodeEdge> timeFilteredEdges;
+    if (canvasState.timeSliderYear != null) {
+      timeVisibleNodeIds = {
+        for (final n in nodes)
+          if (canvasState.nodeVisibleInTime(n)) n.id,
+      };
+      // 기간 설정 시 모든 선 숨김 — 카드만 표시
+      timeFilteredEdges = const [];
+    } else {
+      timeVisibleNodeIds = {for (final n in nodes) n.id};
+      timeFilteredEdges = edges;
+    }
+
     return Scaffold(
       backgroundColor: AppColors.bgBase,
       body: Stack(
@@ -315,26 +351,29 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
             boundaryMargin: const EdgeInsets.all(double.infinity),
             // 드래그 중에는 캔버스 팬 비활성화
             panEnabled: _draggingId == null && !isConnectMode,
-            child: SizedBox(
+            child: RepaintBoundary(
+              key: _canvasRepaintKey,
+              child: SizedBox(
               width: 4000,
               height: 4000,
               child: Stack(
                 children: [
-                  // 가족 나무 성장 배경 (캔버스 중앙, 최하위 레이어)
+                  // 가족 나무 성장 배경 (캔버스 하단 중앙, 최하위 레이어)
                   const Positioned(
-                    top: 1700,
+                    bottom: 200,
                     left: 0,
                     right: 0,
                     child: Center(child: TreeGrowthOverlay()),
                   ),
 
                   // 관계선 레이어 — 데이터 변경 시만 재페인트 (RepaintBoundary 분리)
+                  // Time Slider 활성 시, 필터링된 노드의 엣지만 표시
                   Positioned.fill(
                     child: RepaintBoundary(
                       child: CustomPaint(
                         painter: EdgePainter(
                           nodes: nodes,
-                          edges: edges,
+                          edges: timeFilteredEdges,
                           connectingNodeId: canvasState.connectingNodeId,
                           pointerPosition: _connectPointer,
                           draggingNodeId: _draggingId,
@@ -390,6 +429,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
                                 : null,
                             showHolidayGlow: holidayGlowIds.contains(node.id),
                             isMe: myNodeId == node.id,
+                            unreadBouquetCount: myNodeId == node.id ? myUnreadCount : 0,
                             onDragStarted: () =>
                                 setState(() {
                                   _draggingId = node.id;
@@ -437,6 +477,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
                   ),
                 ],
               ),
+            ),
             ),
           ),
 
@@ -568,6 +609,30 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
                         ),
                       ),
                     ),
+                    if (nodes.isNotEmpty) ...[
+                    const SizedBox(width: AppSpacing.sm),
+                    Tooltip(
+                      message: '전체 족보 내보내기',
+                      child: GlassCard(
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        onTap: _isExporting ? null : _exportCanvas,
+                        child: _isExporting
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.primary,
+                                ),
+                              )
+                            : Icon(
+                                Icons.ios_share,
+                                color: AppColors.textSecondary,
+                                size: 20,
+                              ),
+                      ),
+                    ),
+                    ],
                     ],
                   ],
                 ),
@@ -577,20 +642,21 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
 
           // ── 명절/기념일 배너 ─────────────────────────────────────────
           Positioned(
-            top: 100, left: AppSpacing.lg, right: AppSpacing.lg,
+            top: MediaQuery.of(context).padding.top + 62, left: AppSpacing.lg, right: AppSpacing.lg,
             child: const HolidayBanner(),
           ),
 
-          // ── 데일리 프롬프트 카드 ────────────────────────────────────────
-          Positioned(
-            top: 100, left: AppSpacing.lg, right: AppSpacing.lg,
-            child: const DailyPromptCard(),
-          ),
+          // ── 데일리 프롬프트 카드 (캔버스 모드에서만) ──────────────────────
+          if (!_isListView)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 62, left: AppSpacing.lg, right: AppSpacing.lg,
+              child: const DailyPromptCard(),
+            ),
 
           // ── 연결 모드 배너 ───────────────────────────────────────────────
           if (isConnectMode && !_isListView)
             Positioned(
-              top: 100, left: AppSpacing.lg, right: AppSpacing.lg,
+              top: MediaQuery.of(context).padding.top + 62, left: AppSpacing.lg, right: AppSpacing.lg,
               child: GlassCard(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.lg, vertical: AppSpacing.md,
@@ -620,10 +686,11 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
           // ── Time Slider 이벤트 토스트 ──────────────────────────────────
           if (!_isListView) TimeEventToast(message: _timeEventMessage),
 
-          // ── Minimap (좌하단, 광고 위) ─────────────────────────────────────
+          // ── Minimap (좌하단) ────────────────────────────────────────────────
+          // body는 이미 bottomNav + 광고 배너 위에 위치하므로 bottomNavHeight 불필요
           if (!_isListView)
             Positioned(
-              bottom: AppSpacing.bottomNavHeight + 80,
+              bottom: AppSpacing.lg,
               left: AppSpacing.lg,
               child: nodes.isEmpty
                   ? const SizedBox.shrink()
@@ -655,10 +722,10 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
             ),
 
           // ── FAB (노드 추가) ──────────────────────────────────────────────
+          // body는 이미 bottomNav + 광고 배너 위에 위치하므로 bottomNavHeight 불필요
+          // 미니맵(높이 120)과 같은 높이, 우하단에 배치
           Positioned(
-            bottom: canvasState.timeSliderVisible
-                ? AppSpacing.xxl + 230 // 타임슬라이더 위
-                : AppSpacing.xxl + 80,  // 하단 네비게이션 위
+            bottom: AppSpacing.lg,
             right: AppSpacing.lg,
             child: GestureDetector(
               onTap: isConnectMode ? null : _showAddNodeSheet,
@@ -935,6 +1002,188 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
   }
 
 
+  /// 내보내기 형식 선택 바텀시트 표시
+  Future<void> _exportCanvas() async {
+    final format = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: AppColors.bgBase,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.textTertiary.withAlpha(80),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              '내보내기 형식',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: Icon(Icons.image_outlined, color: AppColors.primary),
+              title: const Text('고화질 PNG 이미지'),
+              subtitle: const Text('사진으로 저장 · 공유하기'),
+              onTap: () => Navigator.pop(ctx, 'png'),
+            ),
+            ListTile(
+              leading: Icon(Icons.picture_as_pdf_outlined, color: const Color(0xFFE53935)),
+              title: const Text('PDF 문서'),
+              subtitle: const Text('인쇄용 · 문서로 보관'),
+              onTap: () => Navigator.pop(ctx, 'pdf'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (format == null || !mounted) return;
+
+    setState(() => _isExporting = true);
+    HapticService.medium();
+    try {
+      // 한 프레임 대기 — RepaintBoundary 렌더링 완료
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (!mounted) return;
+
+      final boundary = _canvasRepaintKey.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
+      if (boundary == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('캔버스를 캡처할 수 없습니다')),
+          );
+        }
+        return;
+      }
+
+      // 고해상도 캡처 (pixelRatio 3.0)
+      final fullImage = await boundary.toImage(pixelRatio: 3.0);
+
+      // 노드 바운딩 박스 계산 → 내용 영역만 크롭
+      final nodes = ref.read(canvasNotifierProvider).nodes;
+      ui.Image exportImage;
+      if (nodes.isNotEmpty) {
+        double minX = double.infinity, maxX = double.negativeInfinity;
+        double minY = double.infinity, maxY = double.negativeInfinity;
+        for (final node in nodes) {
+          if (node.positionX < minX) minX = node.positionX;
+          if (node.positionX + kNodeCardWidth > maxX) {
+            maxX = node.positionX + kNodeCardWidth;
+          }
+          if (node.positionY < minY) minY = node.positionY;
+          if (node.positionY + kNodeCardHeight > maxY) {
+            maxY = node.positionY + kNodeCardHeight;
+          }
+        }
+        // 크롭 패딩 (논리 좌표)
+        const pad = 80.0;
+        minX = (minX - pad).clamp(0, 4000).toDouble();
+        minY = (minY - pad).clamp(0, 4000).toDouble();
+        maxX = (maxX + pad).clamp(0, 4000).toDouble();
+        maxY = (maxY + pad).clamp(0, 4000).toDouble();
+
+        // pixelRatio 적용
+        const pr = 3.0;
+        final cropRect = Rect.fromLTRB(
+          minX * pr, minY * pr, maxX * pr, maxY * pr,
+        );
+
+        // PictureRecorder로 크롭
+        final recorder = ui.PictureRecorder();
+        final canvas = Canvas(
+          recorder,
+          Rect.fromLTWH(0, 0, cropRect.width, cropRect.height),
+        );
+        canvas.drawImageRect(
+          fullImage,
+          cropRect,
+          Rect.fromLTWH(0, 0, cropRect.width, cropRect.height),
+          Paint(),
+        );
+        final picture = recorder.endRecording();
+        exportImage = await picture.toImage(
+          cropRect.width.ceil(),
+          cropRect.height.ceil(),
+        );
+      } else {
+        exportImage = fullImage;
+      }
+
+      final byteData =
+          await exportImage.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) return;
+      final pngBytes = byteData.buffer.asUint8List();
+
+      final dir = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+
+      File exportFile;
+      String mimeType;
+
+      if (format == 'pdf') {
+        // PNG → PDF 변환
+        final pdfDoc = pw.Document();
+        final pdfImage = pw.MemoryImage(pngBytes);
+        pdfDoc.addPage(
+          pw.Page(
+            pageFormat: PdfPageFormat(
+              exportImage.width.toDouble(),
+              exportImage.height.toDouble(),
+            ),
+            margin: pw.EdgeInsets.zero,
+            build: (pw.Context ctx) => pw.Center(
+              child: pw.Image(pdfImage, fit: pw.BoxFit.contain),
+            ),
+          ),
+        );
+        final pdfBytes = await pdfDoc.save();
+        exportFile = File(p.join(dir.path, 'relink_canvas_$timestamp.pdf'));
+        await exportFile.writeAsBytes(pdfBytes);
+        mimeType = 'application/pdf';
+      } else {
+        exportFile = File(p.join(dir.path, 'relink_canvas_$timestamp.png'));
+        await exportFile.writeAsBytes(pngBytes);
+        mimeType = 'image/png';
+      }
+
+      if (!mounted) return;
+
+      // iPad 지원 공유
+      final box = context.findRenderObject() as RenderBox?;
+      final shareOrigin = box != null
+          ? box.localToGlobal(Offset.zero) & box.size
+          : null;
+
+      await Share.shareXFiles(
+        [XFile(exportFile.path, mimeType: mimeType)],
+        subject: 'Re-Link 전체 가족 트리',
+        sharePositionOrigin: shareOrigin,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('내보내기 실패: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
+    }
+  }
+
   void _resetZoom() {
     final screenSize = MediaQuery.of(context).size;
     final nodes = ref.read(canvasNotifierProvider).nodes;
@@ -1010,6 +1259,7 @@ class _DraggableNodeCard extends StatefulWidget {
     this.earnedBadgeIds,
     this.showHolidayGlow = false,
     this.isMe = false,
+    this.unreadBouquetCount = 0,
   });
 
   final NodeModel node;
@@ -1033,6 +1283,9 @@ class _DraggableNodeCard extends StatefulWidget {
 
   /// 이 노드가 "나"인지 여부
   final bool isMe;
+
+  /// 읽지 않은 받은 마음 수 ("나" 노드에서 N 뱃지 표시용)
+  final int unreadBouquetCount;
 
   @override
   State<_DraggableNodeCard> createState() => _DraggableNodeCardState();
@@ -1222,6 +1475,7 @@ class _DraggableNodeCardState extends State<_DraggableNodeCard> {
                   earnedBadgeIds: widget.earnedBadgeIds,
                   showHolidayGlow: widget.showHolidayGlow,
                   isMe: widget.isMe,
+                  unreadBouquetCount: widget.unreadBouquetCount,
                 ),
               ),
             ),
@@ -1389,8 +1643,10 @@ class _FocusInfoPanel extends StatelessWidget {
     final tempColor = _tempColors[tempIdx];
     final tempLabel = _tempLabels[tempIdx];
 
+    // body는 이미 bottomNav + 광고 위에 위치하므로 bottomNavHeight 불필요
+    // 미니맵(높이 120) 위, FAB 우측 여백 확보
     return Positioned(
-      bottom: AppSpacing.xxl + 80,
+      bottom: AppSpacing.lg + 120 + AppSpacing.sm,
       left: AppSpacing.lg,
       right: AppSpacing.lg + AppSpacing.fabSize + AppSpacing.md,
       child: TweenAnimationBuilder<Offset>(

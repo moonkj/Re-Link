@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../design/motion/app_motion.dart';
@@ -162,10 +163,12 @@ class _MemorialSlideshowState extends ConsumerState<MemorialSlideshow>
                   itemBuilder: (_, i) {
                     // 다음 2장 이미지 프리캐시
                     if (i + 1 < _photos.length && _photos[i + 1].filePath != null) {
-                      precacheImage(FileImage(File(_photos[i + 1].filePath!)), context);
+                      final img1 = PathUtils.resolveFileImage(_photos[i + 1].filePath);
+                      if (img1 != null) precacheImage(img1, context);
                     }
                     if (i + 2 < _photos.length && _photos[i + 2].filePath != null) {
-                      precacheImage(FileImage(File(_photos[i + 2].filePath!)), context);
+                      final img2 = PathUtils.resolveFileImage(_photos[i + 2].filePath);
+                      if (img2 != null) precacheImage(img2, context);
                     }
                     return _SlideshowPage(
                       key: ValueKey(_photos[i].id),

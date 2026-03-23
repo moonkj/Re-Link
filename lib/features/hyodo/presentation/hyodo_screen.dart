@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -698,7 +699,8 @@ class _NodeAvatar extends StatelessWidget {
         border: Border.all(color: AppColors.glassBorder, width: 1),
         image: photoPath != null
             ? DecorationImage(
-                image: FileImage(File(photoPath!)),
+                image: PathUtils.resolveFileImage(photoPath) ??
+                    FileImage(File(photoPath!)),
                 fit: BoxFit.cover,
               )
             : null,

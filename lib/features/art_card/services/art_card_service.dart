@@ -40,4 +40,18 @@ class ArtCardService {
       subject: 'Re-Link 가족 아트 카드',
     );
   }
+
+  /// OS 공유시트로 공유 (iPad 지원 — context에서 위치 추출)
+  static Future<void> shareWithContext(File file, BuildContext context) async {
+    final box = context.findRenderObject() as RenderBox?;
+    final sharePositionOrigin = box != null
+        ? box.localToGlobal(Offset.zero) & box.size
+        : null;
+
+    await Share.shareXFiles(
+      [XFile(file.path, mimeType: 'image/png')],
+      subject: 'Re-Link 가족 아트 카드',
+      sharePositionOrigin: sharePositionOrigin,
+    );
+  }
 }

@@ -77,7 +77,7 @@ class _HolidayBannerState extends ConsumerState<HolidayBanner>
             : '${holiday.name}까지 D-${state.daysUntil}';
         final subtitle = holiday.message;
 
-        // 제사/차례 관련 명절이면 제사 안내 링크 표시
+        // 명절이면 추모 가이드 링크 표시
         final showRitualGuide = holiday.type == HolidayType.seollal ||
             holiday.type == HolidayType.chuseok;
 
@@ -183,7 +183,7 @@ class _HolidayBannerCard extends StatelessWidget {
                       GestureDetector(
                         onTap: onRitualGuide,
                         child: Text(
-                          '제사 순서 안내 보기',
+                          '추모 가이드 보기',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,

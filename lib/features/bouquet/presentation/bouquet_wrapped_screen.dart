@@ -177,7 +177,7 @@ class _TotalPage extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               const Text(
-                '송이의 꽃을 보냈어요',
+                '번의 마음을 보냈어요',
                 style: TextStyle(
                   fontSize: 22,
                   color: Colors.white,
@@ -185,17 +185,17 @@ class _TotalPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.xxl),
-              // 꽃 이모지 산포
+              // 감성 이모지 산포 (Z세대 트렌드)
               const Wrap(
                 alignment: WrapAlignment.center,
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  Text('\u{1F339}', style: TextStyle(fontSize: 36)),
-                  Text('\u{1F337}', style: TextStyle(fontSize: 28)),
-                  Text('\u{1F33B}', style: TextStyle(fontSize: 32)),
-                  Text('\u{1FAB7}', style: TextStyle(fontSize: 30)),
-                  Text('\u{1F338}', style: TextStyle(fontSize: 34)),
+                  Text('\u{1F496}', style: TextStyle(fontSize: 36)),
+                  Text('\u{2764}\u{FE0F}\u{200D}\u{1F525}', style: TextStyle(fontSize: 28)),
+                  Text('\u{1F98B}', style: TextStyle(fontSize: 32)),
+                  Text('\u{1F308}', style: TextStyle(fontSize: 30)),
+                  Text('\u{1FA77}', style: TextStyle(fontSize: 34)),
                 ],
               ),
             ],
@@ -228,7 +228,7 @@ class _TopReceiversPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                '가장 많이 꽃을 받은 사람',
+                '가장 많이 마음을 받은 사람',
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.white,
@@ -260,7 +260,7 @@ class _TopReceiversPage extends StatelessWidget {
                         Text(emoji, style: const TextStyle(fontSize: 28)),
                         const SizedBox(width: AppSpacing.md),
                         Text(
-                          '$count송이',
+                          '$count번',
                           style: TextStyle(
                             fontSize: fontSize,
                             fontWeight: FontWeight.w800,
@@ -302,7 +302,7 @@ class _TopFlowerPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                '가장 많이 보낸 꽃',
+                '가장 많이 보낸 마음',
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.white,
@@ -326,7 +326,7 @@ class _TopFlowerPage extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  '${topFlower!.value}송이 \u00B7 ${totalCount > 0 ? (topFlower!.value * 100 ~/ totalCount) : 0}%',
+                  '${topFlower!.value}번 \u00B7 ${totalCount > 0 ? (topFlower!.value * 100 ~/ totalCount) : 0}%',
                   style: const TextStyle(fontSize: 18, color: Colors.white70),
                 ),
               ] else
@@ -383,7 +383,7 @@ class _SummaryPage extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xxl),
               Text(
-                '총 $totalCount송이의 꽃으로\n소중한 마음을 전했어요',
+                '총 $totalCount번의 마음으로\n가족에게 사랑을 전했어요',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 18,
@@ -394,7 +394,7 @@ class _SummaryPage extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.huge),
               const Text(
-                '\u{1F338} 내년에도 함께해요 \u{1F338}',
+                '\u{2728} 내년에도 함께해요 \u{2728}',
                 style: TextStyle(fontSize: 20, color: Colors.white70),
               ),
             ],
