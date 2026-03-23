@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -215,6 +216,42 @@ class SettingsRepository {
     return id;
   }
 
+  // ── 버전 관리 백업 (패밀리플러스 전용) ─────────────────────────────────
+
+  /// 다음 백업 버전 번호 조회 및 증가
+  Future<int> getNextBackupVersion() async {
+    final v = await get(SettingsKey.backupVersionCounter);
+    final current = v == null ? 0 : int.tryParse(v) ?? 0;
+    final next = current + 1;
+    await set(SettingsKey.backupVersionCounter, next.toString());
+    return next;
+  }
+
+  /// 백업 버전 히스토리 조회 (최대 5개, 최신순)
+  Future<List<BackupVersionEntry>> getBackupVersionHistory() async {
+    final raw = await get(SettingsKey.backupVersionHistory);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final list = jsonDecode(raw) as List;
+      return list
+          .map((e) => BackupVersionEntry.fromJson(e as Map<String, dynamic>))
+          .toList()
+        ..sort((a, b) => b.version.compareTo(a.version));
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// 백업 버전 히스토리에 항목 추가 (최대 5개 유지)
+  Future<void> addBackupVersion(BackupVersionEntry entry) async {
+    final history = await getBackupVersionHistory();
+    history.insert(0, entry);
+    // 최대 5개 유지 — 오래된 항목 삭제
+    final trimmed = history.length > 5 ? history.sublist(0, 5) : history;
+    final json = jsonEncode(trimmed.map((e) => e.toJson()).toList());
+    await set(SettingsKey.backupVersionHistory, json);
+  }
+
   /// 인증 관련 데이터 초기화 (로그아웃 시 호출)
   Future<void> clearAuthData() async {
     await set(SettingsKey.authUserId, '');
@@ -230,4 +267,51 @@ class SettingsRepository {
 
   Future<void> setLastSyncAt(DateTime dt) =>
       set(SettingsKey.lastSyncAt, dt.toIso8601String());
+}
+
+// ── 백업 버전 엔트리 모델 ─────────────────────────────────────────────────────
+
+/// 백업 버전 히스토리 항목
+class BackupVersionEntry {
+  const BackupVersionEntry({
+    required this.version,
+    required this.date,
+    required this.fileName,
+    required this.sizeBytes,
+  });
+
+  final int version;
+  final String date; // ISO8601
+  final String fileName;
+  final int sizeBytes;
+
+  factory BackupVersionEntry.fromJson(Map<String, dynamic> json) =>
+      BackupVersionEntry(
+        version: json['version'] as int,
+        date: json['date'] as String,
+        fileName: json['fileName'] as String,
+        sizeBytes: json['size'] as int,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'version': version,
+        'date': date,
+        'fileName': fileName,
+        'size': sizeBytes,
+      };
+
+  DateTime get dateTime => DateTime.parse(date);
+
+  String get formattedDate {
+    final dt = dateTime;
+    return '${dt.year}.${dt.month.toString().padLeft(2, '0')}.${dt.day.toString().padLeft(2, '0')} '
+        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+
+  String get formattedSize {
+    if (sizeBytes < 1024 * 1024) {
+      return '${(sizeBytes / 1024).toStringAsFixed(1)} KB';
+    }
+    return '${(sizeBytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
 }

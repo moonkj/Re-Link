@@ -79,6 +79,10 @@ abstract final class SettingsKey {
   static const String ritualCheckReligious = 'ritual_check_religious';
   static const String ritualCheckModern = 'ritual_check_modern';
 
+  // ── 버전 관리 백업 (패밀리플러스 전용) ─────────────────────────────────
+  static const String backupVersionHistory = 'backup_version_history'; // JSON array
+  static const String backupVersionCounter = 'backup_version_counter'; // int as string
+
   // ── 초대 코드 ──────────────────────────────────────────────────────────
   static const String inviteCode     = 'invite_code';         // 6자리 가족 초대 코드
 

@@ -67,6 +67,17 @@ class BackupManifest {
     final s = dt.second.toString().padLeft(2, '0');
     return 'backup_$y$mo${d}_$h$mi$s.rlink';
   }
+
+  /// 버전 관리 파일명 형식: backup_v3_20260319_143022.rlink
+  static String generateVersionedFilename(DateTime dt, int version) {
+    final y = dt.year.toString().padLeft(4, '0');
+    final mo = dt.month.toString().padLeft(2, '0');
+    final d = dt.day.toString().padLeft(2, '0');
+    final h = dt.hour.toString().padLeft(2, '0');
+    final mi = dt.minute.toString().padLeft(2, '0');
+    final s = dt.second.toString().padLeft(2, '0');
+    return 'backup_v${version}_$y$mo${d}_$h$mi$s.rlink';
+  }
 }
 
 class BackupInfo {

@@ -753,7 +753,6 @@ List<({String label, bool enabled})> _featuresForPlan(UserPlan plan) {
         (label: '가족 초대 무제한', enabled: true),
         (label: '영상 최대 10분 · 클라우드 저장', enabled: true),
         (label: '버전 관리 백업', enabled: true),
-        (label: '신기능 얼리 액세스', enabled: true),
       ];
   }
 }

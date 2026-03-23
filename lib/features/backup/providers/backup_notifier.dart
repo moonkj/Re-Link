@@ -17,6 +17,7 @@ class BackupState {
     this.lastBackupAt,
     this.cloudBackups = const [],
     this.cloudProvider = 'none',
+    this.versionHistory = const [],
     this.error,
   });
 
@@ -24,6 +25,7 @@ class BackupState {
   final DateTime? lastBackupAt;
   final List<BackupInfo> cloudBackups;
   final String cloudProvider; // 'icloud' | 'google' | 'none'
+  final List<BackupVersionEntry> versionHistory;
   final String? error;
 
   BackupState copyWith({
@@ -31,6 +33,7 @@ class BackupState {
     DateTime? lastBackupAt,
     List<BackupInfo>? cloudBackups,
     String? cloudProvider,
+    List<BackupVersionEntry>? versionHistory,
     String? error,
     bool clearError = false,
   }) =>
@@ -39,6 +42,7 @@ class BackupState {
         lastBackupAt: lastBackupAt ?? this.lastBackupAt,
         cloudBackups: cloudBackups ?? this.cloudBackups,
         cloudProvider: cloudProvider ?? this.cloudProvider,
+        versionHistory: versionHistory ?? this.versionHistory,
         error: clearError ? null : (error ?? this.error),
       );
 }
@@ -66,7 +70,12 @@ class BackupNotifier extends _$BackupNotifier {
     final settings = ref.read(settingsRepositoryProvider);
     final lastAt = await settings.getLastBackupAt();
     final provider = await settings.getCloudProvider();
-    state = state.copyWith(lastBackupAt: lastAt, cloudProvider: provider);
+    final history = await settings.getBackupVersionHistory();
+    state = state.copyWith(
+      lastBackupAt: lastAt,
+      cloudProvider: provider,
+      versionHistory: history,
+    );
   }
 
   // ── 클라우드 백업 목록 조회 ────────────────────────────────────────────────
@@ -93,7 +102,11 @@ class BackupNotifier extends _$BackupNotifier {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final service = ref.read(backupServiceProvider);
-      final file = await service.createBackup();
+      final settings = ref.read(settingsRepositoryProvider);
+      final plan = await settings.getUserPlan();
+      final file = await service.createBackup(
+        versioned: plan.hasVersionedBackup,
+      );
 
       // 클라우드 업로드 시도
       if (_cloudProvider != null) {
@@ -143,6 +156,50 @@ class BackupNotifier extends _$BackupNotifier {
     try {
       final service = ref.read(backupServiceProvider);
       final manifest = await service.restoreBackup(file);
+      await _loadInfo();
+      state = state.copyWith(isLoading: false);
+      return manifest;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return null;
+    }
+  }
+
+  // ── 버전 관리 백업 복원 (패밀리플러스 전용) ──────────────────────────────
+
+  Future<BackupManifest?> restoreFromVersion(BackupVersionEntry entry) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      // 로컬 임시 디렉토리에서 해당 버전 파일 찾기
+      final service = ref.read(backupServiceProvider);
+      final localBackups = await service.getLocalBackups();
+      final match = localBackups.where((f) => f.path.endsWith(entry.fileName));
+
+      if (match.isEmpty) {
+        // 클라우드에서 다운로드 시도
+        if (_cloudProvider != null) {
+          try {
+            final file = await _cloudProvider!.download(entry.fileName);
+            final manifest = await service.restoreBackup(file);
+            await _loadInfo();
+            state = state.copyWith(isLoading: false);
+            return manifest;
+          } catch (_) {
+            state = state.copyWith(
+              isLoading: false,
+              error: '버전 ${entry.version} 백업 파일을 찾을 수 없습니다.',
+            );
+            return null;
+          }
+        }
+        state = state.copyWith(
+          isLoading: false,
+          error: '버전 ${entry.version} 백업 파일을 찾을 수 없습니다.',
+        );
+        return null;
+      }
+
+      final manifest = await service.restoreBackup(match.first);
       await _loadInfo();
       state = state.copyWith(isLoading: false);
       return manifest;

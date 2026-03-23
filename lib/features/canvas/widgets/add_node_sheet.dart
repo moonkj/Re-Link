@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/errors/app_error.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/services/media/media_service.dart';
 import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
@@ -252,7 +254,10 @@ class _AddNodeSheetState extends ConsumerState<AddNodeSheet> {
           backgroundColor: AppColors.warning,
           action: SnackBarAction(
             label: '업그레이드',
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.push(AppRoutes.subscription);
+            },
           ),
         ),
       );

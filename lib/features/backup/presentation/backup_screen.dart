@@ -8,7 +8,9 @@ import '../../../core/services/backup/backup_service.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
+import '../../../shared/models/user_plan.dart';
 import '../../../shared/repositories/settings_repository.dart';
+import '../../subscription/providers/plan_notifier.dart';
 import '../providers/backup_notifier.dart';
 
 /// 백업 & 복원 화면
@@ -101,6 +103,12 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                       ),
                     )),
               ],
+
+              // 버전 관리 백업 (패밀리플러스 전용)
+              _VersionHistorySection(
+                versionHistory: state.versionHistory,
+                onRestore: _restoreFromVersion,
+              ),
 
               // 에러
               if (state.error != null) ...[
@@ -233,6 +241,33 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
         backgroundColor: ok ? AppColors.success : AppColors.error,
       ),
     );
+  }
+
+  Future<void> _restoreFromVersion(BackupVersionEntry entry) async {
+    final confirmed = await _confirmRestore();
+    if (!confirmed) return;
+
+    final manifest = await ref
+        .read(backupNotifierProvider.notifier)
+        .restoreFromVersion(entry);
+
+    if (!mounted) return;
+    if (manifest != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '버전 ${entry.version} 복원 완료 — 노드 ${manifest.nodeCount}개, 기억 ${manifest.memoryCount}개\n앱을 재시작합니다.',
+          ),
+          backgroundColor: AppColors.success,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } else {
+      final err = ref.read(backupNotifierProvider).error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('복원 실패: ${err ?? '알 수 없는 오류'}'), backgroundColor: AppColors.error),
+      );
+    }
   }
 
   Future<bool> _confirmRestore() async {
@@ -433,6 +468,175 @@ class _ActionTile extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
           else
             Icon(Icons.chevron_right, color: AppColors.textTertiary),
+        ],
+      ),
+    );
+  }
+}
+
+// ── 버전 관리 백업 섹션 (패밀리플러스 전용) ─────────────────────────────────────
+
+class _VersionHistorySection extends ConsumerWidget {
+  const _VersionHistorySection({
+    required this.versionHistory,
+    required this.onRestore,
+  });
+
+  final List<BackupVersionEntry> versionHistory;
+  final void Function(BackupVersionEntry) onRestore;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final planAsync = ref.watch(planNotifierProvider);
+    final currentPlan = planAsync.valueOrNull ?? UserPlan.free;
+
+    // 패밀리플러스가 아니면 표시하지 않음
+    if (!currentPlan.hasVersionedBackup) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: AppSpacing.xxl),
+        Row(
+          children: [
+            Icon(Icons.history_outlined, size: 18, color: AppColors.planFamilyPlus),
+            const SizedBox(width: AppSpacing.xs),
+            Text(
+              '버전 관리 백업',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              decoration: BoxDecoration(
+                color: AppColors.planFamilyPlus.withAlpha(30),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.planFamilyPlus.withAlpha(60)),
+              ),
+              child: Text(
+                '패밀리플러스',
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.planFamilyPlus,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          '최근 5개 버전의 백업 이력을 보관합니다.',
+          style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+
+        if (versionHistory.isEmpty)
+          GlassCard(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(Icons.inventory_2_outlined, size: 32, color: AppColors.textTertiary),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    '아직 버전 관리 백업이 없습니다',
+                    style: TextStyle(fontSize: 13, color: AppColors.textTertiary),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '백업을 생성하면 자동으로 버전이 기록됩니다.',
+                    style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          ...versionHistory.map((entry) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: _VersionEntryTile(
+                  entry: entry,
+                  onRestore: () => onRestore(entry),
+                ),
+              )),
+      ],
+    );
+  }
+}
+
+// ── 버전 항목 타일 ──────────────────────────────────────────────────────────────
+
+class _VersionEntryTile extends StatelessWidget {
+  const _VersionEntryTile({
+    required this.entry,
+    required this.onRestore,
+  });
+
+  final BackupVersionEntry entry;
+  final VoidCallback onRestore;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          // 버전 번호 배지
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.planFamilyPlus.withAlpha(25),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.planFamilyPlus.withAlpha(60)),
+            ),
+            child: Center(
+              child: Text(
+                'v${entry.version}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.planFamilyPlus,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  entry.formattedDate,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  entry.formattedSize,
+                  style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: onRestore,
+            child: Text(
+              '복원',
+              style: TextStyle(color: AppColors.primary, fontSize: 13),
+            ),
+          ),
         ],
       ),
     );

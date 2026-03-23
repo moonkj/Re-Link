@@ -1070,58 +1070,8 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
         return;
       }
 
-      // 고해상도 캡처 (pixelRatio 3.0)
-      final fullImage = await boundary.toImage(pixelRatio: 3.0);
-
-      // 노드 바운딩 박스 계산 → 내용 영역만 크롭
-      final nodes = ref.read(canvasNotifierProvider).nodes;
-      ui.Image exportImage;
-      if (nodes.isNotEmpty) {
-        double minX = double.infinity, maxX = double.negativeInfinity;
-        double minY = double.infinity, maxY = double.negativeInfinity;
-        for (final node in nodes) {
-          if (node.positionX < minX) minX = node.positionX;
-          if (node.positionX + kNodeCardWidth > maxX) {
-            maxX = node.positionX + kNodeCardWidth;
-          }
-          if (node.positionY < minY) minY = node.positionY;
-          if (node.positionY + kNodeCardHeight > maxY) {
-            maxY = node.positionY + kNodeCardHeight;
-          }
-        }
-        // 크롭 패딩 (논리 좌표)
-        const pad = 80.0;
-        minX = (minX - pad).clamp(0, 4000).toDouble();
-        minY = (minY - pad).clamp(0, 4000).toDouble();
-        maxX = (maxX + pad).clamp(0, 4000).toDouble();
-        maxY = (maxY + pad).clamp(0, 4000).toDouble();
-
-        // pixelRatio 적용
-        const pr = 3.0;
-        final cropRect = Rect.fromLTRB(
-          minX * pr, minY * pr, maxX * pr, maxY * pr,
-        );
-
-        // PictureRecorder로 크롭
-        final recorder = ui.PictureRecorder();
-        final canvas = Canvas(
-          recorder,
-          Rect.fromLTWH(0, 0, cropRect.width, cropRect.height),
-        );
-        canvas.drawImageRect(
-          fullImage,
-          cropRect,
-          Rect.fromLTWH(0, 0, cropRect.width, cropRect.height),
-          Paint(),
-        );
-        final picture = recorder.endRecording();
-        exportImage = await picture.toImage(
-          cropRect.width.ceil(),
-          cropRect.height.ceil(),
-        );
-      } else {
-        exportImage = fullImage;
-      }
+      // 고해상도 캡처 — 4000x4000 캔버스 전체 (나무 포함)
+      final exportImage = await boundary.toImage(pixelRatio: 3.0);
 
       final byteData =
           await exportImage.toByteData(format: ui.ImageByteFormat.png);

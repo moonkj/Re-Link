@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:video_player/video_player.dart'; // duration 체크용 임시 컨트롤러
 import '../../../core/errors/app_error.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
@@ -276,7 +278,10 @@ class _AddMemorySheetState extends ConsumerState<AddMemorySheet> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(e.message),
       backgroundColor: AppColors.warning,
-      action: SnackBarAction(label: '업그레이드', onPressed: () => Navigator.of(context).pop()),
+      action: SnackBarAction(label: '업그레이드', onPressed: () {
+        Navigator.of(context).pop();
+        context.push(AppRoutes.subscription);
+      }),
     ));
   }
 

@@ -40,10 +40,23 @@ class BackupService {
   // ── 백업 생성 ─────────────────────────────────────────────────────────────
 
   /// DB + 미디어 → .rlink ZIP 파일 생성 → 로컬 임시 경로 반환
-  Future<File> createBackup() async {
+  ///
+  /// [versioned]가 true이면 버전 번호가 포함된 파일명을 사용하고
+  /// 버전 히스토리에 기록한다 (패밀리플러스 전용).
+  Future<File> createBackup({bool versioned = false}) async {
     final now = DateTime.now();
     final tmpDir = await getTemporaryDirectory();
-    final filename = BackupManifest.generateFilename(now);
+
+    // 버전 관리 백업인 경우 버전 번호 포함 파일명
+    final int? backupVersion;
+    final String filename;
+    if (versioned) {
+      backupVersion = await settings.getNextBackupVersion();
+      filename = BackupManifest.generateVersionedFilename(now, backupVersion);
+    } else {
+      backupVersion = null;
+      filename = BackupManifest.generateFilename(now);
+    }
     final outPath = p.join(tmpDir.path, filename);
 
     // 통계
@@ -113,6 +126,16 @@ class BackupService {
 
     // 마지막 백업 시각 기록
     await settings.setLastBackupAt(now);
+
+    // 버전 관리 백업인 경우 히스토리에 추가
+    if (versioned && backupVersion != null) {
+      await settings.addBackupVersion(BackupVersionEntry(
+        version: backupVersion,
+        date: now.toIso8601String(),
+        fileName: filename,
+        sizeBytes: bytes.length,
+      ));
+    }
 
     return File(outPath);
   }
