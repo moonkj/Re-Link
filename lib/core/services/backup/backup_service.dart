@@ -143,42 +143,78 @@ class BackupService {
   // ── 백업 복원 ─────────────────────────────────────────────────────────────
 
   /// .rlink 파일 → DB + 미디어 복원
+  ///
+  /// 복원 후 앱을 재시작해야 DB가 올바르게 재연결됩니다.
+  /// [restoreCompleted]가 true인 상태에서 호출 측이 앱 재시작을 안내해야 합니다.
+  bool restoreCompleted = false;
+
   Future<BackupManifest> restoreBackup(File rlinkFile) async {
+    // 파일 존재 확인
+    if (!await rlinkFile.exists()) {
+      throw Exception('백업 파일이 존재하지 않습니다: ${rlinkFile.path}');
+    }
+
+    // 파일 크기 확인 (비어있는 파일 거부)
+    final fileLength = await rlinkFile.length();
+    if (fileLength == 0) {
+      throw Exception('백업 파일이 비어있습니다.');
+    }
+
     final tmpDir = await getTemporaryDirectory();
     final extractDir = Directory(p.join(tmpDir.path, 'restore_${DateTime.now().millisecondsSinceEpoch}'));
     await extractDir.create(recursive: true);
 
-    // ZIP 해제
-    final bytes = await rlinkFile.readAsBytes();
-    final archive = ZipDecoder().decodeBytes(bytes);
-    await extractArchiveToDisk(archive, extractDir.path);
+    try {
+      // ZIP 해제
+      final bytes = await rlinkFile.readAsBytes();
+      final Archive archive;
+      try {
+        archive = ZipDecoder().decodeBytes(bytes);
+      } catch (e) {
+        throw Exception('유효하지 않은 백업 파일입니다. ZIP 형식이 아닙니다: $e');
+      }
+      await extractArchiveToDisk(archive, extractDir.path);
 
-    // manifest 읽기
-    final manifestFile = File(p.join(extractDir.path, 'manifest.json'));
-    if (!await manifestFile.exists()) throw Exception('유효하지 않은 백업 파일입니다.');
-    final manifest = BackupManifest.fromJson(
-        jsonDecode(await manifestFile.readAsString()) as Map<String, dynamic>);
+      // manifest 읽기
+      final manifestFile = File(p.join(extractDir.path, 'manifest.json'));
+      if (!await manifestFile.exists()) {
+        throw Exception('유효하지 않은 백업 파일입니다. manifest.json이 없습니다.');
+      }
+      final manifest = BackupManifest.fromJson(
+          jsonDecode(await manifestFile.readAsString()) as Map<String, dynamic>);
 
-    // DB 복원
-    final dbPath = await getDatabasePath();
-    final backupDb = File(p.join(extractDir.path, 'relink.db'));
-    if (await backupDb.exists()) {
-      await db.close();
-      await backupDb.copy(dbPath);
-      // DB 재연결은 앱 재시작 시 자동으로 됨
+      // DB 복원
+      final dbPath = await getDatabasePath();
+      final backupDb = File(p.join(extractDir.path, 'relink.db'));
+      if (await backupDb.exists()) {
+        // DB를 닫고 파일을 덮어씀
+        await db.close();
+        await backupDb.copy(dbPath);
+        restoreCompleted = true;
+        // 중요: DB가 닫힌 상태이므로, 앱 재시작이 필요함.
+        // Riverpod의 appDatabaseProvider를 invalidate해야 새 연결이 생성됨.
+      } else {
+        throw Exception('백업 파일에 데이터베이스(relink.db)가 포함되어 있지 않습니다.');
+      }
+
+      // 미디어 복원
+      final backupMedia = Directory(p.join(extractDir.path, 'media'));
+      if (await backupMedia.exists()) {
+        final mediaDir = await media.mediaRootDir;
+        await _copyDirectory(backupMedia, mediaDir);
+      }
+
+      return manifest;
+    } finally {
+      // 임시 디렉토리 정리 (성공이든 실패든)
+      try {
+        if (await extractDir.exists()) {
+          await extractDir.delete(recursive: true);
+        }
+      } catch (_) {
+        // 정리 실패는 무시
+      }
     }
-
-    // 미디어 복원
-    final backupMedia = Directory(p.join(extractDir.path, 'media'));
-    if (await backupMedia.exists()) {
-      final mediaDir = await media.mediaRootDir;
-      await _copyDirectory(backupMedia, mediaDir);
-    }
-
-    // 임시 디렉토리 정리
-    await extractDir.delete(recursive: true);
-
-    return manifest;
   }
 
   // ── 로컬 백업 목록 ────────────────────────────────────────────────────────

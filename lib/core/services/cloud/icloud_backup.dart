@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:icloud_storage/icloud_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -6,11 +7,11 @@ import '../backup/backup_format.dart';
 import 'cloud_backup_provider.dart';
 
 /// iOS iCloud Drive 백업 구현
-/// iCloud 컨테이너 ID: iCloud.com.relink
+/// iCloud 컨테이너 ID: iCloud.com.relink.app
 ///
 /// 사전 조건 (Xcode에서 설정):
 ///   Runner → Signing & Capabilities → + Capability → iCloud → Documents 체크
-///   Containers: iCloud.com.relink 추가
+///   Containers: iCloud.com.relink.app 추가
 class ICloudBackup implements CloudBackupProvider {
   static const String _containerId = 'iCloud.com.relink.app';
 
@@ -20,7 +21,8 @@ class ICloudBackup implements CloudBackupProvider {
     try {
       await ICloudStorage.gather(containerId: _containerId);
       return true;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[ICloudBackup] isAvailable 실패: $e');
       return false;
     }
   }
@@ -52,7 +54,8 @@ class ICloudBackup implements CloudBackupProvider {
               ))
           .toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[ICloudBackup] listBackups 실패: $e');
       return [];
     }
   }
@@ -101,8 +104,8 @@ class ICloudBackup implements CloudBackupProvider {
           containerId: _containerId,
           relativePath: backup.filename,
         );
-      } catch (_) {
-        // 삭제 실패 무시 — 다음 기회에 정리
+      } catch (e) {
+        debugPrint('[ICloudBackup] 오래된 백업 삭제 실패: ${backup.filename} — $e');
       }
     }
   }

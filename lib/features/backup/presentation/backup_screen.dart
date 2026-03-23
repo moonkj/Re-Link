@@ -149,12 +149,12 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 const SizedBox(height: AppSpacing.xxl),
               ],
 
-              // ── 섹션 3: 서버 동기화 (패밀리/패밀리플러스) ──────────────
+              // ── 섹션 3: 가족 클라우드 동기화 (패밀리/패밀리플러스) ──────
               if (currentPlan.hasCloud) ...[
                 _SectionHeader(
                   icon: Icons.sync_outlined,
-                  title: '서버 동기화',
-                  subtitle: '가족 공유용 클라우드 동기화',
+                  title: '가족 클라우드 동기화',
+                  subtitle: '가족 구성원 간 데이터 업로드/다운로드',
                   iconColor: AppColors.success,
                   badge: currentPlan.displayName,
                   badgeColor: currentPlan == UserPlan.familyPlus
@@ -168,11 +168,11 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
                 const SizedBox(height: AppSpacing.xxl),
               ] else ...[
-                // 업그레이드 유도 — 서버 동기화
+                // 업그레이드 유도 — 가족 클라우드 동기화
                 _UpgradeBanner(
                   icon: Icons.sync_outlined,
-                  title: '서버 동기화',
-                  description: '가족과 실시간 데이터를 동기화하고\n클라우드에 안전하게 저장합니다.',
+                  title: '가족 클라우드 동기화',
+                  description: '가족과 데이터를 클라우드에 업로드하고\n다른 기기에서 다운로드할 수 있습니다.',
                   requiredPlan: '패밀리 플랜',
                 ),
                 const SizedBox(height: AppSpacing.xxl),
@@ -272,20 +272,26 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   Future<void> _backup() async {
     final file = await ref.read(backupNotifierProvider.notifier).backup();
     if (!mounted) return;
+
+    final err = ref.read(backupNotifierProvider).error;
     if (file != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('백업 완료: ${file.path.split('/').last}'),
-          backgroundColor: AppColors.success,
+          content: Text(
+            err != null
+                ? '로컬 백업 완료 (클라우드 업로드에 문제가 있습니다)'
+                : '백업 완료: ${file.path.split('/').last}',
+          ),
+          backgroundColor: err != null ? AppColors.warning : AppColors.success,
         ),
       );
     } else {
-      final err = ref.read(backupNotifierProvider).error;
-      if (err != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('백업 실패: $err'), backgroundColor: AppColors.error),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(err ?? '백업에 실패했습니다.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
   }
 
@@ -312,9 +318,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   }
 
   Future<void> _importFile() async {
-    final confirmed = await _confirmRestore();
-    if (!confirmed) return;
-
+    // 먼저 파일을 선택하고, 확인 후 복원 (파일 선택을 먼저 하면 사용자가 취소할 수 있음)
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -323,7 +327,20 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       if (result == null || result.files.isEmpty) return;
 
       final path = result.files.first.path;
-      if (path == null) return;
+      if (path == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('파일 경로를 가져올 수 없습니다.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+
+      // 파일 선택 후 확인 대화상자
+      final confirmed = await _confirmRestore();
+      if (!confirmed) return;
 
       final manifest = await ref
           .read(backupNotifierProvider.notifier)
@@ -331,25 +348,25 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
       if (!mounted) return;
       if (manifest != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '복원 완료 -- 노드 ${manifest.nodeCount}개, 기억 ${manifest.memoryCount}개\n앱을 재시작합니다.',
-            ),
-            backgroundColor: AppColors.success,
-            duration: const Duration(seconds: 4),
-          ),
+        _showRestoreSuccessAndRestart(
+          '복원 완료 -- 노드 ${manifest.nodeCount}개, 기억 ${manifest.memoryCount}개',
         );
       } else {
         final err = ref.read(backupNotifierProvider).error;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('복원 실패: $err'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text(err ?? '복원에 실패했습니다.'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('파일 선택 실패: $e'), backgroundColor: AppColors.error),
+        SnackBar(
+          content: Text('파일 선택 실패: $e'),
+          backgroundColor: AppColors.error,
+        ),
       );
     }
   }
@@ -363,12 +380,17 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
         .restoreFromCloud(backup);
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(ok ? '복원 완료 -- 앱을 재시작합니다.' : '복원 실패'),
-        backgroundColor: ok ? AppColors.success : AppColors.error,
-      ),
-    );
+    if (ok) {
+      _showRestoreSuccessAndRestart('클라우드 백업 복원 완료');
+    } else {
+      final err = ref.read(backupNotifierProvider).error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(err ?? '복원에 실패했습니다.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   Future<void> _restoreFromVersion(BackupVersionEntry entry) async {
@@ -381,20 +403,14 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
     if (!mounted) return;
     if (manifest != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '버전 ${entry.version} 복원 완료 -- 노드 ${manifest.nodeCount}개, 기억 ${manifest.memoryCount}개\n앱을 재시작합니다.',
-          ),
-          backgroundColor: AppColors.success,
-          duration: const Duration(seconds: 4),
-        ),
+      _showRestoreSuccessAndRestart(
+        '버전 ${entry.version} 복원 완료 -- 노드 ${manifest.nodeCount}개, 기억 ${manifest.memoryCount}개',
       );
     } else {
       final err = ref.read(backupNotifierProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('복원 실패: ${err ?? '알 수 없는 오류'}'),
+          content: Text(err ?? '복원에 실패했습니다.'),
           backgroundColor: AppColors.error,
         ),
       );
@@ -414,6 +430,43 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           Navigator.of(ctx).pop();
           _restoreFromCloud(backup);
         },
+      ),
+    );
+  }
+
+  /// 복원 성공 후 앱 재시작 안내 대화상자 표시
+  void _showRestoreSuccessAndRestart(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgElevated,
+        title: Row(
+          children: [
+            Icon(Icons.check_circle_outline, color: AppColors.success, size: 24),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                '복원 완료',
+                style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          '$message\n\n데이터를 적용하려면 앱을 재시작해야 합니다.',
+          style: TextStyle(color: AppColors.textSecondary, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              // 앱 최상위로 이동하여 DB 재연결 유도
+              context.go('/');
+            },
+            child: Text('확인', style: TextStyle(color: AppColors.primary)),
+          ),
+        ],
       ),
     );
   }
@@ -776,11 +829,11 @@ class _ServerSyncSectionState extends ConsumerState<_ServerSyncSection> {
 
         const SizedBox(height: AppSpacing.sm),
 
-        // 지금 동기화 버튼
+        // 지금 동기화 버튼 (업로드 + 다운로드)
         _ActionTile(
           icon: Icons.sync_outlined,
           title: '지금 동기화',
-          subtitle: '서버와 수동 동기화',
+          subtitle: '내 변경사항 업로드 + 가족 변경사항 다운로드',
           loading: syncState.isSyncing,
           onTap: _triggerSync,
         ),
@@ -814,30 +867,30 @@ class _ServerSyncSectionState extends ConsumerState<_ServerSyncSection> {
   }
 
   String _syncStatusLabel(FamilySyncState state) {
-    if (state.isSyncing) return '동기화 중...';
+    if (state.isSyncing) return '업로드/다운로드 동기화 중...';
 
     final syncTime = _lastSyncAt ?? state.lastSyncAt;
     if (syncTime != null) {
       final diff = DateTime.now().difference(syncTime);
-      if (diff.inMinutes < 1) return '방금 동기화됨';
-      if (diff.inMinutes < 60) return '${diff.inMinutes}분 전 동기화됨';
-      if (diff.inHours < 24) return '${diff.inHours}시간 전 동기화됨';
-      return '${diff.inDays}일 전 동기화됨';
+      if (diff.inMinutes < 1) return '방금 동기화 완료';
+      if (diff.inMinutes < 60) return '${diff.inMinutes}분 전 동기화 완료';
+      if (diff.inHours < 24) return '${diff.inHours}시간 전 동기화 완료';
+      return '${diff.inDays}일 전 동기화 완료';
     }
 
-    if (state.status == SyncStatus.error) return '동기화 오류';
-    return '아직 동기화되지 않음';
+    if (state.status == SyncStatus.error) return '동기화 오류 발생';
+    return '아직 동기화한 적 없음';
   }
 
   Future<void> _triggerSync() async {
-    // 1. 서버 동기화
+    // 1. 서버 동기화 (Pull: 가족 변경사항 다운로드 → Push: 내 변경사항 업로드)
     await ref.read(familySyncNotifierProvider.notifier).sync();
 
-    // 2. 업로드 큐 처리
+    // 2. 업로드 큐 처리 (미디어 파일 업로드)
     try {
       await ref.read(mediaUploadQueueServiceProvider).processQueue();
-    } catch (_) {
-      // 큐 처리 오류는 무시 — 동기화는 성공
+    } catch (e) {
+      debugPrint('[BackupScreen] 미디어 업로드 큐 처리 오류: $e');
     }
 
     // 3. 상태 갱신
@@ -961,7 +1014,7 @@ class _AutoSyncToggle extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      '앱 사용 중 5분마다 자동 동기화',
+                      '앱 사용 중 자동으로 업로드/다운로드',
                       style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                     ),
                   ],

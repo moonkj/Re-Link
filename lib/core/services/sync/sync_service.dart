@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -213,8 +214,9 @@ class SyncService {
         }
         return 0;
       }
-    } catch (_) {
+    } catch (e) {
       // 네트워크 오류 등 예외 시 재시도 카운트 증가
+      debugPrint('[SyncService] push 오류: $e');
       for (final entry in pending) {
         await db.incrementRetryCount(entry.id);
       }

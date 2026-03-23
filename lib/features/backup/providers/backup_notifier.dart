@@ -6,6 +6,7 @@ import '../../../core/services/backup/backup_service.dart';
 import '../../../core/services/cloud/icloud_backup.dart';
 import '../../../core/services/cloud/google_drive_backup.dart';
 import '../../../core/services/cloud/cloud_backup_provider.dart';
+import '../../../shared/repositories/db_provider.dart';
 import '../../../shared/repositories/settings_repository.dart';
 
 part 'backup_notifier.g.dart';
@@ -108,25 +109,39 @@ class BackupNotifier extends _$BackupNotifier {
         versioned: plan.hasVersionedBackup,
       );
 
-      // 클라우드 업로드 시도
+      // 클라우드 업로드 시도 (실패해도 로컬 백업은 성공)
+      String? cloudError;
       if (_cloudProvider != null) {
-        final available = await _cloudProvider!.isAvailable();
-        if (available) {
-          await _cloudProvider!.upload(file);
-          await _cloudProvider!.pruneOldBackups();
+        try {
+          final available = await _cloudProvider!.isAvailable();
+          if (available) {
+            await _cloudProvider!.upload(file);
+            await _cloudProvider!.pruneOldBackups();
 
-          // 클라우드 제공자 저장
-          final providerName = Platform.isIOS ? 'icloud' : 'google';
-          await ref.read(settingsRepositoryProvider).set('cloud_provider', providerName);
+            // 클라우드 제공자 저장
+            final providerName = Platform.isIOS ? 'icloud' : 'google';
+            await settings.set('cloud_provider', providerName);
+          } else {
+            cloudError = '클라우드 저장소에 접근할 수 없습니다. 로컬에만 저장되었습니다.';
+          }
+        } catch (e) {
+          cloudError = '클라우드 업로드 실패: ${_userFriendlyError(e)}\n로컬 백업은 성공했습니다.';
+          debugPrint('[BackupNotifier] 클라우드 업로드 실패: $e');
         }
       }
 
       await _loadInfo();
       await loadCloudBackups();
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(
+        isLoading: false,
+        error: cloudError,
+      );
       return file;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(
+        isLoading: false,
+        error: '백업 생성 실패: ${_userFriendlyError(e)}',
+      );
       return null;
     }
   }
@@ -134,17 +149,30 @@ class BackupNotifier extends _$BackupNotifier {
   // ── 클라우드 백업 복원 ────────────────────────────────────────────────────
 
   Future<bool> restoreFromCloud(BackupInfo backup) async {
-    if (_cloudProvider == null) return false;
+    if (_cloudProvider == null) {
+      state = state.copyWith(
+        error: '클라우드 연결이 설정되지 않았습니다.',
+      );
+      return false;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final file = await _cloudProvider!.download(backup.filename);
       final service = ref.read(backupServiceProvider);
       await service.restoreBackup(file);
-      await _loadInfo();
+      // 복원 후 DB가 닫힌 상태 — Riverpod provider를 invalidate하여 새 DB 연결 생성
+      if (service.restoreCompleted) {
+        ref.invalidate(appDatabaseProvider);
+        ref.invalidate(backupServiceProvider);
+        ref.invalidate(settingsRepositoryProvider);
+      }
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(
+        isLoading: false,
+        error: '클라우드 복원 실패: ${_userFriendlyError(e)}',
+      );
       return false;
     }
   }
@@ -156,11 +184,19 @@ class BackupNotifier extends _$BackupNotifier {
     try {
       final service = ref.read(backupServiceProvider);
       final manifest = await service.restoreBackup(file);
-      await _loadInfo();
+      // 복원 후 DB가 닫힌 상태 — Riverpod provider를 invalidate하여 새 DB 연결 생성
+      if (service.restoreCompleted) {
+        ref.invalidate(appDatabaseProvider);
+        ref.invalidate(backupServiceProvider);
+        ref.invalidate(settingsRepositoryProvider);
+      }
       state = state.copyWith(isLoading: false);
       return manifest;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(
+        isLoading: false,
+        error: '복원 실패: ${_userFriendlyError(e)}',
+      );
       return null;
     }
   }
@@ -170,41 +206,48 @@ class BackupNotifier extends _$BackupNotifier {
   Future<BackupManifest?> restoreFromVersion(BackupVersionEntry entry) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      // 로컬 임시 디렉토리에서 해당 버전 파일 찾기
       final service = ref.read(backupServiceProvider);
+
+      // 1. 로컬 임시 디렉토리에서 해당 버전 파일 찾기
       final localBackups = await service.getLocalBackups();
       final match = localBackups.where((f) => f.path.endsWith(entry.fileName));
 
-      if (match.isEmpty) {
-        // 클라우드에서 다운로드 시도
-        if (_cloudProvider != null) {
-          try {
-            final file = await _cloudProvider!.download(entry.fileName);
-            final manifest = await service.restoreBackup(file);
-            await _loadInfo();
-            state = state.copyWith(isLoading: false);
-            return manifest;
-          } catch (_) {
-            state = state.copyWith(
-              isLoading: false,
-              error: '버전 ${entry.version} 백업 파일을 찾을 수 없습니다.',
-            );
-            return null;
-          }
+      File backupFile;
+      if (match.isNotEmpty) {
+        backupFile = match.first;
+      } else if (_cloudProvider != null) {
+        // 2. 클라우드에서 다운로드 시도
+        try {
+          backupFile = await _cloudProvider!.download(entry.fileName);
+        } catch (e) {
+          state = state.copyWith(
+            isLoading: false,
+            error: '버전 ${entry.version} 백업 파일을 클라우드에서 다운로드할 수 없습니다: ${_userFriendlyError(e)}',
+          );
+          return null;
         }
+      } else {
         state = state.copyWith(
           isLoading: false,
-          error: '버전 ${entry.version} 백업 파일을 찾을 수 없습니다.',
+          error: '버전 ${entry.version} 백업 파일을 찾을 수 없습니다.\n로컬 임시 파일이 삭제되었을 수 있습니다.',
         );
         return null;
       }
 
-      final manifest = await service.restoreBackup(match.first);
-      await _loadInfo();
+      final manifest = await service.restoreBackup(backupFile);
+      // 복원 후 DB가 닫힌 상태 — Riverpod provider를 invalidate하여 새 DB 연결 생성
+      if (service.restoreCompleted) {
+        ref.invalidate(appDatabaseProvider);
+        ref.invalidate(backupServiceProvider);
+        ref.invalidate(settingsRepositoryProvider);
+      }
       state = state.copyWith(isLoading: false);
       return manifest;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(
+        isLoading: false,
+        error: '버전 복원 실패: ${_userFriendlyError(e)}',
+      );
       return null;
     }
   }
@@ -233,5 +276,16 @@ class BackupNotifier extends _$BackupNotifier {
   Future<bool> signInGoogle() async {
     if (_cloudProvider is! GoogleDriveBackup) return false;
     return (_cloudProvider as GoogleDriveBackup).signIn();
+  }
+
+  // ── 에러 메시지 정리 ────────────────────────────────────────────────────
+
+  /// Exception 메시지에서 "Exception: " 접두사를 제거하여 사용자 친화적으로 표시
+  String _userFriendlyError(Object e) {
+    final msg = e.toString();
+    if (msg.startsWith('Exception: ')) {
+      return msg.substring(11);
+    }
+    return msg;
   }
 }

@@ -1,8 +1,11 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/services/sync/sync_service.dart';
+import '../../../shared/models/user_plan.dart';
 import '../../auth/providers/auth_notifier.dart';
+import '../../subscription/providers/plan_notifier.dart';
 
 part 'family_sync_notifier.g.dart';
 
@@ -33,12 +36,20 @@ class FamilySyncNotifier extends _$FamilySyncNotifier {
   Future<void> sync() async {
     if (state.isSyncing) return;
 
-    // 1. 로그인 확인
+    // 1. 로그인 + 플랜 확인 (관리자 오버라이드 반영)
     final user = ref.read(authNotifierProvider).valueOrNull;
-    if (user == null || !user.hasFamilyPlan) {
+    if (user == null) {
       state = state.copyWith(
         status: SyncStatus.error,
-        errorMessage: '패밀리 플랜 로그인이 필요합니다.',
+        errorMessage: '로그인이 필요합니다.',
+      );
+      return;
+    }
+    final plan = ref.read(planNotifierProvider).valueOrNull ?? UserPlan.free;
+    if (!plan.hasCloud) {
+      state = state.copyWith(
+        status: SyncStatus.error,
+        errorMessage: '패밀리 플랜 이상이 필요합니다.',
       );
       return;
     }
@@ -62,12 +73,19 @@ class FamilySyncNotifier extends _$FamilySyncNotifier {
         lastSyncAt: DateTime.now(),
         pendingCount: 0,
       );
-      // ignore: avoid_print
-      print('[Sync] pulled=${result.pulled}, pushed=${result.pushed}');
+      debugPrint('[Sync] 다운로드=${result.pulled}, 업로드=${result.pushed}');
     } catch (e) {
+      debugPrint('[Sync] 동기화 오류: $e');
+      // 사용자에게 보여줄 에러 메시지 정리
+      final msg = e.toString();
+      final userMsg = msg.startsWith('Exception: ')
+          ? msg.substring(11)
+          : msg.contains('SocketException') || msg.contains('ClientException')
+              ? '서버 연결에 실패했습니다. 네트워크를 확인해 주세요.'
+              : '동기화 중 오류가 발생했습니다: $msg';
       state = state.copyWith(
         status: SyncStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: userMsg,
       );
     }
   }
