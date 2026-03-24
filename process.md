@@ -4067,3 +4067,31 @@ dependencies:
 - [x] `Info.plist` — Google 역방향 URL Scheme 추가
 - [x] Workers `GOOGLE_CLIENT_ID` 시크릿 등록 + 재배포
 - [x] iPad 실기기 Google 로그인 화면 진입 확인
+
+---
+
+## Phase 22 — 가족지도 주소검색 + 족보저장 수정 + 백업 복원 개선 (2026-03-24)
+
+> 가족지도 위치 추가 UX 개선, 전체 족보 저장 캔버스 잘림 수정, 백업 복원 후 캔버스 갱신 버그 수정
+
+---
+
+### 가족지도 — 주소 검색 자동완성 ✅
+
+- [x] `korean_locations.dart` — 한국 전체 시/군/구 ~230개 좌표 데이터 생성
+- [x] `add_location_sheet.dart` — "도시 빠른 선택" 칩 → 자동완성 검색 필드 교체
+- [x] 타이핑 시 최대 8개 결과 필터링, 선택 시 좌표 자동 설정
+- [x] "상세 주소" 필드 분리 (검색 결과 + 상세 합산 저장)
+
+### 전체 족보 저장 — 캔버스 잘림 수정 ✅
+
+- [x] `LayoutBuilder` + `TransformationController`로 미리보기 자동 맞춤
+- [x] `computeContentBounds` 패딩 100→300px 확대
+- [x] `TreeGrowthOverlay` — `FittedBox(fit: contain)`으로 캔버스 내 제한
+- [x] `Stack(Clip.none)` → `Clip.hardEdge`로 캡처 이미지 경계 정리
+- [x] `InteractiveViewer` minScale 0.02, boundaryMargin infinite
+
+### 백업 복원 후 캔버스 갱신 ✅
+
+- [x] `backup_notifier.dart` — 복원 시 `canvasNotifierProvider` invalidate 추가
+- [x] `app.dart` — 복원 완료 다이얼로그에서 캔버스 데이터 강제 갱신 후 홈 이동

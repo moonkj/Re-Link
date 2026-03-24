@@ -6,33 +6,8 @@ import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/node_model.dart';
 import '../../../shared/repositories/node_repository.dart';
+import '../data/korean_locations.dart';
 import '../providers/family_map_notifier.dart';
-
-/// 미리 정의된 한국 도시 좌표
-class _KoreanCity {
-  final String name;
-  final double lat;
-  final double lng;
-  const _KoreanCity(this.name, this.lat, this.lng);
-}
-
-const _koreanCities = <_KoreanCity>[
-  _KoreanCity('서울', 37.5665, 126.9780),
-  _KoreanCity('부산', 35.1796, 129.0756),
-  _KoreanCity('대구', 35.8714, 128.6014),
-  _KoreanCity('인천', 37.4563, 126.7052),
-  _KoreanCity('광주', 35.1595, 126.8526),
-  _KoreanCity('대전', 36.3504, 127.3845),
-  _KoreanCity('울산', 35.5384, 129.3114),
-  _KoreanCity('세종', 36.4800, 127.2890),
-  _KoreanCity('제주', 33.4996, 126.5312),
-  _KoreanCity('수원', 37.2636, 127.0286),
-  _KoreanCity('창원', 35.2270, 128.6811),
-  _KoreanCity('전주', 35.8242, 127.1480),
-  _KoreanCity('춘천', 37.8813, 127.7300),
-  _KoreanCity('포항', 36.0190, 129.3435),
-  _KoreanCity('경주', 35.8562, 129.2247),
-];
 
 /// 위치 추가 바텀시트
 class AddLocationSheet extends ConsumerStatefulWidget {
@@ -43,15 +18,17 @@ class AddLocationSheet extends ConsumerStatefulWidget {
 }
 
 class _AddLocationSheetState extends ConsumerState<AddLocationSheet> {
+  final _searchCtrl = TextEditingController();
   final _addressCtrl = TextEditingController();
   final _startYearCtrl = TextEditingController();
   final _endYearCtrl = TextEditingController();
+  final _searchFocusNode = FocusNode();
 
   String? _selectedNodeId;
   double? _lat;
   double? _lng;
   bool _saving = false;
-  _KoreanCity? _selectedCity;
+  KoreanLocation? _selectedLocation;
   List<NodeModel> _nodes = [];
 
   @override
@@ -68,27 +45,40 @@ class _AddLocationSheetState extends ConsumerState<AddLocationSheet> {
 
   @override
   void dispose() {
+    _searchCtrl.dispose();
     _addressCtrl.dispose();
     _startYearCtrl.dispose();
     _endYearCtrl.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
-  void _selectCity(_KoreanCity city) {
+  void _selectLocation(KoreanLocation location) {
     HapticService.light();
     setState(() {
-      _selectedCity = city;
-      _addressCtrl.text = city.name;
-      _lat = city.lat;
-      _lng = city.lng;
+      _selectedLocation = location;
+      _searchCtrl.text = location.name;
+      _lat = location.lat;
+      _lng = location.lng;
     });
+    _searchFocusNode.unfocus();
   }
 
   bool get _isValid =>
       _selectedNodeId != null &&
-      _addressCtrl.text.trim().isNotEmpty &&
+      _searchCtrl.text.trim().isNotEmpty &&
       _lat != null &&
       _lng != null;
+
+  /// 검색어로 위치 필터링
+  List<KoreanLocation> _filterLocations(String query) {
+    if (query.isEmpty) return [];
+    final q = query.trim().toLowerCase();
+    return koreanLocations
+        .where((loc) => loc.name.toLowerCase().contains(q))
+        .take(8)
+        .toList();
+  }
 
   Future<void> _save() async {
     if (!_isValid || _saving) return;
@@ -98,9 +88,15 @@ class _AddLocationSheetState extends ConsumerState<AddLocationSheet> {
     final startYear = int.tryParse(_startYearCtrl.text.trim());
     final endYear = int.tryParse(_endYearCtrl.text.trim());
 
+    // 상세 주소가 있으면 합쳐서 저장
+    final detail = _addressCtrl.text.trim();
+    final fullAddress = detail.isNotEmpty
+        ? '${_searchCtrl.text.trim()} $detail'
+        : _searchCtrl.text.trim();
+
     await ref.read(familyMapNotifierProvider.notifier).addLocation(
           nodeId: _selectedNodeId!,
-          address: _addressCtrl.text.trim(),
+          address: fullAddress,
           lat: _lat!,
           lng: _lng!,
           startYear: startYear,
@@ -143,7 +139,7 @@ class _AddLocationSheetState extends ConsumerState<AddLocationSheet> {
             ),
             const SizedBox(height: AppSpacing.xl),
 
-            // ── 가족 구성원 선택 ──────────────────────────────────────────────────
+            // ── 가족 구성원 선택 ──────────────────────────────────
             Text(
               '가족 구성원',
               style: TextStyle(
@@ -187,9 +183,9 @@ class _AddLocationSheetState extends ConsumerState<AddLocationSheet> {
             ),
             const SizedBox(height: AppSpacing.xl),
 
-            // ── 빠른 선택: 한국 주요 도시 ────────────────────────────────────────
+            // ── 주소 검색 (자동완성) ──────────────────────────────
             Text(
-              '도시 빠른 선택',
+              '주소 검색',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -197,51 +193,25 @@ class _AddLocationSheetState extends ConsumerState<AddLocationSheet> {
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: _koreanCities.map((city) {
-                final isSelected = _selectedCity == city;
-                return GestureDetector(
-                  onTap: () => _selectCity(city),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(100),
-                      color: isSelected
-                          ? AppColors.primaryMint.withAlpha(30)
-                          : AppColors.glassSurface,
-                      border: Border.all(
-                        color: isSelected
-                            ? AppColors.primaryMint
-                            : AppColors.glassBorder,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Text(
-                      city.name,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.w400,
-                        color: isSelected
-                            ? AppColors.primaryMint
-                            : AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
+            _AddressAutocomplete(
+              controller: _searchCtrl,
+              focusNode: _searchFocusNode,
+              selectedLocation: _selectedLocation,
+              onFilter: _filterLocations,
+              onSelected: _selectLocation,
+              onCleared: () {
+                setState(() {
+                  _selectedLocation = null;
+                  _lat = null;
+                  _lng = null;
+                });
+              },
             ),
             const SizedBox(height: AppSpacing.xl),
 
-            // ── 주소 직접 입력 ─────────────────────────────────────────────────
+            // ── 상세 주소 (선택) ──────────────────────────────────
             Text(
-              '주소 (상세)',
+              '상세 주소 (선택)',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -253,7 +223,7 @@ class _AddLocationSheetState extends ConsumerState<AddLocationSheet> {
               controller: _addressCtrl,
               style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
               decoration: InputDecoration(
-                hintText: '예: 서울 종로구, 부산 해운대',
+                hintText: '예: 흥덕구 대농로 17',
                 hintStyle: TextStyle(color: AppColors.textTertiary),
                 filled: true,
                 fillColor: AppColors.glassSurface,
@@ -273,7 +243,7 @@ class _AddLocationSheetState extends ConsumerState<AddLocationSheet> {
             ),
             const SizedBox(height: AppSpacing.xl),
 
-            // ── 연도 범위 (선택) ──────────────────────────────────────────────
+            // ── 연도 범위 (선택) ──────────────────────────────────
             Text(
               '거주 기간 (선택)',
               style: TextStyle(
@@ -353,7 +323,7 @@ class _AddLocationSheetState extends ConsumerState<AddLocationSheet> {
             ),
             const SizedBox(height: AppSpacing.xxl),
 
-            // ── 저장 버튼 ─────────────────────────────────────────────────────
+            // ── 저장 버튼 ──────────────────────────────────────────
             SizedBox(
               width: double.infinity,
               child: PrimaryGlassButton(
@@ -366,6 +336,214 @@ class _AddLocationSheetState extends ConsumerState<AddLocationSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// 주소 검색 자동완성 위젯
+class _AddressAutocomplete extends StatefulWidget {
+  const _AddressAutocomplete({
+    required this.controller,
+    required this.focusNode,
+    required this.selectedLocation,
+    required this.onFilter,
+    required this.onSelected,
+    required this.onCleared,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final KoreanLocation? selectedLocation;
+  final List<KoreanLocation> Function(String query) onFilter;
+  final ValueChanged<KoreanLocation> onSelected;
+  final VoidCallback onCleared;
+
+  @override
+  State<_AddressAutocomplete> createState() => _AddressAutocompleteState();
+}
+
+class _AddressAutocompleteState extends State<_AddressAutocomplete> {
+  List<KoreanLocation> _suggestions = [];
+  bool _showSuggestions = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onTextChanged);
+    widget.focusNode.addListener(_onFocusChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onTextChanged);
+    widget.focusNode.removeListener(_onFocusChanged);
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    final text = widget.controller.text;
+    // 이미 선택한 상태에서 텍스트가 변경되면 선택 해제
+    if (widget.selectedLocation != null &&
+        text != widget.selectedLocation!.name) {
+      widget.onCleared();
+    }
+    final results = widget.onFilter(text);
+    setState(() {
+      _suggestions = results;
+      _showSuggestions = results.isNotEmpty && widget.focusNode.hasFocus;
+    });
+  }
+
+  void _onFocusChanged() {
+    if (!widget.focusNode.hasFocus) {
+      // 약간 딜레이를 줘서 탭 이벤트가 먼저 처리되도록
+      Future.delayed(const Duration(milliseconds: 150), () {
+        if (mounted) setState(() => _showSuggestions = false);
+      });
+    } else {
+      _onTextChanged();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = widget.selectedLocation != null;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextField(
+          controller: widget.controller,
+          focusNode: widget.focusNode,
+          style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
+          decoration: InputDecoration(
+            hintText: '시/군/구 이름을 입력하세요',
+            hintStyle: TextStyle(color: AppColors.textTertiary),
+            prefixIcon: Icon(
+              Icons.search_rounded,
+              color: isSelected
+                  ? AppColors.primaryMint
+                  : AppColors.textTertiary,
+              size: 20,
+            ),
+            suffixIcon: widget.controller.text.isNotEmpty
+                ? GestureDetector(
+                    onTap: () {
+                      widget.controller.clear();
+                      widget.onCleared();
+                      widget.focusNode.requestFocus();
+                    },
+                    child: Icon(
+                      Icons.close_rounded,
+                      color: AppColors.textTertiary,
+                      size: 18,
+                    ),
+                  )
+                : null,
+            filled: true,
+            fillColor: AppColors.glassSurface,
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: isSelected
+                    ? AppColors.primaryMint
+                    : AppColors.glassBorder,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AppColors.primaryMint),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+          ),
+        ),
+
+        // 선택 완료 표시
+        if (isSelected) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Row(
+            children: [
+              Icon(
+                Icons.check_circle_rounded,
+                size: 14,
+                color: AppColors.primaryMint,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '${widget.selectedLocation!.name} 선택됨',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.primaryMint,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
+
+        // 검색 결과 드롭다운
+        if (_showSuggestions)
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            constraints: const BoxConstraints(maxHeight: 220),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              color: AppColors.bgSurface,
+              border: Border.all(color: AppColors.glassBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: ListView.separated(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                itemCount: _suggestions.length,
+                separatorBuilder: (_, _) => Divider(
+                  height: 1,
+                  color: AppColors.glassBorder,
+                ),
+                itemBuilder: (context, index) {
+                  final loc = _suggestions[index];
+                  return InkWell(
+                    onTap: () => widget.onSelected(loc),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 18,
+                            color: AppColors.textTertiary,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            loc.name,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

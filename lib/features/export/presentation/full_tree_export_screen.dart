@@ -25,12 +25,40 @@ class FullTreeExportScreen extends ConsumerStatefulWidget {
 class _FullTreeExportScreenState extends ConsumerState<FullTreeExportScreen> {
   bool _isExporting = false;
   final _repaintKey = GlobalKey();
+  final _transformCtrl = TransformationController();
+  bool _didAutoFit = false;
 
   /// 내보내기 해상도 배수 (1x = 원본, 2x = 고해상도)
   double _pixelRatio = 2.0;
 
   /// 배경색 옵션
   _ExportBg _bgOption = _ExportBg.dark;
+
+  @override
+  void dispose() {
+    _transformCtrl.dispose();
+    super.dispose();
+  }
+
+  /// LayoutBuilder constraints로 뷰포트에 맞춤
+  void _scheduleAutoFit(double vw, double vh, double cw, double ch) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final scaleX = vw / cw;
+      final scaleY = vh / ch;
+      final fitScale = (scaleX < scaleY ? scaleX : scaleY) * 0.90;
+      final dx = (vw - cw * fitScale) / 2;
+      final dy = (vh - ch * fitScale) / 2;
+
+      final m = Matrix4.identity();
+      m.storage[0] = fitScale;
+      m.storage[5] = fitScale;
+      m.storage[10] = 1.0;
+      m.storage[12] = dx;
+      m.storage[13] = dy;
+      _transformCtrl.value = m;
+    });
+  }
 
   Future<void> _export() async {
     setState(() => _isExporting = true);
@@ -92,7 +120,7 @@ class _FullTreeExportScreenState extends ConsumerState<FullTreeExportScreen> {
       nodePositions: positions,
       nodeWidth: kNodeCardWidth,
       nodeHeight: kNodeCardHeight,
-      padding: 100.0,
+      padding: 300.0,
     );
 
     // 캔버스 크기 결정 — 콘텐츠 기반 or 기본 4000x4000
@@ -146,12 +174,24 @@ class _FullTreeExportScreenState extends ConsumerState<FullTreeExportScreen> {
               children: [
                 // ── 미리보기 (스크롤/줌 가능) ──────────────────────────
                 Expanded(
-                  child: InteractiveViewer(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                    if (!_didAutoFit && nodes.isNotEmpty) {
+                      _didAutoFit = true;
+                      _scheduleAutoFit(
+                        constraints.maxWidth,
+                        constraints.maxHeight,
+                        canvasW,
+                        canvasH,
+                      );
+                    }
+                    return InteractiveViewer(
+                    transformationController: _transformCtrl,
                     constrained: false,
                     clipBehavior: Clip.none,
-                    minScale: 0.05,
+                    minScale: 0.02,
                     maxScale: 2.0,
-                    boundaryMargin: const EdgeInsets.all(200),
+                    boundaryMargin: const EdgeInsets.all(double.infinity),
                     child: RepaintBoundary(
                       key: _repaintKey,
                       child: Container(
@@ -159,14 +199,19 @@ class _FullTreeExportScreenState extends ConsumerState<FullTreeExportScreen> {
                         height: canvasH,
                         color: bgColor,
                         child: Stack(
-                          clipBehavior: Clip.none,
+                          clipBehavior: Clip.hardEdge,
                           children: [
-                            // 가족 나무 성장 배경 (캔버스와 동일하게 하단 중앙 배치)
+                            // 가족 나무 성장 배경 (캔버스 크기에 맞춰 제한)
                             Positioned(
-                              bottom: 100,
+                              bottom: 0,
                               left: 0,
                               right: 0,
-                              child: Center(child: TreeGrowthOverlay()),
+                              top: 0,
+                              child: FittedBox(
+                                fit: BoxFit.contain,
+                                alignment: Alignment.bottomCenter,
+                                child: TreeGrowthOverlay(),
+                              ),
                             ),
                             // 관계선 레이어
                             Positioned.fill(
@@ -207,7 +252,8 @@ class _FullTreeExportScreenState extends ConsumerState<FullTreeExportScreen> {
                         ),
                       ),
                     ),
-                  ),
+                  );
+                  }),
                 ),
 
                 // ── 컨트롤 패널 ─────────────────────────────────────────

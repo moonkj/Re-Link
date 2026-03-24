@@ -11,6 +11,7 @@ import 'design/tokens/app_colors.dart';
 import 'design/tokens/app_theme.dart';
 import 'features/changelog/presentation/changelog_modal.dart';
 import 'features/auth/providers/auth_notifier.dart';
+import 'features/canvas/providers/canvas_notifier.dart';
 import 'features/changelog/providers/changelog_notifier.dart';
 import 'features/backup/providers/backup_notifier.dart';
 import 'features/family_sync/providers/family_sync_notifier.dart';
@@ -291,14 +292,16 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
             ],
           ),
           content: Text(
-            '노드 ${manifest.nodeCount}개, 기억 ${manifest.memoryCount}개가 복원되었습니다.\n\n데이터를 적용하려면 앱을 재시작해야 합니다.',
+            '노드 ${manifest.nodeCount}개, 기억 ${manifest.memoryCount}개가 복원되었습니다.',
             style: TextStyle(color: AppColors.textSecondary, height: 1.5),
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(ctx);
-                ref.read(goRouterProvider).go('/');
+                // 캔버스 데이터 강제 갱신 후 홈으로 이동
+                ref.invalidate(canvasNotifierProvider);
+                ref.read(goRouterProvider).go(AppRoutes.canvas);
               },
               child: Text('확인', style: TextStyle(color: AppColors.primary)),
             ),

@@ -8,6 +8,7 @@ import '../../../core/services/cloud/google_drive_backup.dart';
 import '../../../core/services/cloud/cloud_backup_provider.dart';
 import '../../../shared/repositories/db_provider.dart';
 import '../../../shared/repositories/settings_repository.dart';
+import '../../canvas/providers/canvas_notifier.dart';
 
 part 'backup_notifier.g.dart';
 
@@ -189,6 +190,7 @@ class BackupNotifier extends _$BackupNotifier {
         ref.invalidate(appDatabaseProvider);
         ref.invalidate(backupServiceProvider);
         ref.invalidate(settingsRepositoryProvider);
+        ref.invalidate(canvasNotifierProvider);
       }
       state = state.copyWith(isLoading: false);
       return manifest;
@@ -240,6 +242,7 @@ class BackupNotifier extends _$BackupNotifier {
         ref.invalidate(appDatabaseProvider);
         ref.invalidate(backupServiceProvider);
         ref.invalidate(settingsRepositoryProvider);
+        ref.invalidate(canvasNotifierProvider);
       }
       state = state.copyWith(isLoading: false);
       return manifest;
