@@ -140,21 +140,29 @@ class _RestoreDetectScreenState extends ConsumerState<RestoreDetectScreen>
       await service.restoreBackup(file);
 
       // 복원 후 DB가 닫힌 상태 — 프로바이더 갱신 필수
-      if (service.restoreCompleted) {
-        ref.invalidate(appDatabaseProvider);
-        ref.invalidate(backupServiceProvider);
-        ref.invalidate(settingsRepositoryProvider);
-        ref.invalidate(canvasNotifierProvider);
-      }
+      _invalidateIfRestored(service);
 
       if (!mounted) return;
 
       // 복원 성공 → 캔버스 이동
       context.go(AppRoutes.canvas);
     } catch (e) {
+      // DB가 이미 닫힌 상태일 수 있으므로 프로바이더 갱신 시도
+      try {
+        final service = ref.read(backupServiceProvider);
+        _invalidateIfRestored(service);
+      } catch (_) {}
       if (!mounted) return;
       _showError('복원에 실패했습니다: $e');
     }
+  }
+
+  void _invalidateIfRestored(BackupService service) {
+    if (!service.restoreCompleted) return;
+    ref.invalidate(appDatabaseProvider);
+    ref.invalidate(backupServiceProvider);
+    ref.invalidate(settingsRepositoryProvider);
+    ref.invalidate(canvasNotifierProvider);
   }
 
   void _showError(String message) {

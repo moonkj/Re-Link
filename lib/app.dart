@@ -233,6 +233,7 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
     final fileName = file.path.split('/').last;
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.bgElevated,
         title: Row(

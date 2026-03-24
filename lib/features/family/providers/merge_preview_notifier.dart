@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/services/media/media_service.dart';
 import '../../../core/services/sync/media_upload_queue_service.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../shared/models/node_model.dart';
 import '../../../shared/repositories/node_repository.dart';
 import '../../../shared/repositories/settings_repository.dart';
@@ -261,14 +262,17 @@ class MergePreviewNotifier extends _$MergePreviewNotifier {
             // 중복 확인 (같은 ID)
             final existing = await _db.getMemory(memory.id);
             if (existing == null) {
+              // 경로를 상대경로로 정규화 (발신자 절대경로 호환)
+              final normFile = PathUtils.toRelative(memory.filePath);
+              final normThumb = PathUtils.toRelative(memory.thumbnailPath);
               await _db.upsertMemory(MemoriesTableCompanion.insert(
                 id: memory.id,
                 nodeId: memory.nodeId,
                 type: memory.type,
                 title: Value(memory.title),
                 description: Value(memory.description),
-                filePath: Value(memory.filePath),
-                thumbnailPath: Value(memory.thumbnailPath),
+                filePath: Value(normFile),
+                thumbnailPath: Value(normThumb),
                 durationSeconds: Value(memory.durationSeconds),
                 dateTaken: Value(memory.dateTaken),
                 tagsJson: Value(memory.tagsJson),

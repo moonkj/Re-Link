@@ -206,6 +206,8 @@ class BackupService {
         debugPrint('[BackupService] relink.db 경로: ${backupDb.path}');
         // DB를 닫고 파일을 덮어씀
         await db.close();
+        // DB 닫힌 즉시 restoreCompleted 설정 — copy 실패해도 프로바이더 갱신 보장
+        restoreCompleted = true;
         await backupDb.copy(dbPath);
         // 기존 WAL/SHM 파일 삭제 — 새 DB와 충돌 방지
         try {
@@ -214,7 +216,6 @@ class BackupService {
           if (await walFile.exists()) await walFile.delete();
           if (await shmFile.exists()) await shmFile.delete();
         } catch (_) {}
-        restoreCompleted = true;
       } else {
         debugPrint('[BackupService] relink.db를 찾을 수 없습니다. 추출 경로: ${extractDir.path}');
         throw Exception('백업 파일에 데이터베이스(relink.db)가 포함되어 있지 않습니다.');
