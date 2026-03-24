@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/backup/backup_format.dart';
-import '../../../core/services/backup/backup_service.dart';
 import '../../../core/services/sync/media_upload_queue_service.dart';
 import '../../../core/services/sync/r2_media_service.dart';
 import '../../../design/glass/app_glass.dart';
@@ -240,25 +239,27 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
             ],
           ),
 
-          // 로딩 오버레이
+          // 로딩 오버레이 (터치 이벤트 차단)
           if (backupState.isLoading)
-            Container(
-              color: Colors.black38,
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(color: AppColors.primary),
-                    const SizedBox(height: AppSpacing.lg),
-                    Text(
-                      '처리 중...',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+            AbsorbPointer(
+              child: Container(
+                color: Colors.black38,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(color: AppColors.primary),
+                      const SizedBox(height: AppSpacing.lg),
+                      Text(
+                        '처리 중...',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -296,9 +297,11 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   }
 
   Future<void> _exportFile() async {
+    final notifier = ref.read(backupNotifierProvider.notifier);
     try {
-      final file = await ref.read(backupServiceProvider).createBackup();
-      if (!mounted) return;
+      // BackupNotifier를 통해 백업 생성 (로딩 상태 표시)
+      final file = await notifier.backup();
+      if (!mounted || file == null) return;
       final box = context.findRenderObject() as RenderBox?;
       final origin = box != null
           ? box.localToGlobal(Offset.zero) & box.size

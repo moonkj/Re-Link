@@ -111,6 +111,7 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
 
   StreamSubscription<Uri>? _linkSub;
   DateTime? _lastSyncTrigger;
+  bool _rlinkDialogShowing = false;
 
   @override
   void initState() {
@@ -225,8 +226,10 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
     });
   }
 
-  /// .rlink 파일 복원 확인 대화상자
+  /// .rlink 파일 복원 확인 대화상자 (이중 표시 방지)
   void _showRlinkRestoreDialog(File file) {
+    if (_rlinkDialogShowing) return;
+    _rlinkDialogShowing = true;
     final fileName = file.path.split('/').last;
     showDialog(
       context: context,
@@ -250,11 +253,15 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
+            onPressed: () {
+              _rlinkDialogShowing = false;
+              Navigator.pop(ctx);
+            },
             child: const Text('취소'),
           ),
           TextButton(
             onPressed: () {
+              _rlinkDialogShowing = false;
               Navigator.pop(ctx);
               _restoreRlinkFile(file);
             },

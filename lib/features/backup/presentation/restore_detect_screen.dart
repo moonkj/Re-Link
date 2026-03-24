@@ -9,6 +9,9 @@ import '../../../core/services/backup/backup_format.dart';
 import '../../../core/services/cloud/cloud_backup_provider.dart';
 import '../../../core/services/cloud/icloud_backup.dart';
 import '../../../core/services/cloud/google_drive_backup.dart';
+import '../../../shared/repositories/db_provider.dart';
+import '../../../shared/repositories/settings_repository.dart';
+import '../../canvas/providers/canvas_notifier.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -135,6 +138,14 @@ class _RestoreDetectScreenState extends ConsumerState<RestoreDetectScreen>
       final file = await provider.download(backup.filename);
       final service = ref.read(backupServiceProvider);
       await service.restoreBackup(file);
+
+      // 복원 후 DB가 닫힌 상태 — 프로바이더 갱신 필수
+      if (service.restoreCompleted) {
+        ref.invalidate(appDatabaseProvider);
+        ref.invalidate(backupServiceProvider);
+        ref.invalidate(settingsRepositoryProvider);
+        ref.invalidate(canvasNotifierProvider);
+      }
 
       if (!mounted) return;
 

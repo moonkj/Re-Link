@@ -4095,3 +4095,44 @@ dependencies:
 
 - [x] `backup_notifier.dart` — 복원 시 `canvasNotifierProvider` invalidate 추가
 - [x] `app.dart` — 복원 완료 다이얼로그에서 캔버스 데이터 강제 갱신 후 홈 이동
+
+---
+
+## Phase 23 — 백업 시스템 전체 디버깅 (2026-03-24)
+
+> 팀 에이전트 4명(Coder/Debugger/Tester/Reviewer) 코드 리뷰 후 17개 버그 수정
+
+---
+
+### 백업 생성 수정 ✅
+
+- [x] `PRAGMA wal_checkpoint(TRUNCATE)` — 백업 전 WAL 플러시로 최신 데이터 보장
+- [x] manifest `totalBytes` 정확화 — DB+미디어 크기 사전 계산, 고아 `.meta` 파일 제거
+- [x] `_exportFile()` → `BackupNotifier.backup()` 경유로 변경 — 로딩 오버레이 표시
+
+### 백업 복원 수정 ✅
+
+- [x] 복원 시 기존 미디어 디렉토리 삭제 후 복사 — 고아 파일 방지
+- [x] 복원 후 `-wal`, `-shm` 파일 삭제 — 새 DB와 충돌 방지
+- [x] `restoreFromCloud` — `canvasNotifierProvider` invalidate 추가
+- [x] `RestoreDetectScreen._restore()` — 4개 프로바이더 invalidate 추가 (첫 실행 복원 크래시 수정)
+- [x] 3개 restore 메서드 catch 블록 — `restoreCompleted` 체크 후 프로바이더 갱신 (실패 시 앱 먹통 방지)
+- [x] `_invalidateAfterRestore()` 공통 헬퍼 메서드 추출
+
+### 병합(.rlink 가져오기) 전면 수정 ✅
+
+- [x] edges(관계선) 복사 — 양쪽 노드 존재 확인 + 중복 방지
+- [x] memories(기억) 복사 — 노드 존재 확인 + 중복 방지
+- [x] media 파일 복사 — 백업 미디어 → 앱 미디어 (기존 파일 보존)
+- [x] `db.transaction()` 래핑 — 원자적 실행, 중간 실패 시 롤백
+- [x] 충돌 감지 개선 — `updatedAt` 비교 제거, `name` 차이만 충돌로 판단
+- [x] `readAsBytesSync` → `readAsBytes` 비동기로 변경
+
+### UI / UX 수정 ✅
+
+- [x] 로딩 오버레이 `AbsorbPointer` 추가 — 작업 중 터치 이벤트 차단
+- [x] `.rlink` 이중 복원 방지 — `_rlinkDialogShowing` 플래그로 GoRouter+AppLinks 레이스 방지
+
+### 데이터 무결성 수정 ✅
+
+- [x] 음성 메모 `filePath` — 절대경로 → `PathUtils.toRelative()` 상대경로 변환 (복원 후 재생 가능)

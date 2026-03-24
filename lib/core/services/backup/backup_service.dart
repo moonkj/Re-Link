@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:archive/archive_io.dart';
-import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -78,6 +77,13 @@ class BackupService {
     // DB 파일 경로
     final dbPath = await getDatabasePath();
 
+    // WAL checkpoint — 미커밋 데이터를 메인 DB 파일로 플러시
+    try {
+      await db.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
+    } catch (_) {
+      // WAL 모드가 아닌 경우 무시
+    }
+
     // 미디어 디렉토리
     final mediaDir = await media.mediaRootDir;
 
@@ -99,7 +105,16 @@ class BackupService {
     final myNodeId = await settings.getMyNodeId();
     final inviteCode = await settings.getInviteCode();
 
-    // manifest 추가 (크기는 나중에)
+    // DB + 미디어 파일 총 크기 계산
+    final dbFile = File(dbPath);
+    int totalBytes = await dbFile.exists() ? await dbFile.length() : 0;
+    if (await mediaDir.exists()) {
+      await for (final entity in mediaDir.list(recursive: true)) {
+        if (entity is File) totalBytes += await entity.length();
+      }
+    }
+
+    // manifest 추가 (정확한 크기 포함)
     final tmpDir = await getTemporaryDirectory();
     final manifestTmp = File(p.join(tmpDir.path, 'manifest_tmp.json'));
     final manifest = BackupManifest(
@@ -108,7 +123,7 @@ class BackupService {
       appVersion: '${info.version}+${info.buildNumber}',
       nodeCount: nodeCount,
       memoryCount: memoryCount,
-      totalBytes: 0, // ZIP 완료 후 업데이트
+      totalBytes: totalBytes,
       senderNodeId: myNodeId,
       inviteCode: inviteCode,
     );
@@ -116,24 +131,6 @@ class BackupService {
     encoder.addFile(manifestTmp, 'manifest.json');
 
     encoder.close();
-
-    // 체크섬
-    final bytes = await File(outPath).readAsBytes();
-    final checksum = sha256.convert(bytes).toString();
-    final finalManifest = BackupManifest(
-      version: manifest.version,
-      createdAt: manifest.createdAt,
-      appVersion: manifest.appVersion,
-      nodeCount: manifest.nodeCount,
-      memoryCount: manifest.memoryCount,
-      totalBytes: bytes.length,
-      checksum: checksum,
-      senderNodeId: manifest.senderNodeId,
-      inviteCode: manifest.inviteCode,
-    );
-    // manifest를 체크섬 포함해서 다시 덮어쓰기 (별도 파일에 저장)
-    final checksumFile = File(p.join(tmpDir.path, '$filename.meta'));
-    await checksumFile.writeAsString(jsonEncode(finalManifest.toJson()));
 
     // 마지막 백업 시각 기록
     await settings.setLastBackupAt(now);
@@ -144,7 +141,7 @@ class BackupService {
         version: backupVersion,
         date: now.toIso8601String(),
         fileName: filename,
-        sizeBytes: bytes.length,
+        sizeBytes: totalBytes,
       ));
       await _pruneLocalBackups();
     }
@@ -210,19 +207,28 @@ class BackupService {
         // DB를 닫고 파일을 덮어씀
         await db.close();
         await backupDb.copy(dbPath);
+        // 기존 WAL/SHM 파일 삭제 — 새 DB와 충돌 방지
+        try {
+          final walFile = File('$dbPath-wal');
+          final shmFile = File('$dbPath-shm');
+          if (await walFile.exists()) await walFile.delete();
+          if (await shmFile.exists()) await shmFile.delete();
+        } catch (_) {}
         restoreCompleted = true;
-        // 중요: DB가 닫힌 상태이므로, 앱 재시작이 필요함.
-        // Riverpod의 appDatabaseProvider를 invalidate해야 새 연결이 생성됨.
       } else {
         debugPrint('[BackupService] relink.db를 찾을 수 없습니다. 추출 경로: ${extractDir.path}');
         throw Exception('백업 파일에 데이터베이스(relink.db)가 포함되어 있지 않습니다.');
       }
 
-      // 미디어 복원 — 루트 또는 서브폴더에서 유연하게 검색
+      // 미디어 복원 — 기존 미디어 정리 후 복사
+      final mediaDir = await media.mediaRootDir;
       final backupMedia = await _findDirectoryRecursive(extractDir, 'media');
       if (backupMedia != null && await backupMedia.exists()) {
         debugPrint('[BackupService] media 디렉토리 경로: ${backupMedia.path}');
-        final mediaDir = await media.mediaRootDir;
+        // 기존 미디어 삭제 (고아 파일 방지)
+        if (await mediaDir.exists()) {
+          await mediaDir.delete(recursive: true);
+        }
         await _copyDirectory(backupMedia, mediaDir);
       }
 

@@ -147,9 +147,15 @@ class MediaService {
     return p.join(dir.path, filename);
   }
 
+  /// 음성 녹음용 새 파일 경로 (절대경로 — 녹음에 사용)
   Future<String> newVoicePath() async {
     final dir = await _voiceDir;
     return p.join(dir.path, '${_uuid.v4()}.m4a');
+  }
+
+  /// 녹음 완료 후 DB 저장용 상대경로 변환
+  String voicePathForDb(String absolutePath) {
+    return PathUtils.toRelative(absolutePath) ?? absolutePath;
   }
 
   // ── 영상 선택/촬영 + 저장 ────────────────────────────────────────────────

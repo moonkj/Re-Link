@@ -7,7 +7,7 @@ part of 'family_sync_notifier.dart';
 // **************************************************************************
 
 String _$familySyncNotifierHash() =>
-    r'deeef4078565ef9b0729241bb825b29bcf5723d4';
+    r'f7740a486308e183fe881b96cf02b0e807f75d6f';
 
 /// See also [FamilySyncNotifier].
 @ProviderFor(FamilySyncNotifier)

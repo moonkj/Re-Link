@@ -125,11 +125,13 @@ class MemoryNotifier extends _$MemoryNotifier {
     state = const AsyncLoading();
     try {
       await _checkVoiceLimit(durationSeconds);
+      // 절대경로 → 상대경로 변환 (복원 시 경로 호환성)
+      final relPath = PathUtils.toRelative(filePath) ?? filePath;
       final memory = await _repo.create(
         nodeId: nodeId,
         type: MemoryType.voice,
         title: title,
-        filePath: filePath,
+        filePath: relPath,
         durationSeconds: durationSeconds,
         dateTaken: DateTime.now(),
         tags: tags,

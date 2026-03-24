@@ -157,19 +157,16 @@ class BackupNotifier extends _$BackupNotifier {
       return false;
     }
     state = state.copyWith(isLoading: true, clearError: true);
+    final service = ref.read(backupServiceProvider);
     try {
       final file = await _cloudProvider!.download(backup.filename);
-      final service = ref.read(backupServiceProvider);
       await service.restoreBackup(file);
-      // 복원 후 DB가 닫힌 상태 — Riverpod provider를 invalidate하여 새 DB 연결 생성
-      if (service.restoreCompleted) {
-        ref.invalidate(appDatabaseProvider);
-        ref.invalidate(backupServiceProvider);
-        ref.invalidate(settingsRepositoryProvider);
-      }
+      _invalidateAfterRestore(service);
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
+      // DB가 이미 닫힌 상태라면 프로바이더 갱신 필수
+      if (service.restoreCompleted) _invalidateAfterRestore(service);
       state = state.copyWith(
         isLoading: false,
         error: '클라우드 복원 실패: ${_userFriendlyError(e)}',
@@ -182,19 +179,14 @@ class BackupNotifier extends _$BackupNotifier {
 
   Future<BackupManifest?> restoreFromFile(File file) async {
     state = state.copyWith(isLoading: true, clearError: true);
+    final service = ref.read(backupServiceProvider);
     try {
-      final service = ref.read(backupServiceProvider);
       final manifest = await service.restoreBackup(file);
-      // 복원 후 DB가 닫힌 상태 — Riverpod provider를 invalidate하여 새 DB 연결 생성
-      if (service.restoreCompleted) {
-        ref.invalidate(appDatabaseProvider);
-        ref.invalidate(backupServiceProvider);
-        ref.invalidate(settingsRepositoryProvider);
-        ref.invalidate(canvasNotifierProvider);
-      }
+      _invalidateAfterRestore(service);
       state = state.copyWith(isLoading: false);
       return manifest;
     } catch (e) {
+      if (service.restoreCompleted) _invalidateAfterRestore(service);
       state = state.copyWith(
         isLoading: false,
         error: '복원 실패: ${_userFriendlyError(e)}',
@@ -207,9 +199,8 @@ class BackupNotifier extends _$BackupNotifier {
 
   Future<BackupManifest?> restoreFromVersion(BackupVersionEntry entry) async {
     state = state.copyWith(isLoading: true, clearError: true);
+    final service = ref.read(backupServiceProvider);
     try {
-      final service = ref.read(backupServiceProvider);
-
       // 1. 로컬 임시 디렉토리에서 해당 버전 파일 찾기
       final localBackups = await service.getLocalBackups();
       final match = localBackups.where((f) => f.path.endsWith(entry.fileName));
@@ -237,22 +228,27 @@ class BackupNotifier extends _$BackupNotifier {
       }
 
       final manifest = await service.restoreBackup(backupFile);
-      // 복원 후 DB가 닫힌 상태 — Riverpod provider를 invalidate하여 새 DB 연결 생성
-      if (service.restoreCompleted) {
-        ref.invalidate(appDatabaseProvider);
-        ref.invalidate(backupServiceProvider);
-        ref.invalidate(settingsRepositoryProvider);
-        ref.invalidate(canvasNotifierProvider);
-      }
+      _invalidateAfterRestore(service);
       state = state.copyWith(isLoading: false);
       return manifest;
     } catch (e) {
+      if (service.restoreCompleted) _invalidateAfterRestore(service);
       state = state.copyWith(
         isLoading: false,
         error: '버전 복원 실패: ${_userFriendlyError(e)}',
       );
       return null;
     }
+  }
+
+  // ── 복원 후 프로바이더 갱신 (공통) ───────────────────────────────────────
+
+  void _invalidateAfterRestore(BackupService service) {
+    if (!service.restoreCompleted) return;
+    ref.invalidate(appDatabaseProvider);
+    ref.invalidate(backupServiceProvider);
+    ref.invalidate(settingsRepositoryProvider);
+    ref.invalidate(canvasNotifierProvider);
   }
 
   // ── 자동 백업 체크 (앱 포그라운드 진입 시 호출) ───────────────────────────
