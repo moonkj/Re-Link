@@ -24,12 +24,14 @@ class VoiceLegacyCard extends StatefulWidget {
     required this.fromName,
     required this.toName,
     required this.onTap,
+    this.onLongPress,
   });
 
   final VoiceLegacyTableData legacy;
   final String fromName;
   final String toName;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   @override
   State<VoiceLegacyCard> createState() => _VoiceLegacyCardState();
@@ -116,7 +118,9 @@ class _VoiceLegacyCardState extends State<VoiceLegacyCard>
         statusColor = AppColors.success;
     }
 
-    final card = GlassCard(
+    final card = GestureDetector(
+      onLongPress: widget.onLongPress,
+      child: GlassCard(
       onTap: widget.onTap,
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
@@ -182,6 +186,7 @@ class _VoiceLegacyCardState extends State<VoiceLegacyCard>
           ),
         ],
       ),
+    ),
     );
 
     // openable 상태: 부드러운 펄스 애니메이션

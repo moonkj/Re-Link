@@ -81,6 +81,7 @@ class CapsuleListScreen extends ConsumerWidget {
               return CapsuleCard(
                 capsule: capsule,
                 onTap: () => _onCapsuleTap(context, ref, capsule),
+                onLongPress: () => _confirmDeleteCapsule(context, ref, capsule),
               );
             },
           );
@@ -198,6 +199,59 @@ class CapsuleListScreen extends ConsumerWidget {
               '열기',
               style: TextStyle(
                 color: AppColors.accent,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 캡슐 삭제 확인 (롱프레스 — 봉인 상태에서도 삭제 가능)
+  void _confirmDeleteCapsule(
+    BuildContext context,
+    WidgetRef ref,
+    CapsulesTableData capsule,
+  ) {
+    HapticService.medium();
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          '캡슐 삭제',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        content: Text(
+          '"${capsule.title}" 캡슐을 삭제할까요?\n포함된 기억은 삭제되지 않습니다.',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text('취소',
+                style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await ref
+                  .read(capsuleNotifierProvider.notifier)
+                  .delete(capsule.id);
+            },
+            child: const Text(
+              '삭제',
+              style: TextStyle(
+                color: AppColors.error,
                 fontWeight: FontWeight.w700,
               ),
             ),

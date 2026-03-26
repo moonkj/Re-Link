@@ -22,10 +22,12 @@ class CapsuleCard extends StatefulWidget {
     super.key,
     required this.capsule,
     required this.onTap,
+    this.onLongPress,
   });
 
   final CapsulesTableData capsule;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   @override
   State<CapsuleCard> createState() => _CapsuleCardState();
@@ -105,7 +107,9 @@ class _CapsuleCardState extends State<CapsuleCard>
         statusColor = AppColors.success;
     }
 
-    final card = GlassCard(
+    final card = GestureDetector(
+      onLongPress: widget.onLongPress,
+      child: GlassCard(
       onTap: widget.onTap,
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
@@ -160,6 +164,7 @@ class _CapsuleCardState extends State<CapsuleCard>
           ),
         ],
       ),
+    ),
     );
 
     // openable 상태: 부드러운 펄스 애니메이션
