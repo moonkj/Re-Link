@@ -36,9 +36,7 @@ class CapsuleNotifier extends _$CapsuleNotifier {
         memoryIds: memoryIds,
       );
       // 캡슐 열림 알림 스케줄
-      if (id != null) {
-        _scheduleCapsuleNotification(id, title, openDate);
-      }
+      await _scheduleCapsuleNotification(id, title, openDate);
       state = const AsyncData(null);
       return id;
     } catch (e, st) {
@@ -48,14 +46,14 @@ class CapsuleNotifier extends _$CapsuleNotifier {
   }
 
   /// 캡슐 열림 알림 스케줄
-  void _scheduleCapsuleNotification(
+  Future<void> _scheduleCapsuleNotification(
     String capsuleId,
     String title,
     DateTime openDate,
-  ) {
+  ) async {
     try {
       final svc = ref.read(notificationServiceProvider);
-      svc.scheduleAt(
+      await svc.scheduleAt(
         id: NotificationId.capsuleBase.forItem(capsuleId),
         title: '기억 캡슐이 열렸어요!',
         body: '"$title" 캡슐을 열어볼 시간입니다.',

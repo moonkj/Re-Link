@@ -172,16 +172,26 @@ class CapsuleListScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
-              Navigator.of(ctx).pop();
-              final success = await ref
-                  .read(capsuleNotifierProvider.notifier)
-                  .open(capsule.id);
-              if (success && context.mounted) {
-                // 열림 애니메이션 표시
-                await showSealAnimation(
-                  context,
-                  type: SealAnimationType.unseal,
-                );
+              // async gap 전에 notifier 캡처
+              // — capsuleNotifierProvider는 AutoDispose이므로
+              //   await 중 dispose 될 수 있어 미리 참조 확보
+              final notifier = ref.read(capsuleNotifierProvider.notifier);
+              Navigator.of(ctx).pop(); // 다이얼로그 닫기
+
+              try {
+                final success = await notifier.open(capsule.id);
+
+                if (success && context.mounted) {
+                  // 열림 애니메이션 표시
+                  await showSealAnimation(
+                    context,
+                    type: SealAnimationType.unseal,
+                  );
+                }
+              } catch (e) {
+                // notifier dispose 등 예외 시 조용히 처리
+                // — DB는 이미 업데이트되었을 수 있으므로 리스트가 갱신됨
+                debugPrint('[CapsuleOpen] 열기 처리 중 에러: $e');
               }
             },
             child: const Text(

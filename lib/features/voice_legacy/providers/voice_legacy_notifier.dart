@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/services/notification/notification_service.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../shared/repositories/voice_legacy_repository.dart';
 
 part 'voice_legacy_notifier.g.dart';
@@ -33,11 +34,13 @@ class VoiceLegacyNotifier extends _$VoiceLegacyNotifier {
   }) async {
     state = const AsyncLoading();
     try {
+      // 절대경로 → 상대경로 변환 (복원 시 경로 호환성)
+      final relPath = PathUtils.toRelative(voicePath) ?? voicePath;
       final id = await _repo.create(
         fromNodeId: fromNodeId,
         toNodeId: toNodeId,
         title: title,
-        voicePath: voicePath,
+        voicePath: relPath,
         durationSeconds: durationSeconds,
         openCondition: openCondition,
         openDate: openDate,

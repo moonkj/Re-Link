@@ -240,9 +240,8 @@ class _SealAnimationState extends State<SealAnimation>
                     child: child,
                   ),
                 ),
-                child: Positioned(
-                  bottom: 30,
-                  right: 50,
+                child: Transform.translate(
+                  offset: const Offset(20, 20),
                   child: Container(
                     width: 40,
                     height: 40,
@@ -312,20 +311,34 @@ class _RipplePainter extends CustomPainter {
 }
 
 /// 봉인 애니메이션을 다이얼로그 오버레이로 표시
+///
+/// 안전장치: onComplete 실패 시 3초 후 자동 닫힘 (영구 멈춤 방지)
 Future<void> showSealAnimation(
   BuildContext context, {
   required SealAnimationType type,
 }) {
+  var dismissed = false;
+
+  void safePop(BuildContext ctx) {
+    if (!dismissed && ctx.mounted) {
+      dismissed = true;
+      Navigator.of(ctx).pop();
+    }
+  }
+
   return showGeneralDialog<void>(
     context: context,
     barrierDismissible: false,
     barrierColor: Colors.transparent,
-    pageBuilder: (ctx, _, __) => SealAnimation(
-      type: type,
-      onComplete: () {
-        if (ctx.mounted) Navigator.of(ctx).pop();
-      },
-    ),
+    pageBuilder: (ctx, _, __) {
+      // 안전장치: 3초 후 자동 닫힘
+      Future.delayed(const Duration(seconds: 3), () => safePop(ctx));
+
+      return SealAnimation(
+        type: type,
+        onComplete: () => safePop(ctx),
+      );
+    },
     transitionDuration: const Duration(milliseconds: 100),
   );
 }

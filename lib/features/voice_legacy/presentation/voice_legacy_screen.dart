@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/utils/haptic_service.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -277,11 +278,13 @@ class _PlayLegacySheetState extends ConsumerState<_PlayLegacySheet> {
   }
 
   Future<void> _initPlayer() async {
-    if (!File(widget.legacy.voicePath).existsSync()) return;
+    // 상대경로/절대경로 모두 처리
+    final resolvedPath = PathUtils.toAbsolute(widget.legacy.voicePath);
+    if (resolvedPath == null || !File(resolvedPath).existsSync()) return;
     _playerCtrl = PlayerController();
     try {
       await _playerCtrl!.preparePlayer(
-        path: widget.legacy.voicePath,
+        path: resolvedPath,
         shouldExtractWaveform: true,
       );
       _playerCtrl!.onPlayerStateChanged.listen((_) {
