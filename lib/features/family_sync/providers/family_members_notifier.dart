@@ -104,24 +104,21 @@ class FamilyMembersNotifier extends _$FamilyMembersNotifier {
 
   /// 초대 링크 생성 — 사전 조건 체크 포함
   Future<InviteLinkResult> createInviteLink() async {
-    // 1. 로그인 체크
-    final user = ref.read(authNotifierProvider).valueOrNull;
-    if (user == null) {
-      debugPrint('[FamilyMembers] createInviteLink: 로그인 안됨');
-      return const InviteLinkResult.failure(
-        '로그인이 필요합니다.\n설정 > 계정에서 로그인해주세요.',
-        InviteErrorType.notLoggedIn,
-      );
-    }
-
-    // 2. 플랜 체크
+    // 1. 플랜 체크
     final plan = ref.read(planNotifierProvider).valueOrNull ?? UserPlan.free;
     if (!plan.hasCloud) {
-      debugPrint('[FamilyMembers] createInviteLink: 패밀리 플랜 아님 (현재: ${plan.displayName})');
+      debugPrint('[FamilyMembers] createInviteLink: 패밀리 플랜 아님 (현재: ${plan.name})');
       return const InviteLinkResult.failure(
         '가족 공유 기능은 패밀리 플랜 이상에서 사용할 수 있습니다.',
         InviteErrorType.noPlan,
       );
+    }
+
+    // 2. 로그인 안 되어있으면 → 로컬 초대 코드 생성 (관리자 모드 등)
+    final user = ref.read(authNotifierProvider).valueOrNull;
+    if (user == null) {
+      debugPrint('[FamilyMembers] createInviteLink: 로그인 안됨 → 로컬 초대 코드');
+      return _createLocalInvite();
     }
 
     // 3. 서버 API 호출 (실패 시 로컬 초대 코드로 폴백)
