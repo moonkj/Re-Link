@@ -206,9 +206,9 @@ class BackupService {
         debugPrint('[BackupService] relink.db 경로: ${backupDb.path}');
         // DB를 닫고 파일을 덮어씀
         await db.close();
-        // DB 닫힌 즉시 restoreCompleted 설정 — copy 실패해도 프로바이더 갱신 보장
-        restoreCompleted = true;
         await backupDb.copy(dbPath);
+        // copy 성공 후 restoreCompleted 설정 — 실패 시 플래그가 남지 않도록
+        restoreCompleted = true;
         // 기존 WAL/SHM 파일 삭제 — 새 DB와 충돌 방지
         try {
           final walFile = File('$dbPath-wal');

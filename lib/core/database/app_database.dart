@@ -206,6 +206,25 @@ class AppDatabase extends _$AppDatabase {
   /// CASCADE FK가 설정된 memories, node_edges 외에도
   /// nodeId를 텍스트로 참조하는 8개 테이블을 함께 정리합니다.
   Future<void> deleteNodeAndRelated(String id) => transaction(() async {
+        // 0. 노드의 memory ID 목록 수집 (then_now, capsule_items 정리용)
+        final memories = await getMemoriesForNode(id);
+        final memoryIds = memories.map((m) => m.id).toList();
+
+        // 0a. then_now (memoryId1 OR memoryId2가 이 노드의 기억인 경우)
+        if (memoryIds.isNotEmpty) {
+          await (delete(thenNowTable)
+                ..where((t) =>
+                    t.memoryId1.isIn(memoryIds) | t.memoryId2.isIn(memoryIds)))
+              .go();
+        }
+
+        // 0b. capsule_items (memoryId가 이 노드의 기억인 경우)
+        if (memoryIds.isNotEmpty) {
+          await (delete(capsuleItemsTable)
+                ..where((t) => t.memoryId.isIn(memoryIds)))
+              .go();
+        }
+
         // 1. temperature_logs (nodeId)
         await (delete(temperatureLogsTable)
               ..where((t) => t.nodeId.equals(id)))

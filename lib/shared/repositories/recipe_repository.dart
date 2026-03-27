@@ -47,6 +47,11 @@ class RecipeRepository {
     return id;
   }
 
+  /// 레시피 단건 조회
+  Future<RecipesTableData?> getById(String id) =>
+      (_db.select(_db.recipesTable)..where((t) => t.id.equals(id)))
+          .getSingleOrNull();
+
   /// 레시피 삭제
   Future<int> delete(String id) => _db.deleteRecipe(id);
 }

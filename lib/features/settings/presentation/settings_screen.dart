@@ -26,6 +26,7 @@ import '../providers/theme_mode_notifier.dart';
 import '../../auth/providers/auth_notifier.dart';
 import '../../canvas/providers/my_node_provider.dart';
 import '../../../core/utils/pin_recovery_helper.dart';
+import '../../../shared/repositories/node_repository.dart';
 
 /// 관리자 모드 활성화 여부 (DB 연동)
 final _adminEnabledProvider = FutureProvider<bool>((ref) async {
@@ -314,6 +315,20 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
           nickname:
               _nicknameCtrl.text.trim().isEmpty ? null : _nicknameCtrl.text.trim(),
         );
+    // 프로필 이름 → 내 노드 이름 동기화
+    try {
+      final myNodeId = await ref.read(settingsRepositoryProvider).getMyNodeId();
+      if (myNodeId != null && myNodeId.isNotEmpty) {
+        final nodeRepo = ref.read(nodeRepositoryProvider);
+        final myNode = await nodeRepo.getById(myNodeId);
+        if (myNode != null && myNode.name != name) {
+          final updated = myNode.copyWith(name: name, updatedAt: DateTime.now());
+          await nodeRepo.update(updated);
+        }
+      }
+    } catch (_) {
+      // 노드 동기화 실패는 무시 (프로필 저장은 성공)
+    }
     if (!mounted) return;
     Navigator.of(context).pop();
   }
@@ -1365,9 +1380,12 @@ class _AccountSection extends ConsumerWidget {
 
   Widget _buildSignedInContent(BuildContext context, WidgetRef ref, authUser) {
     final isFamily = authUser.hasFamilyPlan as bool;
-    final providerIcon = (authUser.provider as String) == 'apple'
+    final providerStr = authUser.provider as String;
+    final providerIcon = providerStr == 'apple'
         ? Icons.apple
-        : Icons.account_circle_outlined;
+        : providerStr == 'kakao'
+            ? Icons.chat_bubble
+            : Icons.account_circle_outlined;
     final email = authUser.email as String?;
 
     return Column(
@@ -1398,7 +1416,11 @@ class _AccountSection extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    (authUser.provider as String) == 'apple' ? 'Apple ID' : 'Google 계정',
+                    providerStr == 'apple'
+                        ? 'Apple ID'
+                        : providerStr == 'kakao'
+                            ? '카카오 계정'
+                            : 'Google 계정',
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,

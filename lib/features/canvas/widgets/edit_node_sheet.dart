@@ -248,13 +248,19 @@ class _EditNodeSheetState extends ConsumerState<EditNodeSheet> {
     }
     setState(() => _saving = true);
     try {
+      final nickname = _nicknameCtrl.text.trim();
+      final bio = _bioCtrl.text.trim();
       final updated = widget.node.copyWith(
         name: name,
-        nickname: _nicknameCtrl.text.trim().isEmpty ? null : _nicknameCtrl.text.trim(),
-        bio: _bioCtrl.text.trim().isEmpty ? null : _bioCtrl.text.trim(),
+        nickname: nickname.isEmpty ? null : nickname,
+        clearNickname: nickname.isEmpty,
+        bio: bio.isEmpty ? null : bio,
+        clearBio: bio.isEmpty,
         photoPath: _photoPath,
         birthDate: _birthDate,
+        clearBirthDate: _birthDate == null && widget.node.birthDate != null,
         deathDate: _deathDate,
+        clearDeathDate: _deathDate == null && widget.node.deathDate != null,
         updatedAt: DateTime.now(),
       );
       await ref.read(nodeNotifierProvider.notifier).updateNode(updated);

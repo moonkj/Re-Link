@@ -83,12 +83,24 @@ class CapsuleNotifier extends _$CapsuleNotifier {
   Future<bool> delete(String id) async {
     state = const AsyncLoading();
     try {
+      // 예약된 알림 취소
+      await _cancelCapsuleNotification(id);
       await _repo.delete(id);
       state = const AsyncData(null);
       return true;
     } catch (e, st) {
       state = AsyncError(e, st);
       return false;
+    }
+  }
+
+  /// 캡슐 알림 취소
+  Future<void> _cancelCapsuleNotification(String capsuleId) async {
+    try {
+      final svc = ref.read(notificationServiceProvider);
+      await svc.cancel(NotificationId.capsuleBase.forItem(capsuleId));
+    } catch (e) {
+      debugPrint('[CapsuleNotifier] 알림 취소 실패: $e');
     }
   }
 }

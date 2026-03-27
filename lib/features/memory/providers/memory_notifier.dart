@@ -112,6 +112,40 @@ class MemoryNotifier extends _$MemoryNotifier {
     }
   }
 
+  /// 이미 저장된 사진 파일로 기억 생성 (AddMemorySheet용)
+  Future<MemoryModel?> addPhotoFromFile({
+    required String nodeId,
+    required String filePath,
+    String? thumbnailPath,
+    String? title,
+    DateTime? dateTaken,
+    bool isPrivate = false,
+  }) async {
+    state = const AsyncLoading();
+    try {
+      await _checkPhotoLimit();
+      final memory = await _repo.create(
+        nodeId: nodeId,
+        type: MemoryType.photo,
+        title: title,
+        filePath: filePath,
+        thumbnailPath: thumbnailPath,
+        dateTaken: dateTaken ?? DateTime.now(),
+        isPrivate: isPrivate,
+      );
+      // 패밀리 플랜이면 R2 자동 업로드 큐에 추가
+      await _enqueuePhotoUploadIfCloud(memory);
+      state = const AsyncData(null);
+      return memory;
+    } on PlanLimitError catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return null;
+    }
+  }
+
   // ── 음성 추가 ────────────────────────────────────────────────────────────
 
   Future<MemoryModel?> addVoice({

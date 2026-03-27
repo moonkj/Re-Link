@@ -10,7 +10,6 @@ import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/memory_model.dart';
-import '../../../shared/models/user_plan.dart';
 import '../../../core/services/media/media_service.dart';
 import '../../../shared/repositories/memory_repository.dart';
 import '../../../shared/repositories/settings_repository.dart';
@@ -180,23 +179,12 @@ class _AddMemorySheetState extends ConsumerState<AddMemorySheet> {
     if (_photoPath == null) return;
     setState(() => _saving = true);
     try {
-      // 플랜 제한 체크
-      final plan = await ref.read(settingsRepositoryProvider).getUserPlan();
-      final count = await ref.read(memoryRepositoryProvider).totalPhotoCount();
-      if (count >= plan.maxPhotos) {
-        throw PlanLimitError(
-          feature: '사진 추가',
-          currentPlan: plan.displayName,
-          requiredPlan: plan == UserPlan.free ? '플러스' : '패밀리',
-        );
-      }
-      // 파일은 이미 선택/저장됨 → 바로 DB 저장
-      await ref.read(memoryRepositoryProvider).create(
+      // MemoryNotifier를 통해 저장 (플랜 제한 + 클라우드 업로드 큐 포함)
+      await ref.read(memoryNotifierProvider.notifier).addPhotoFromFile(
         nodeId: widget.nodeId,
-        type: MemoryType.photo,
-        title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
-        filePath: _photoPath,
+        filePath: _photoPath!,
         thumbnailPath: _thumbPath,
+        title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
         dateTaken: _dateTaken ?? DateTime.now(),
         isPrivate: _isPrivate,
       );
