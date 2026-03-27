@@ -10,6 +10,7 @@ import '../../core/services/sync/media_upload_queue_service.dart';
 import '../../core/utils/path_utils.dart';
 import '../../shared/models/node_model.dart';
 import 'db_provider.dart';
+import '../../core/database/tables/settings_table.dart';
 import 'settings_repository.dart';
 
 part 'node_repository.g.dart';
@@ -272,6 +273,14 @@ class NodeRepository {
   Future<List<NodeModel>> getAll() async {
     final rows = await _db.getAllNodes();
     return rows.map(_rowToModel).toList();
+  }
+
+  /// 제어 가능한 노드만 반환 (나 포함, 유령 노드 제외)
+  /// — 오늘의 질문, 가족지도, 마음 보내기, 보이스유언, 레시피 등에서 사용
+  /// — 패밀리 동기화 후에는 타인이 비번 설정한 노드도 제외 예정
+  Future<List<NodeModel>> getControllableNodes() async {
+    final all = await getAll();
+    return all.where((n) => !n.isGhost).toList();
   }
 
   /// 모델을 그대로 DB에 삽입 (병합 — 외부 .rlink 노드)

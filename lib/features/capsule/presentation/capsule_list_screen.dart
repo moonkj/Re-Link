@@ -48,6 +48,8 @@ class CapsuleListScreen extends ConsumerWidget {
         child: Icon(Icons.add, color: AppColors.onPrimary),
       ),
       body: capsulesAsync.when(
+        skipLoadingOnReload: true,
+        skipLoadingOnRefresh: true,
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
           child: Text(

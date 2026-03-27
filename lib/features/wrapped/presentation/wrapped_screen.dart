@@ -520,7 +520,7 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                '올해 보낸 꽃다발',
+                '올해 보낸 마음',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
@@ -611,8 +611,8 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen>
                           label: '새 가족',
                           value: '${data.newNodesThisYear}명'),
                       _SummaryRow(
-                          label: '꽃다발',
-                          value: '${data.totalBouquets}송이'),
+                          label: '보낸 마음',
+                          value: '${data.totalBouquets}개'),
                       if (data.streakBest > 0)
                         _SummaryRow(
                             label: '최장 스트릭',

@@ -358,7 +358,7 @@ class _RecordLegacySheetState extends ConsumerState<RecordLegacySheet>
   // ── 노드 선택 ──────────────────────────────────────────────────────────
 
   Future<void> _pickNode({required bool isFrom}) async {
-    final nodesAsync = ref.read(nodeRepositoryProvider).getAll();
+    final nodesAsync = ref.read(nodeRepositoryProvider).getControllableNodes();
     final nodes = await nodesAsync;
     if (!mounted) return;
 

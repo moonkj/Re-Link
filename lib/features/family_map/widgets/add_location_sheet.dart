@@ -38,7 +38,7 @@ class _AddLocationSheetState extends ConsumerState<AddLocationSheet> {
   }
 
   Future<void> _loadNodes() async {
-    final nodes = await ref.read(nodeRepositoryProvider).getAll();
+    final nodes = await ref.read(nodeRepositoryProvider).getControllableNodes();
     if (!mounted) return;
     setState(() => _nodes = nodes);
   }

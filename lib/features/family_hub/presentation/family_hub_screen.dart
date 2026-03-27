@@ -184,8 +184,8 @@ class FamilyHubScreen extends ConsumerWidget {
                 FeatureTile(
                   icon: Icons.local_florist_outlined,
                   iconColor: AppColors.accent,
-                  title: '꽃다발 리포트',
-                  subtitle: '올해 보낸 꽃 돌아보기',
+                  title: '마음 리포트',
+                  subtitle: '올해 보낸 마음 돌아보기',
                   onTap: () => context.push(AppRoutes.bouquetWrapped),
                 ),
               ],

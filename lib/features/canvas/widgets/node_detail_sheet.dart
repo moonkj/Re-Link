@@ -1742,7 +1742,7 @@ class _ReceivedFlowerActionButton extends ConsumerWidget {
                   color: AppColors.accent, size: 22),
               const SizedBox(height: 4),
               Text(
-                '받은마음',
+                '받은 마음',
                 style: TextStyle(fontSize: 11, color: AppColors.accent),
               ),
             ],

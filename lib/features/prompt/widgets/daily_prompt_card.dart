@@ -59,7 +59,7 @@ class _DailyPromptCardState extends ConsumerState<DailyPromptCard>
   }
 
   Future<void> _onRecord() async {
-    final nodes = await ref.read(nodeRepositoryProvider).getAll();
+    final nodes = await ref.read(nodeRepositoryProvider).getControllableNodes();
     if (!mounted) return;
 
     if (nodes.isEmpty) {

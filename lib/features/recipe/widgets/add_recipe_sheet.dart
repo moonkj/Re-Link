@@ -296,7 +296,7 @@ class _AddRecipeSheetState extends ConsumerState<AddRecipeSheet> {
 
   Future<void> _pickNode() async {
     HapticService.light();
-    final nodes = await ref.read(nodeRepositoryProvider).getAll();
+    final nodes = await ref.read(nodeRepositoryProvider).getControllableNodes();
     if (!mounted || nodes.isEmpty) return;
 
     final picked = await showModalBottomSheet<NodeModel>(

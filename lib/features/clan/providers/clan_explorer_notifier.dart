@@ -25,14 +25,29 @@ class ClanExplorerNotifier extends _$ClanExplorerNotifier {
   /// 성씨, 로마자, 본관으로 검색
   List<ClanSurname> search(String query) {
     if (query.isEmpty) return _allClans;
-    final q = query.toLowerCase();
+    // "김씨" → "김", "이씨" → "이" 등 "씨" 접미사 제거
+    final cleaned =
+        query.endsWith('씨') ? query.substring(0, query.length - 1) : query;
+    if (cleaned.isEmpty) return _allClans;
+    final q = cleaned.toLowerCase();
+
+    // 1~2글자: 성씨 + 로마자만 매칭 (본관/인물 검색하면 너무 많이 걸림)
+    if (cleaned.length <= 2) {
+      return _allClans.where((s) {
+        if (s.surname == cleaned) return true;
+        if (s.romanized.toLowerCase().startsWith(q)) return true;
+        return false;
+      }).toList();
+    }
+
+    // 3글자 이상: 성씨 + 로마자 + 본관 + 시조 + 유명인 전체 검색
     return _allClans.where((s) {
-      if (s.surname.contains(query)) return true;
+      if (s.surname.contains(cleaned)) return true;
       if (s.romanized.toLowerCase().contains(q)) return true;
-      if (s.clans.any((c) => c.origin.contains(query))) return true;
-      if (s.clans.any((c) => c.founder.contains(query))) return true;
+      if (s.clans.any((c) => c.origin.contains(cleaned))) return true;
+      if (s.clans.any((c) => c.founder.contains(cleaned))) return true;
       if (s.clans.any(
-          (c) => c.famousPeople.any((p) => p.contains(query)))) return true;
+          (c) => c.famousPeople.any((p) => p.contains(cleaned)))) return true;
       return false;
     }).toList();
   }

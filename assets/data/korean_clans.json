@@ -34,6 +34,38 @@
         "population": 837008,
         "famousPeople": ["김장생", "김집", "김만중"],
         "description": "신라 헌강왕의 후손인 김흥광을 시조로 하며, 조선시대 예학의 대가를 다수 배출하였다."
+      },
+      {
+        "origin": "의성",
+        "founder": "김석",
+        "foundedYear": null,
+        "population": 351496,
+        "famousPeople": ["김안국", "김정국"],
+        "description": "경북 의성을 본관으로 하며, 신라 경순왕의 후손으로 전해진다."
+      },
+      {
+        "origin": "강릉",
+        "founder": "김주원",
+        "foundedYear": 785,
+        "population": 236489,
+        "famousPeople": ["김주원", "김시습"],
+        "description": "신라 무열왕의 후손 김주원을 시조로 하며, 강원 강릉을 본관으로 한다."
+      },
+      {
+        "origin": "연안",
+        "founder": "김섬한",
+        "foundedYear": null,
+        "population": 87930,
+        "famousPeople": ["김구(백범)"],
+        "description": "황해 연안을 본관으로 하며, 백범 김구 선생의 가문으로 유명하다."
+      },
+      {
+        "origin": "청풍",
+        "founder": "김대유",
+        "foundedYear": null,
+        "population": 68012,
+        "famousPeople": ["김우항"],
+        "description": "충북 청풍(제천)을 본관으로 하며, 고려 시대 김대유를 시조로 한다."
       }
     ]
   },
@@ -64,6 +96,38 @@
         "population": 176725,
         "famousPeople": ["이율곡(이이)", "이순신", "이산해"],
         "description": "개성 덕수현을 본관으로 하며, 율곡 이이와 충무공 이순신을 배출한 명문가이다."
+      },
+      {
+        "origin": "연안",
+        "founder": "이무",
+        "foundedYear": null,
+        "population": 197687,
+        "famousPeople": ["이정구", "이광사"],
+        "description": "황해 연안을 본관으로 하며, 고려·조선시대 문인을 다수 배출하였다."
+      },
+      {
+        "origin": "성주",
+        "founder": "이순유",
+        "foundedYear": null,
+        "population": 93211,
+        "famousPeople": ["이인복"],
+        "description": "경북 성주를 본관으로 하며, 고려 시대 이순유를 시조로 한다."
+      },
+      {
+        "origin": "광주",
+        "founder": "이자성",
+        "foundedYear": null,
+        "population": 174302,
+        "famousPeople": ["이천보", "이광수"],
+        "description": "경기 광주를 본관으로 하며, 고려 시대 이자성을 시조로 한다."
+      },
+      {
+        "origin": "함평",
+        "founder": "이언",
+        "foundedYear": null,
+        "population": 71689,
+        "famousPeople": ["이철범"],
+        "description": "전남 함평을 본관으로 하며, 고려 시대 이언을 시조로 한다."
       }
     ]
   },
@@ -86,6 +150,30 @@
         "population": 117649,
         "famousPeople": ["박상충", "박은", "박세채"],
         "description": "전남 나주시 반남면을 본관으로 하며, 고려·조선 시대 명문가로 이름을 떨쳤다."
+      },
+      {
+        "origin": "함양",
+        "founder": "박선",
+        "foundedYear": null,
+        "population": 76890,
+        "famousPeople": ["박지화"],
+        "description": "경남 함양을 본관으로 하며, 고려 시대 박선을 시조로 한다."
+      },
+      {
+        "origin": "순천",
+        "founder": "박영규",
+        "foundedYear": null,
+        "population": 134721,
+        "famousPeople": ["박영규(고려 개국공신)"],
+        "description": "전남 순천을 본관으로 하며, 고려 개국공신 박영규를 시조로 한다."
+      },
+      {
+        "origin": "죽산",
+        "founder": "박기오",
+        "foundedYear": null,
+        "population": 43826,
+        "famousPeople": ["박서(고려 장수)"],
+        "description": "경기 죽산(안성)을 본관으로 하며, 고려 시대 박기오를 시조로 한다."
       }
     ]
   },
@@ -108,6 +196,30 @@
         "population": 269340,
         "famousPeople": ["최명길", "최석정", "최남선"],
         "description": "고려 개국공신 최군옥을 시조로 하는 전주의 명문 성씨이다."
+      },
+      {
+        "origin": "해주",
+        "founder": "최온",
+        "foundedYear": null,
+        "population": 195432,
+        "famousPeople": ["최항(고려 무신)"],
+        "description": "황해 해주를 본관으로 하며, 고려 시대 최온을 시조로 한다."
+      },
+      {
+        "origin": "강릉",
+        "founder": "최필달",
+        "foundedYear": null,
+        "population": 51630,
+        "famousPeople": ["최현배(한글학자)"],
+        "description": "강원 강릉을 본관으로 하며, 한글학자 최현배를 배출하였다."
+      },
+      {
+        "origin": "수원",
+        "founder": "최승",
+        "foundedYear": null,
+        "population": 62917,
+        "famousPeople": ["최무선(화약 발명)"],
+        "description": "경기 수원을 본관으로 하며, 화약 발명가 최무선의 가문이다."
       }
     ]
   },
@@ -130,6 +242,30 @@
         "population": 303455,
         "famousPeople": ["정지상", "정도전", "정철"],
         "description": "신라 6부의 하나인 취산 진지부에서 유래하였으며, 조선 개국공신 정도전을 배출하였다."
+      },
+      {
+        "origin": "하동",
+        "founder": "정도무",
+        "foundedYear": null,
+        "population": 102841,
+        "famousPeople": ["정여립", "정인홍"],
+        "description": "경남 하동을 본관으로 하며, 고려 시대 정도무를 시조로 한다."
+      },
+      {
+        "origin": "진주",
+        "founder": "정예",
+        "foundedYear": null,
+        "population": 56230,
+        "famousPeople": ["정기룡(임진왜란 장수)"],
+        "description": "경남 진주를 본관으로 하며, 고려 시대 정예를 시조로 한다."
+      },
+      {
+        "origin": "영일",
+        "founder": "정습명",
+        "foundedYear": null,
+        "population": 89174,
+        "famousPeople": ["정몽준(현대중공업)"],
+        "description": "경북 영일(포항)을 본관으로 하며, 고려 시대 정습명을 시조로 한다."
       }
     ]
   },
@@ -144,6 +280,22 @@
         "population": 1044386,
         "famousPeople": ["강감찬", "강세황", "강희안"],
         "description": "고구려 장수 강이식을 시조로 하며, 고려의 명장 강감찬 장군을 배출한 명문가이다."
+      },
+      {
+        "origin": "곡산",
+        "founder": "강호",
+        "foundedYear": null,
+        "population": 23147,
+        "famousPeople": ["강조(고려 무신)"],
+        "description": "황해 곡산을 본관으로 하며, 고려 시대 강호를 시조로 한다."
+      },
+      {
+        "origin": "신천",
+        "founder": "강민첨",
+        "foundedYear": null,
+        "population": 18290,
+        "famousPeople": ["강민첨(고려 장군)"],
+        "description": "황해 신천을 본관으로 하며, 고려 시대 강민첨을 시조로 한다."
       }
     ]
   },
@@ -166,6 +318,22 @@
         "population": 381210,
         "famousPeople": ["조만영", "조인영", "조두순"],
         "description": "경기도 양주의 풍양을 본관으로 하며, 조선 후기 세도정치의 중심 가문이었다."
+      },
+      {
+        "origin": "창녕",
+        "founder": "조계룡",
+        "foundedYear": null,
+        "population": 98120,
+        "famousPeople": ["조엄(고구마 전래)"],
+        "description": "경남 창녕을 본관으로 하며, 일본에서 고구마를 들여온 조엄의 가문이다."
+      },
+      {
+        "origin": "임천",
+        "founder": "조천혁",
+        "foundedYear": null,
+        "population": 45218,
+        "famousPeople": ["조병갑"],
+        "description": "충남 임천(부여)을 본관으로 하며, 고려 시대 조천혁을 시조로 한다."
       }
     ]
   },
@@ -714,6 +882,454 @@
         "population": 9148,
         "famousPeople": ["황보인", "황보항", "황보제공"],
         "description": "경북 영천을 본관으로 하는 복성으로, 고려·조선 초기에 권력의 중심에 있었다."
+      }
+    ]
+  },
+  {
+    "surname": "유",
+    "romanized": "Yoo/Yu",
+    "clans": [
+      {
+        "origin": "기계",
+        "founder": "유삼재",
+        "foundedYear": null,
+        "population": 302057,
+        "famousPeople": ["유관순", "유성룡", "유길준"],
+        "description": "경북 기계(포항)를 본관으로 하며, 독립운동가 유관순 열사의 가문으로 널리 알려져 있다."
+      }
+    ]
+  },
+  {
+    "surname": "고",
+    "romanized": "Ko/Go",
+    "clans": [
+      {
+        "origin": "제주",
+        "founder": "고을나",
+        "foundedYear": null,
+        "population": 471396,
+        "famousPeople": ["고경명", "고광순", "고건"],
+        "description": "제주도의 삼성(三姓) 중 하나로, 탐라국의 시조 고을나를 시조로 한다."
+      }
+    ]
+  },
+  {
+    "surname": "변",
+    "romanized": "Byun/Byeon",
+    "clans": [
+      {
+        "origin": "밀양",
+        "founder": "변수",
+        "foundedYear": null,
+        "population": 131547,
+        "famousPeople": ["변정수", "변희봉"],
+        "description": "경남 밀양을 본관으로 하며, 고려 시대부터 이어져 온 유서 깊은 가문이다."
+      }
+    ]
+  },
+  {
+    "surname": "손",
+    "romanized": "Son/Sohn",
+    "clans": [
+      {
+        "origin": "밀양",
+        "founder": "손순",
+        "foundedYear": null,
+        "population": 457303,
+        "famousPeople": ["손병희", "손기정", "손흥민"],
+        "description": "경남 밀양을 본관으로 하며, 신라 경순왕의 후손으로 전해진다."
+      }
+    ]
+  },
+  {
+    "surname": "추",
+    "romanized": "Chu/Choo",
+    "clans": [
+      {
+        "origin": "추계",
+        "founder": "추엽",
+        "foundedYear": null,
+        "population": 57040,
+        "famousPeople": ["추사 김정희(외가)", "추교진"],
+        "description": "추계를 본관으로 하며, 중국에서 도래한 추엽을 시조로 한다."
+      }
+    ]
+  },
+  {
+    "surname": "도",
+    "romanized": "Do/Doh",
+    "clans": [
+      {
+        "origin": "성주",
+        "founder": "도순",
+        "foundedYear": null,
+        "population": 54779,
+        "famousPeople": ["도선국사"],
+        "description": "경북 성주를 본관으로 하며, 고려 시대 도순을 시조로 한다."
+      }
+    ]
+  },
+  {
+    "surname": "탁",
+    "romanized": "Tak/Tark",
+    "clans": [
+      {
+        "origin": "광산",
+        "founder": "탁광무",
+        "foundedYear": null,
+        "population": 21606,
+        "famousPeople": ["탁영(조선 문신)"],
+        "description": "광주 광산을 본관으로 하며, 고려 시대부터 이어져 온 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "여",
+    "romanized": "Yeo/Yuh",
+    "clans": [
+      {
+        "origin": "함양",
+        "founder": "여선제",
+        "foundedYear": null,
+        "population": 75196,
+        "famousPeople": ["여운형", "여영국"],
+        "description": "경남 함양을 본관으로 하며, 독립운동가 여운형 선생의 가문이다."
+      }
+    ]
+  },
+  {
+    "surname": "천",
+    "romanized": "Cheon/Chun",
+    "clans": [
+      {
+        "origin": "영양",
+        "founder": "천우형",
+        "foundedYear": null,
+        "population": 117649,
+        "famousPeople": ["천만리(조선 문신)"],
+        "description": "경북 영양을 본관으로 하며, 고려 시대 천우형을 시조로 한다."
+      }
+    ]
+  },
+  {
+    "surname": "방",
+    "romanized": "Bang/Pang",
+    "clans": [
+      {
+        "origin": "온양",
+        "founder": "방지",
+        "foundedYear": null,
+        "population": 93510,
+        "famousPeople": ["방정환", "방시혁"],
+        "description": "충남 온양을 본관으로 하며, 어린이날을 만든 소파 방정환의 가문이다."
+      }
+    ]
+  },
+  {
+    "surname": "공",
+    "romanized": "Gong/Kong",
+    "clans": [
+      {
+        "origin": "곡부",
+        "founder": "공자(공부자)",
+        "foundedYear": null,
+        "population": 85606,
+        "famousPeople": ["공자", "공민왕(원배)"],
+        "description": "중국 곡부 출신으로, 공자(孔子)의 후손을 시조로 하는 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "편",
+    "romanized": "Pyeon/Pyun",
+    "clans": [
+      {
+        "origin": "지례",
+        "founder": "편유",
+        "foundedYear": null,
+        "population": 15866,
+        "famousPeople": ["편강렬"],
+        "description": "경북 지례(김천)를 본관으로 하며, 고려 시대 편유를 시조로 한다."
+      }
+    ]
+  },
+  {
+    "surname": "감",
+    "romanized": "Gam/Kam",
+    "clans": [
+      {
+        "origin": "회안",
+        "founder": "감문위",
+        "foundedYear": null,
+        "population": 4107,
+        "famousPeople": [],
+        "description": "회안을 본관으로 하며, 희성(稀姓)에 해당하는 드문 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "석",
+    "romanized": "Seok/Suk",
+    "clans": [
+      {
+        "origin": "충주",
+        "founder": "석탈해",
+        "foundedYear": 57,
+        "population": 54610,
+        "famousPeople": ["석탈해(신라왕)"],
+        "description": "신라 제4대 왕 석탈해를 시조로 하며, 충주를 본관으로 한다."
+      }
+    ]
+  },
+  {
+    "surname": "길",
+    "romanized": "Gil/Kil",
+    "clans": [
+      {
+        "origin": "해평",
+        "founder": "길당",
+        "foundedYear": null,
+        "population": 32418,
+        "famousPeople": ["길재(고려 충신)"],
+        "description": "경북 해평(구미)을 본관으로 하며, 고려 말 충신 길재의 가문이다."
+      }
+    ]
+  },
+  {
+    "surname": "봉",
+    "romanized": "Bong/Pong",
+    "clans": [
+      {
+        "origin": "하음",
+        "founder": "봉우",
+        "foundedYear": null,
+        "population": 11146,
+        "famousPeople": ["봉준호(영화감독)"],
+        "description": "경기 하음(김포)을 본관으로 하며, 영화감독 봉준호의 가문이다."
+      }
+    ]
+  },
+  {
+    "surname": "피",
+    "romanized": "Pi/Pee",
+    "clans": [
+      {
+        "origin": "홍천",
+        "founder": "피위",
+        "foundedYear": null,
+        "population": 4702,
+        "famousPeople": [],
+        "description": "강원 홍천을 본관으로 하며, 희성에 해당하는 드문 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "표",
+    "romanized": "Pyo",
+    "clans": [
+      {
+        "origin": "신창",
+        "founder": "표자겸",
+        "foundedYear": null,
+        "population": 12627,
+        "famousPeople": ["표영지(조선 문신)"],
+        "description": "충남 신창(아산)을 본관으로 하며, 고려 시대 표자겸을 시조로 한다."
+      }
+    ]
+  },
+  {
+    "surname": "엄",
+    "romanized": "Eom/Um",
+    "clans": [
+      {
+        "origin": "영월",
+        "founder": "엄임의",
+        "foundedYear": null,
+        "population": 132990,
+        "famousPeople": ["엄복동(자전거왕)", "엄정화"],
+        "description": "강원 영월을 본관으로 하며, 고려 시대 엄임의를 시조로 한다."
+      }
+    ]
+  },
+  {
+    "surname": "원",
+    "romanized": "Won/Weon",
+    "clans": [
+      {
+        "origin": "원주",
+        "founder": "원경",
+        "foundedYear": null,
+        "population": 120465,
+        "famousPeople": ["원균(조선 장수)", "원효대사(속성)"],
+        "description": "강원 원주를 본관으로 하며, 고려 시대 원경을 시조로 한다."
+      }
+    ]
+  },
+  {
+    "surname": "채",
+    "romanized": "Chae/Chay",
+    "clans": [
+      {
+        "origin": "평강",
+        "founder": "채송년",
+        "foundedYear": null,
+        "population": 131547,
+        "famousPeople": ["채제공(조선 정승)", "채시라"],
+        "description": "강원 평강을 본관으로 하며, 고려 시대 채송년을 시조로 한다."
+      }
+    ]
+  },
+  {
+    "surname": "위",
+    "romanized": "Wi/Wee",
+    "clans": [
+      {
+        "origin": "장흥",
+        "founder": "위경",
+        "foundedYear": null,
+        "population": 31783,
+        "famousPeople": ["위만(위만조선)"],
+        "description": "전남 장흥을 본관으로 하며, 고려 시대 위경을 시조로 한다."
+      }
+    ]
+  },
+  {
+    "surname": "태",
+    "romanized": "Tae",
+    "clans": [
+      {
+        "origin": "협계",
+        "founder": "태자원",
+        "foundedYear": null,
+        "population": 8165,
+        "famousPeople": ["태조영(발해)"],
+        "description": "발해 건국자 대조영(태조영)의 후손으로 전해지며, 협계를 본관으로 한다."
+      }
+    ]
+  },
+  {
+    "surname": "지",
+    "romanized": "Ji",
+    "clans": [
+      {
+        "origin": "충주",
+        "founder": "지경",
+        "foundedYear": null,
+        "population": 25977,
+        "famousPeople": ["지석영(종두법 보급)"],
+        "description": "충북 충주를 본관으로 하며, 종두법을 보급한 지석영의 가문이다."
+      }
+    ]
+  },
+  {
+    "surname": "마",
+    "romanized": "Ma",
+    "clans": [
+      {
+        "origin": "장흥",
+        "founder": "마려",
+        "foundedYear": null,
+        "population": 39199,
+        "famousPeople": ["마천목(조선 개국공신)"],
+        "description": "전남 장흥을 본관으로 하며, 백제 장군 마려를 시조로 한다."
+      }
+    ]
+  },
+  {
+    "surname": "빈",
+    "romanized": "Bin/Been",
+    "clans": [
+      {
+        "origin": "달성",
+        "founder": "빈장",
+        "foundedYear": null,
+        "population": 3290,
+        "famousPeople": [],
+        "description": "대구 달성을 본관으로 하며, 희성에 해당하는 드문 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "범",
+    "romanized": "Beom/Bum",
+    "clans": [
+      {
+        "origin": "금성",
+        "founder": "범장",
+        "foundedYear": null,
+        "population": 3472,
+        "famousPeople": [],
+        "description": "전남 금성(나주)을 본관으로 하며, 희성에 해당하는 드문 성씨이다."
+      }
+    ]
+  },
+  {
+    "surname": "국",
+    "romanized": "Guk/Kook",
+    "clans": [
+      {
+        "origin": "담양",
+        "founder": "국주",
+        "foundedYear": null,
+        "population": 18848,
+        "famousPeople": ["국용하"],
+        "description": "전남 담양을 본관으로 하며, 고려 시대 국주를 시조로 한다."
+      }
+    ]
+  },
+  {
+    "surname": "탄",
+    "romanized": "Tan",
+    "clans": [
+      {
+        "origin": "의령",
+        "founder": "탄신",
+        "foundedYear": null,
+        "population": 1629,
+        "famousPeople": [],
+        "description": "경남 의령을 본관으로 하며, 한국에서 매우 드문 희성이다."
+      }
+    ]
+  },
+  {
+    "surname": "경",
+    "romanized": "Gyeong/Kyung",
+    "clans": [
+      {
+        "origin": "청주",
+        "founder": "경진",
+        "foundedYear": null,
+        "population": 15743,
+        "famousPeople": ["경대승(고려 무신)"],
+        "description": "충북 청주를 본관으로 하며, 고려 무신정권기 경대승의 가문이다."
+      }
+    ]
+  },
+  {
+    "surname": "연",
+    "romanized": "Yeon/Yun",
+    "clans": [
+      {
+        "origin": "곡산",
+        "founder": "연개소문(후손)",
+        "foundedYear": null,
+        "population": 35578,
+        "famousPeople": ["연개소문(고구려 장수)"],
+        "description": "황해 곡산을 본관으로 하며, 고구려 연개소문의 후손으로 전해진다."
+      }
+    ]
+  },
+  {
+    "surname": "복",
+    "romanized": "Bok/Pok",
+    "clans": [
+      {
+        "origin": "면천",
+        "founder": "복지겸",
+        "foundedYear": null,
+        "population": 7825,
+        "famousPeople": ["복지겸(백제 장군)"],
+        "description": "충남 면천(당진)을 본관으로 하며, 백제 장군 복지겸을 시조로 한다."
       }
     ]
   }
