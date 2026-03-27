@@ -341,7 +341,7 @@ class _RecipeCardState extends State<RecipeCard> {
     );
   }
 
-  void _shareRecipe(RecipesTableData recipe) {
+  Future<void> _shareRecipe(RecipesTableData recipe) async {
     final ingredientSummary = recipe.ingredients
         .split('\n')
         .where((l) => l.trim().isNotEmpty)
@@ -354,7 +354,13 @@ class _RecipeCardState extends State<RecipeCard> {
         '재료: $ingredientSummary'
         '$creatorLine\n\n'
         '\u{2014} Re-Link에서 기록한 가족 레시피';
-    Share.share(text);
+    final box = context.findRenderObject() as RenderBox?;
+    await Share.share(
+      text,
+      sharePositionOrigin: box != null
+          ? box.localToGlobal(Offset.zero) & box.size
+          : null,
+    );
   }
 
   void _showDeleteConfirm(BuildContext context) {
