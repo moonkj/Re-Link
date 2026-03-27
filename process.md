@@ -4136,3 +4136,58 @@ dependencies:
 ### 데이터 무결성 수정 ✅
 
 - [x] 음성 메모 `filePath` — 절대경로 → `PathUtils.toRelative()` 상대경로 변환 (복원 후 재생 가능)
+
+---
+
+## Phase 24 — 백업 3차 리뷰 — 잔존 버그 4개 수정 (2026-03-27)
+
+> 팀 에이전트 재리뷰 후 잔존 버그 4건 추가 수정
+
+---
+
+### 백업 서비스 안정화 ✅
+
+- [x] `BackupNotifier` — `@Riverpod(keepAlive: true)` 변경 — AutoDispose로 인한 작업 중 StateError 방지
+- [x] `backup_screen.dart` — 로딩 오버레이에 `AbsorbPointer` 래핑 — 터치 관통 방지
+- [x] `restoreCompleted` 초기화 — `restoreBackup()` 시작 시 `false`로 리셋
+- [x] `RestoreDetectScreen` — 복원 전 확인 다이얼로그 추가 (Path A/B와 일관성 확보)
+
+---
+
+## Phase 25 — 기억캡슐 봉인/열기 크래시 + 보이스유언 음성 못불러옴 수정 (2026-03-27)
+
+> 캡슐 열기 시 풀스크린 오버레이 멈춤 + 보이스유언 경로 문제 수정
+
+---
+
+### 기억캡슐 열기 크래시 수정 ✅
+
+- [x] `seal_animation.dart` — `safePop` 헬퍼 + 3초 안전 타임아웃 추가
+- [x] `dismissed` 플래그로 이중 pop 방지
+- [x] `capsule_list_screen.dart` — async 체인 try/catch 래핑, notifier 사전 캡처
+
+### 보이스유언 음성 파일 못불러옴 수정 ✅
+
+- [x] `voice_legacy_notifier.dart` — `voicePath` 저장 시 `PathUtils.toRelative()` 적용
+- [x] `voice_legacy_screen.dart` — 재생 시 `PathUtils.toAbsolute()` 경로 해석 적용
+- [x] `File(voicePath).existsSync()` → `PathUtils.toAbsolute()` 후 체크로 변경
+
+---
+
+## Phase 26 — 캡슐/보이스유언 봉인 상태 삭제 기능 (2026-03-27)
+
+> 봉인 상태(날짜 미도달) 캡슐/보이스유언도 롱프레스로 삭제 가능
+
+---
+
+### 캡슐 롱프레스 삭제 ✅
+
+- [x] `CapsuleCard` — `onLongPress` 콜백 추가
+- [x] `capsule_list_screen.dart` — `_confirmDeleteCapsule()` 메서드 추가 (삭제 확인 다이얼로그)
+- [x] 봉인/열기/열린 모든 상태에서 롱프레스 삭제 가능
+
+### 보이스유언 롱프레스 삭제 ✅
+
+- [x] `VoiceLegacyCard` — `onLongPress` 콜백 추가
+- [x] `voice_legacy_screen.dart` — `_confirmDeleteLegacy()` 메서드 추가 (삭제 확인 다이얼로그)
+- [x] 봉인/열기/열린 모든 상태에서 롱프레스 삭제 가능
