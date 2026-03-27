@@ -121,18 +121,43 @@ class FamilyMembersScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) async {
-    final link = await ref
+    final result = await ref
         .read(familyMembersNotifierProvider.notifier)
         .createInviteLink();
     if (!context.mounted) return;
-    if (link == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('초대 링크 생성에 실패했습니다.')),
-      );
+    if (!result.isSuccess) {
+      // 서버 미연결 / 준비 중인 경우 전용 다이얼로그 표시
+      if (result.errorType == InviteErrorType.serverUnavailable) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('서비스 준비 중'),
+            content: const Text(
+              '가족 공유 서버가 아직 준비 중입니다.\n'
+              '곧 업데이트를 통해 이용하실 수 있습니다.\n\n'
+              '지금은 초대 화면에서 .rlink 파일로\n'
+              '가족 트리를 공유할 수 있습니다.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('확인'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.error ?? '초대 링크 생성에 실패했습니다.'),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
       return;
     }
     await Share.share(
-      'Re-Link 가족 그룹에 초대합니다!\n$link',
+      'Re-Link 가족 그룹에 초대합니다!\n${result.link}',
       subject: 'Re-Link 가족 초대',
     );
   }

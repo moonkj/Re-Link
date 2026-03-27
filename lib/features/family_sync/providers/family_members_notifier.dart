@@ -1,9 +1,38 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/services/auth/auth_http_client.dart';
+import '../../../shared/models/user_plan.dart';
 import '../../../shared/repositories/settings_repository.dart';
+import '../../auth/providers/auth_notifier.dart';
+import '../../subscription/providers/plan_notifier.dart';
 
 part 'family_members_notifier.g.dart';
+
+/// 초대 링크 생성 결과
+class InviteLinkResult {
+  const InviteLinkResult.success(this.link)
+      : error = null,
+        errorType = null;
+  const InviteLinkResult.failure(this.error, this.errorType) : link = null;
+
+  final String? link;
+  final String? error;
+  final InviteErrorType? errorType;
+
+  bool get isSuccess => link != null;
+}
+
+enum InviteErrorType {
+  notLoggedIn,
+  noPlan,
+  noGroup,
+  serverUnavailable,
+  serverError,
+  unknown,
+}
 
 class FamilyMember {
   const FamilyMember({
@@ -24,11 +53,26 @@ class FamilyMember {
 class FamilyMembersNotifier extends _$FamilyMembersNotifier {
   @override
   Future<List<FamilyMember>> build() async {
+    // 로그인/플랜 체크 — 미충족 시 빈 목록 반환 (크래시 방지)
+    final user = ref.read(authNotifierProvider).valueOrNull;
+    if (user == null) {
+      debugPrint('[FamilyMembers] 로그인 안됨 — 빈 목록 반환');
+      return [];
+    }
+    final plan = ref.read(planNotifierProvider).valueOrNull ?? UserPlan.free;
+    if (!plan.hasCloud) {
+      debugPrint('[FamilyMembers] 패밀리 플랜 아님 — 빈 목록 반환');
+      return [];
+    }
+
     try {
       final authClient = ref.read(authHttpClientProvider);
       final response = await authClient.get('/family/members');
 
-      if (response.statusCode != 200) return [];
+      if (response.statusCode != 200) {
+        debugPrint('[FamilyMembers] GET /family/members → ${response.statusCode}');
+        return [];
+      }
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       final data = body['data'] as Map<String, dynamic>;
@@ -45,26 +89,128 @@ class FamilyMembersNotifier extends _$FamilyMembersNotifier {
           joinedAt: DateTime.fromMillisecondsSinceEpoch(joinedAtMs),
         );
       }).toList();
-    } catch (_) {
+    } on SocketException catch (e) {
+      debugPrint('[FamilyMembers] 네트워크 오류: $e');
+      return [];
+    } on TimeoutException catch (e) {
+      debugPrint('[FamilyMembers] 타임아웃: $e');
+      return [];
+    } catch (e) {
+      debugPrint('[FamilyMembers] 멤버 조회 오류: $e');
       return [];
     }
   }
 
-  Future<String?> createInviteLink() async {
+  /// 초대 링크 생성 — 사전 조건 체크 포함
+  Future<InviteLinkResult> createInviteLink() async {
+    // 1. 로그인 체크
+    final user = ref.read(authNotifierProvider).valueOrNull;
+    if (user == null) {
+      debugPrint('[FamilyMembers] createInviteLink: 로그인 안됨');
+      return const InviteLinkResult.failure(
+        '로그인이 필요합니다.\n설정 > 계정에서 로그인해주세요.',
+        InviteErrorType.notLoggedIn,
+      );
+    }
+
+    // 2. 플랜 체크
+    final plan = ref.read(planNotifierProvider).valueOrNull ?? UserPlan.free;
+    if (!plan.hasCloud) {
+      debugPrint('[FamilyMembers] createInviteLink: 패밀리 플랜 아님 (현재: ${plan.displayName})');
+      return const InviteLinkResult.failure(
+        '가족 공유 기능은 패밀리 플랜 이상에서 사용할 수 있습니다.',
+        InviteErrorType.noPlan,
+      );
+    }
+
+    // 3. 서버 API 호출
     try {
       final authClient = ref.read(authHttpClientProvider);
       final response = await authClient.post('/family/invite', body: {});
 
-      if (response.statusCode != 201) return null;
+      debugPrint('[FamilyMembers] POST /family/invite → ${response.statusCode}');
+
+      if (response.statusCode == 401) {
+        return const InviteLinkResult.failure(
+          '인증이 만료되었습니다. 다시 로그인해주세요.',
+          InviteErrorType.notLoggedIn,
+        );
+      }
+
+      if (response.statusCode == 403) {
+        return const InviteLinkResult.failure(
+          '패밀리 플랜 이상이 필요합니다.',
+          InviteErrorType.noPlan,
+        );
+      }
+
+      if (response.statusCode == 404) {
+        return const InviteLinkResult.failure(
+          '가족 그룹이 없습니다.\n먼저 가족 그룹을 생성해주세요.',
+          InviteErrorType.noGroup,
+        );
+      }
+
+      if (response.statusCode == 409) {
+        // 그룹 인원 초과
+        String msg = '그룹 인원이 가득 찼습니다.';
+        try {
+          final body = jsonDecode(response.body) as Map<String, dynamic>;
+          msg = body['message'] as String? ?? msg;
+        } catch (_) {}
+        return InviteLinkResult.failure(msg, InviteErrorType.serverError);
+      }
+
+      if (response.statusCode != 201) {
+        String msg = '서버 오류가 발생했습니다 (${response.statusCode}).';
+        try {
+          final body = jsonDecode(response.body) as Map<String, dynamic>;
+          msg = body['message'] as String? ?? msg;
+        } catch (_) {}
+        return InviteLinkResult.failure(msg, InviteErrorType.serverError);
+      }
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       final data = body['data'] as Map<String, dynamic>;
       final token = data['token'] as String?;
 
-      if (token == null) return null;
-      return 'relink://invite/accept?token=$token';
-    } catch (_) {
-      return null;
+      if (token == null) {
+        return const InviteLinkResult.failure(
+          '서버 응답에 토큰이 없습니다.',
+          InviteErrorType.serverError,
+        );
+      }
+      return InviteLinkResult.success('relink://invite/accept?token=$token');
+    } on SocketException catch (e) {
+      debugPrint('[FamilyMembers] createInviteLink 네트워크 오류: $e');
+      return const InviteLinkResult.failure(
+        '서버에 연결할 수 없습니다.\n인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.',
+        InviteErrorType.serverUnavailable,
+      );
+    } on TimeoutException catch (e) {
+      debugPrint('[FamilyMembers] createInviteLink 타임아웃: $e');
+      return const InviteLinkResult.failure(
+        '서버 응답 시간이 초과되었습니다.\n잠시 후 다시 시도해주세요.',
+        InviteErrorType.serverUnavailable,
+      );
+    } catch (e) {
+      debugPrint('[FamilyMembers] createInviteLink 오류: $e');
+      // SocketException 등 네트워크 관련 에러 문자열 매칭
+      final msg = e.toString();
+      if (msg.contains('SocketException') ||
+          msg.contains('ClientException') ||
+          msg.contains('Connection refused') ||
+          msg.contains('Connection reset') ||
+          msg.contains('HandshakeException')) {
+        return const InviteLinkResult.failure(
+          '서버에 연결할 수 없습니다.\n가족 공유 서버가 준비 중이거나 네트워크에 문제가 있습니다.',
+          InviteErrorType.serverUnavailable,
+        );
+      }
+      return InviteLinkResult.failure(
+        '초대 링크 생성 중 오류: $msg',
+        InviteErrorType.unknown,
+      );
     }
   }
 
