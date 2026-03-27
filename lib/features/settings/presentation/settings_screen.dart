@@ -17,6 +17,7 @@ import '../../../shared/models/user_plan.dart';
 import '../../../shared/repositories/profile_repository.dart';
 import '../../../shared/repositories/settings_repository.dart';
 import '../../backup/providers/backup_notifier.dart';
+import '../../subscription/providers/plan_notifier.dart';
 import '../providers/elderly_mode_notifier.dart';
 import '../providers/haptic_notifier.dart';
 import '../providers/reduce_motion_notifier.dart';
@@ -896,11 +897,15 @@ class _PinResetTileState extends ConsumerState<_PinResetTile> {
 
 // ── 프라이버시 약속 섹션 ──────────────────────────────────────────────────────
 
-class _PrivacyPromiseSection extends StatelessWidget {
+class _PrivacyPromiseSection extends ConsumerWidget {
   const _PrivacyPromiseSection();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final plan = ref.watch(planNotifierProvider).valueOrNull ?? UserPlan.free;
+    final isCloudPlan =
+        plan == UserPlan.family || plan == UserPlan.familyPlus;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -928,10 +933,15 @@ class _PrivacyPromiseSection extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
-                '당신의 가족 데이터를 팔지 않습니다.\n'
-                '광고 타겟팅에 사용하지 않습니다.\n'
-                'AI 학습에 사용하지 않습니다.\n'
-                '모든 데이터는 오직 당신의 기기에만 저장됩니다.',
+                isCloudPlan
+                    ? '당신의 가족 데이터를 팔지 않습니다.\n'
+                      '광고 타겟팅에 사용하지 않습니다.\n'
+                      'AI 학습에 사용하지 않습니다.\n'
+                      '클라우드 동기화 데이터는 암호화되어 안전하게 전송됩니다.'
+                    : '당신의 가족 데이터를 팔지 않습니다.\n'
+                      '광고 타겟팅에 사용하지 않습니다.\n'
+                      'AI 학습에 사용하지 않습니다.\n'
+                      '모든 데이터는 오직 당신의 기기에만 저장됩니다.',
                 style: TextStyle(
                   fontSize: 14,
                   height: 1.7,
@@ -945,7 +955,9 @@ class _PrivacyPromiseSection extends StatelessWidget {
                       color: AppColors.primary, size: 16),
                   const SizedBox(width: 4),
                   Text(
-                    '100% 로컬 퍼스트 · 서버 없음',
+                    isCloudPlan
+                        ? '로컬 퍼스트 · 클라우드 동기화 활성'
+                        : '100% 로컬 퍼스트 · 서버 없음',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,

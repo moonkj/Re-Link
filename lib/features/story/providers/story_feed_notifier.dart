@@ -79,7 +79,13 @@ class StoryFeedNotifier extends _$StoryFeedNotifier {
             nodePhotoPath: node?.photoPath,
           );
         })
-        .toList();
+        .toList()
+      // 최신순 정렬 (dateTaken 우선, 없으면 createdAt)
+      ..sort((a, b) {
+        final aDate = a.memory.dateTaken ?? a.memory.createdAt;
+        final bDate = b.memory.dateTaken ?? b.memory.createdAt;
+        return bDate.compareTo(aDate);
+      });
 
     state = state.copyWith(items: items, isLoading: false);
   }

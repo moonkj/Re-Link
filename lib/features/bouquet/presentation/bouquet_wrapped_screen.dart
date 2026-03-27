@@ -5,7 +5,9 @@ import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../shared/models/bouquet_model.dart';
+import '../../../shared/models/node_model.dart';
 import '../../../shared/repositories/bouquet_repository.dart';
+import '../../../shared/repositories/node_repository.dart';
 
 part 'bouquet_wrapped_screen.g.dart';
 
@@ -22,20 +24,31 @@ class BouquetWrappedScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncBouquets = ref.watch(yearlyBouquetsProvider);
 
+    // 노드 이름 맵 구성 (nodeId → name)
+    final nodeRepo = ref.watch(nodeRepositoryProvider);
+
     return Scaffold(
       backgroundColor: AppColors.bgBase,
       body: asyncBouquets.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('데이터를 불러올 수 없습니다')),
-        data: (bouquets) => _WrappedPageView(bouquets: bouquets),
+        data: (bouquets) => FutureBuilder<List<NodeModel>>(
+          future: nodeRepo.getAll(),
+          builder: (context, snap) {
+            final nodes = snap.data ?? [];
+            final nodeNames = {for (final n in nodes) n.id: n.name};
+            return _WrappedPageView(bouquets: bouquets, nodeNames: nodeNames);
+          },
+        ),
       ),
     );
   }
 }
 
 class _WrappedPageView extends StatefulWidget {
-  const _WrappedPageView({required this.bouquets});
+  const _WrappedPageView({required this.bouquets, required this.nodeNames});
   final List<Bouquet> bouquets;
+  final Map<String, String> nodeNames;
 
   @override
   State<_WrappedPageView> createState() => _WrappedPageViewState();
@@ -85,7 +98,10 @@ class _WrappedPageViewState extends State<_WrappedPageView> {
           onPageChanged: (i) => setState(() => _currentPage = i),
           children: [
             _TotalPage(totalCount: totalCount),
-            _TopReceiversPage(topReceivers: topReceivers.take(3).toList()),
+            _TopReceiversPage(
+              topReceivers: topReceivers.take(3).toList(),
+              nodeNames: widget.nodeNames,
+            ),
             _TopFlowerPage(
               topFlower: topFlower.isNotEmpty ? topFlower.first : null,
               totalCount: totalCount,
@@ -208,8 +224,9 @@ class _TotalPage extends StatelessWidget {
 
 /// Page 2 — 가장 많이 받은 사람 Top 3
 class _TopReceiversPage extends StatelessWidget {
-  const _TopReceiversPage({required this.topReceivers});
+  const _TopReceiversPage({required this.topReceivers, required this.nodeNames});
   final List<MapEntry<String, int>> topReceivers;
+  final Map<String, String> nodeNames;
 
   @override
   Widget build(BuildContext context) {
@@ -244,7 +261,9 @@ class _TopReceiversPage extends StatelessWidget {
               else
                 ...topReceivers.asMap().entries.map((entry) {
                   final rank = entry.key + 1;
+                  final nodeId = entry.value.key;
                   final count = entry.value.value;
+                  final name = nodeNames[nodeId] ?? '알 수 없음';
                   final emoji = rank == 1
                       ? '\u{1F451}'
                       : rank == 2
@@ -254,11 +273,24 @@ class _TopReceiversPage extends StatelessWidget {
                       rank == 1 ? 48.0 : rank == 2 ? 36.0 : 28.0;
                   return Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.xl),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    child: Column(
                       children: [
-                        Text(emoji, style: const TextStyle(fontSize: 28)),
-                        const SizedBox(width: AppSpacing.md),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(emoji, style: const TextStyle(fontSize: 28)),
+                            const SizedBox(width: AppSpacing.md),
+                            Text(
+                              name,
+                              style: TextStyle(
+                                fontSize: fontSize * 0.6,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
                         Text(
                           '$count번',
                           style: TextStyle(

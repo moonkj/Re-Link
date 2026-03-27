@@ -8,7 +8,9 @@ import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/widgets/feature_tile.dart';
 import '../../../shared/widgets/section_label.dart';
 import '../../../shared/widgets/tile_divider.dart';
+import '../../../shared/models/user_plan.dart';
 import '../../auth/providers/auth_notifier.dart';
+import '../../subscription/providers/plan_notifier.dart';
 import '../../canvas/widgets/birthday_calendar_section.dart';
 import '../../canvas/widgets/add_event_sheet.dart';
 import '../../family_sync/providers/family_sync_notifier.dart';
@@ -20,7 +22,10 @@ class FamilyHubScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authNotifierProvider).valueOrNull;
-    final isFamily = user?.hasFamilyPlan ?? false;
+    final localPlan = ref.watch(planNotifierProvider).valueOrNull ?? UserPlan.free;
+    final isFamily = (user?.hasFamilyPlan ?? false) ||
+        localPlan == UserPlan.family ||
+        localPlan == UserPlan.familyPlus;
     return Scaffold(
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
