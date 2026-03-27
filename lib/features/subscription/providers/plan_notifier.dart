@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/services/plan/plan_service.dart';
 import '../../../core/services/auth/auth_http_client.dart';
 import '../../../shared/models/user_plan.dart';
+import '../../../core/database/tables/settings_table.dart';
 import '../../../shared/repositories/settings_repository.dart';
 
 part 'plan_notifier.g.dart';
@@ -39,16 +40,23 @@ class PlanNotifier extends _$PlanNotifier {
     // DB에서 현재 플랜 읽기
     final currentPlan = await settingsRepo.getUserPlan();
 
-    // 앱 시작 시 구독 동기화: 구매 복원으로 최신 상태 확인 (#11)
-    _syncSubscriptionOnStart();
+    // 관리자 모드 체크 — 관리자 모드에서는 구독 검증 건너뛰기
+    final isAdmin = await settingsRepo.getBool(SettingsKey.adminModeEnabled);
 
-    // 구독 플랜인 경우 만료 체크 (#3)
-    if (currentPlan.isSubscription) {
-      _checkSubscriptionValidity(currentPlan);
+    if (!isAdmin) {
+      // 앱 시작 시 구독 동기화: 구매 복원으로 최신 상태 확인 (#11)
+      _syncSubscriptionOnStart();
+
+      // 구독 플랜인 경우 만료 체크 (#3)
+      if (currentPlan.isSubscription) {
+        _checkSubscriptionValidity(currentPlan);
+      }
+
+      // 미검증 영수증 재시도 (#2)
+      _planService.retryPendingReceipts();
+    } else {
+      debugPrint('[PlanNotifier] 관리자 모드 — 구독 검증 건너뛰기 (현재: ${currentPlan.name})');
     }
-
-    // 미검증 영수증 재시도 (#2)
-    _planService.retryPendingReceipts();
 
     return currentPlan;
   }
