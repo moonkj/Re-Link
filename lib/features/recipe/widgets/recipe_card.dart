@@ -143,7 +143,11 @@ class _RecipeCardState extends State<RecipeCard> {
                 // -- 확장 영역 (재료 전체 + 조리법 + 삭제) --------------
                 AnimatedCrossFade(
                   firstChild: const SizedBox.shrink(),
-                  secondChild: _buildExpandedContent(recipe),
+                  secondChild: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {}, // 부모 GlassCard onTap 전파 차단
+                    child: _buildExpandedContent(recipe),
+                  ),
                   crossFadeState: _expanded
                       ? CrossFadeState.showSecond
                       : CrossFadeState.showFirst,
@@ -273,6 +277,7 @@ class _RecipeCardState extends State<RecipeCard> {
             const Spacer(),
             // 공유 버튼
             GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () {
                 HapticService.light();
                 _shareRecipe(recipe);
@@ -302,6 +307,7 @@ class _RecipeCardState extends State<RecipeCard> {
             const SizedBox(width: AppSpacing.sm),
             // 삭제 버튼
             GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () {
                 HapticService.medium();
                 _showDeleteConfirm(context);

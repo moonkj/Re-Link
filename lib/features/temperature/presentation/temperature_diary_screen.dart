@@ -383,9 +383,10 @@ class _LogListItem extends StatelessWidget {
             ),
             // 삭제 버튼
             GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: onDelete,
               child: Padding(
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.all(8),
                 child: Icon(
                   Icons.close,
                   size: 16,

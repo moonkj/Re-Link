@@ -119,10 +119,16 @@ class _WrappedPageViewState extends State<_WrappedPageView> {
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Row(
                 children: [
-                  GlassCard(
-                    padding: const EdgeInsets.all(AppSpacing.sm),
+                  GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
-                    child: const Icon(Icons.close, color: Colors.white, size: 20),
+                    child: Container(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      decoration: BoxDecoration(
+                        color: Colors.black26,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Icon(Icons.close, color: Colors.white, size: 20),
+                    ),
                   ),
                   const Spacer(),
                   // 페이지 인디케이터

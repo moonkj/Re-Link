@@ -1383,10 +1383,11 @@ class _RelationTab extends ConsumerWidget {
                 ),
                 // 관계 삭제 버튼
                 GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: () =>
                       _confirmDeleteEdge(context, ref, edge, otherName),
                   child: Padding(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(8),
                     child: Icon(
                       Icons.close,
                       size: 16,

@@ -646,10 +646,10 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
             child: const HolidayBanner(),
           ),
 
-          // ── 데일리 프롬프트 카드 (캔버스 모드에서만, 배너 아래 56px 오프셋) ──
+          // ── 데일리 프롬프트 카드 (캔버스 모드에서만) ──
           if (!_isListView)
             Positioned(
-              top: MediaQuery.of(context).padding.top + 62 + 56, left: AppSpacing.lg, right: AppSpacing.lg,
+              top: MediaQuery.of(context).padding.top + 62, left: AppSpacing.lg, right: AppSpacing.lg,
               child: const DailyPromptCard(),
             ),
 

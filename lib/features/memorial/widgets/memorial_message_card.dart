@@ -92,7 +92,7 @@ class MemorialMessageCard extends StatelessWidget {
                     onTap: onDelete,
                     behavior: HitTestBehavior.opaque,
                     child: Padding(
-                      padding: const EdgeInsets.all(4),
+                      padding: const EdgeInsets.all(8),
                       child: Icon(
                         Icons.close,
                         size: 14,

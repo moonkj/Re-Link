@@ -224,8 +224,12 @@ class _EditNodeSheetState extends ConsumerState<EditNodeSheet> {
           const Spacer(),
           if (value != null)
             GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () => onChanged(null),
-              child: Icon(Icons.clear, color: AppColors.textTertiary, size: 16),
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Icon(Icons.clear, color: AppColors.textTertiary, size: 16),
+              ),
             ),
         ],
       ),

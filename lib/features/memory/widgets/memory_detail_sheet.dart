@@ -165,22 +165,32 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
                 _PrivacyPill(isPrivate: _isPrivate, onToggle: _togglePrivacy),
                 const SizedBox(width: AppSpacing.sm),
                 GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: () {
                     final router = GoRouter.of(context);
                     Navigator.of(context).pop();
                     router.push(AppRoutes.snapshotPath(widget.memory.id));
                   },
-                  child: Icon(Icons.share_outlined, color: AppColors.textSecondary, size: 22),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(Icons.share_outlined, color: AppColors.textSecondary, size: 22),
+                  ),
                 ),
-                const SizedBox(width: AppSpacing.sm),
                 GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: () => _confirmDelete(context),
-                  child: const Icon(Icons.delete_outline, color: AppColors.error, size: 22),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(Icons.delete_outline, color: AppColors.error, size: 22),
+                  ),
                 ),
-                const SizedBox(width: AppSpacing.sm),
                 GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: () => Navigator.of(context).pop(),
-                  child: Icon(Icons.close, color: AppColors.textSecondary, size: 22),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(Icons.close, color: AppColors.textSecondary, size: 22),
+                  ),
                 ),
               ],
             ),
@@ -373,8 +383,12 @@ class _LockedOverlay extends StatelessWidget {
                 _PrivacyPill(isPrivate: isPrivate, onToggle: onTogglePrivacy),
                 const SizedBox(width: AppSpacing.sm),
                 GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: onClose,
-                  child: Icon(Icons.close, color: AppColors.textSecondary, size: 22),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(Icons.close, color: AppColors.textSecondary, size: 22),
+                  ),
                 ),
               ],
             ),
