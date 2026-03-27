@@ -104,8 +104,9 @@ class FamilyMembersNotifier extends _$FamilyMembersNotifier {
 
   /// 초대 링크 생성 — 사전 조건 체크 포함
   Future<InviteLinkResult> createInviteLink() async {
-    // 1. 플랜 체크
-    final plan = ref.read(planNotifierProvider).valueOrNull ?? UserPlan.free;
+    // 1. 플랜 체크 (DB에서 직접 읽기 — AsyncNotifier 로딩 중일 수 있으므로)
+    final settingsRepo = ref.read(settingsRepositoryProvider);
+    final plan = await settingsRepo.getUserPlan();
     if (!plan.hasCloud) {
       debugPrint('[FamilyMembers] createInviteLink: 패밀리 플랜 아님 (현재: ${plan.name})');
       return const InviteLinkResult.failure(
