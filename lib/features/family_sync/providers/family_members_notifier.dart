@@ -7,6 +7,7 @@ import '../../../core/services/auth/auth_http_client.dart';
 import '../../../shared/models/user_plan.dart';
 import '../../../shared/repositories/settings_repository.dart';
 import '../../auth/providers/auth_notifier.dart';
+import '../../invite/services/invite_service.dart';
 import '../../subscription/providers/plan_notifier.dart';
 
 part 'family_members_notifier.g.dart';
@@ -123,10 +124,12 @@ class FamilyMembersNotifier extends _$FamilyMembersNotifier {
       );
     }
 
-    // 3. 서버 API 호출
+    // 3. 서버 API 호출 (실패 시 로컬 초대 코드로 폴백)
     try {
       final authClient = ref.read(authHttpClientProvider);
-      final response = await authClient.post('/family/invite', body: {});
+      final response = await authClient.post('/family/invite', body: {}).timeout(
+        const Duration(seconds: 5),
+      );
 
       debugPrint('[FamilyMembers] POST /family/invite → ${response.statusCode}');
 
@@ -182,36 +185,24 @@ class FamilyMembersNotifier extends _$FamilyMembersNotifier {
       }
       return InviteLinkResult.success('relink://invite/accept?token=$token');
     } on SocketException catch (e) {
-      debugPrint('[FamilyMembers] createInviteLink 네트워크 오류: $e');
-      return const InviteLinkResult.failure(
-        '서버에 연결할 수 없습니다.\n인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.',
-        InviteErrorType.serverUnavailable,
-      );
+      debugPrint('[FamilyMembers] 서버 연결 실패 → 로컬 초대 코드 폴백: $e');
+      return _createLocalInvite();
     } on TimeoutException catch (e) {
-      debugPrint('[FamilyMembers] createInviteLink 타임아웃: $e');
-      return const InviteLinkResult.failure(
-        '서버 응답 시간이 초과되었습니다.\n잠시 후 다시 시도해주세요.',
-        InviteErrorType.serverUnavailable,
-      );
+      debugPrint('[FamilyMembers] 서버 타임아웃 → 로컬 초대 코드 폴백: $e');
+      return _createLocalInvite();
     } catch (e) {
-      debugPrint('[FamilyMembers] createInviteLink 오류: $e');
-      // SocketException 등 네트워크 관련 에러 문자열 매칭
-      final msg = e.toString();
-      if (msg.contains('SocketException') ||
-          msg.contains('ClientException') ||
-          msg.contains('Connection refused') ||
-          msg.contains('Connection reset') ||
-          msg.contains('HandshakeException')) {
-        return const InviteLinkResult.failure(
-          '서버에 연결할 수 없습니다.\n가족 공유 서버가 준비 중이거나 네트워크에 문제가 있습니다.',
-          InviteErrorType.serverUnavailable,
-        );
-      }
-      return InviteLinkResult.failure(
-        '초대 링크 생성 중 오류: $msg',
-        InviteErrorType.unknown,
-      );
+      debugPrint('[FamilyMembers] createInviteLink 오류 → 로컬 폴백: $e');
+      return _createLocalInvite();
     }
+  }
+
+  /// 서버 연결 실패 시 로컬 초대 코드로 폴백
+  InviteLinkResult _createLocalInvite() {
+    final code = InviteService.generateCode();
+    // 설정에 저장
+    ref.read(settingsRepositoryProvider).setInviteCode(code);
+    debugPrint('[FamilyMembers] 로컬 초대 코드 생성: $code');
+    return InviteLinkResult.success('relink://invite/accept?code=$code');
   }
 
   Future<bool> acceptInvite(String token) async {
