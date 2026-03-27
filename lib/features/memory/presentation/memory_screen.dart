@@ -303,7 +303,7 @@ class _PhotoGrid extends StatelessWidget {
           child: ClipRRect(
             borderRadius: AppRadius.radiusSm,
             child: m.thumbnailPath != null
-                ? Image.file(PathUtils.resolveFile(m.thumbnailPath) ?? File(m.thumbnailPath!), fit: BoxFit.cover)
+                ? Image.file(PathUtils.resolveFile(m.thumbnailPath) ?? File(m.thumbnailPath!), fit: BoxFit.cover, cacheWidth: 200)
                 : Container(
                     color: AppColors.glassSurface,
                     child: Icon(Icons.photo_outlined, color: AppColors.textTertiary),
@@ -318,7 +318,7 @@ class _PhotoGrid extends StatelessWidget {
             showMessage: false,
             iconSize: 18,
             child: m.thumbnailPath != null
-                ? Image.file(PathUtils.resolveFile(m.thumbnailPath) ?? File(m.thumbnailPath!), fit: BoxFit.cover)
+                ? Image.file(PathUtils.resolveFile(m.thumbnailPath) ?? File(m.thumbnailPath!), fit: BoxFit.cover, cacheWidth: 200)
                 : Container(
                     color: AppColors.glassSurface,
                     child: Icon(Icons.photo_outlined, color: AppColors.textTertiary),
@@ -385,7 +385,7 @@ class _VideoGridItem extends StatelessWidget {
             Container(color: AppColors.bgSurface),
             // 썸네일 이미지
             if (memory.thumbnailPath != null)
-              Image.file(PathUtils.resolveFile(memory.thumbnailPath) ?? File(memory.thumbnailPath!), fit: BoxFit.cover),
+              Image.file(PathUtils.resolveFile(memory.thumbnailPath) ?? File(memory.thumbnailPath!), fit: BoxFit.cover, cacheWidth: 200),
             // 플레이 아이콘 중앙
             Center(
               child: Container(
@@ -473,7 +473,7 @@ class _MixedList extends StatelessWidget {
                 showMessage: false,
                 iconSize: 18,
                 child: m.thumbnailPath != null
-                    ? Image.file(PathUtils.resolveFile(m.thumbnailPath) ?? File(m.thumbnailPath!), fit: BoxFit.cover)
+                    ? Image.file(PathUtils.resolveFile(m.thumbnailPath) ?? File(m.thumbnailPath!), fit: BoxFit.cover, cacheWidth: 200)
                     : Container(
                         color: AppColors.glassSurface,
                         child: Icon(Icons.photo_outlined, color: AppColors.textTertiary),
@@ -488,7 +488,7 @@ class _MixedList extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: AppRadius.radiusSm,
                   child: m.thumbnailPath != null
-                      ? Image.file(PathUtils.resolveFile(m.thumbnailPath) ?? File(m.thumbnailPath!), fit: BoxFit.cover)
+                      ? Image.file(PathUtils.resolveFile(m.thumbnailPath) ?? File(m.thumbnailPath!), fit: BoxFit.cover, cacheWidth: 200)
                       : Container(
                           color: AppColors.glassSurface,
                           child: Icon(Icons.photo_outlined, color: AppColors.textTertiary),

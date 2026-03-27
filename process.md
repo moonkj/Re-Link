@@ -4191,3 +4191,60 @@ dependencies:
 - [x] `VoiceLegacyCard` — `onLongPress` 콜백 추가
 - [x] `voice_legacy_screen.dart` — `_confirmDeleteLegacy()` 메서드 추가 (삭제 확인 다이얼로그)
 - [x] 봉인/열기/열린 모든 상태에서 롱프레스 삭제 가능
+
+---
+
+## Phase 27 — 성씨 검색 + 용어 통일 + 노드 권한 (2026-03-27)
+
+> 성씨 탐색기 검색 정확도 개선, 데이터 확장, 꽃다발→마음 용어 통일, 노드 선택 필터링
+
+---
+
+### 성씨 탐색기 ✅
+
+- [x] 1~2글자 검색 → 성씨/로마자만 매칭 (과잉 결과 방지)
+- [x] "~씨" 접미사 자동 제거 (김씨→김, 이씨→이)
+- [x] 성씨 데이터 45→77개, 본관 109개로 확장
+
+### 용어 통일 ✅
+
+- [x] "꽃다발 리포트" → "마음 리포트"
+- [x] "받은마음" → "받은 마음" 띄어쓰기
+
+### 노드 선택 필터링 ✅
+
+- [x] `getControllableNodes()` — 유령 노드 제외, 4곳 적용
+
+---
+
+## Phase 28 — 앱 전체 코드 리뷰 + 디버깅 25건 (2026-03-27)
+
+> 팀 에이전트 4명 전체 코드 리뷰 후 25+ 버그 수정
+
+---
+
+### CRITICAL 수정 ✅
+
+- [x] `PRAGMA foreign_keys = ON` — CASCADE 삭제 활성화
+- [x] `deleteNodeAndRelated()` — 10개 테이블 트랜잭션 정리
+- [x] `PathUtils.toAbsolute()` — 8곳 filePath 경로 해석
+- [x] `deathDate` null 체크, `enqueueSyncItem` padRight
+- [x] `profile_setup _save()` catch 추가
+- [x] `deleteMemory` DB 먼저 삭제
+
+### Image.file 메모리 최적화 ✅
+
+- [x] 33개 Image.file에 cacheWidth 추가 (16파일, ~140MB 절약)
+
+### HIGH 수정 ✅
+
+- [x] 온도 일기 → 노드 temperature 동기화
+- [x] SQL injection 방지 — LIKE 특수문자 제거
+- [x] StreamSubscription 미취소 5곳 수정
+- [x] Voice Legacy 삭제 시 음성파일도 삭제
+- [x] 마이크 권한 체크 추가
+- [x] countMemoriesByType → COUNT(*) 변경
+
+### MEDIUM 수정 ✅
+
+- [x] birth/death 날짜 검증 추가

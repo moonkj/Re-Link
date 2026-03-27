@@ -35,6 +35,7 @@ class _WelcomePlaybackState extends ConsumerState<WelcomePlayback>
 
   // 음성
   PlayerController? _playerCtrl;
+  StreamSubscription? _playerSub;
   String? _audioPath;
   bool _audioReady = false;
 
@@ -115,7 +116,7 @@ class _WelcomePlaybackState extends ConsumerState<WelcomePlayback>
       path: path,
       shouldExtractWaveform: true,
     );
-    _playerCtrl!.onPlayerStateChanged.listen((state) {
+    _playerSub = _playerCtrl!.onPlayerStateChanged.listen((state) {
       if (mounted) setState(() {});
     });
     if (mounted) {
@@ -133,6 +134,7 @@ class _WelcomePlaybackState extends ConsumerState<WelcomePlayback>
 
   @override
   void dispose() {
+    _playerSub?.cancel();
     _typeTimer?.cancel();
     _fadeCtrl.dispose();
     _playerCtrl?.stopPlayer();

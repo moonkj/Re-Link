@@ -530,6 +530,7 @@ class _MemoryItemTile extends ConsumerWidget {
                     width: 36,
                     height: 36,
                     fit: BoxFit.cover,
+                    cacheWidth: 200,
                     errorBuilder: (_, __, ___) => Container(
                       width: 36,
                       height: 36,

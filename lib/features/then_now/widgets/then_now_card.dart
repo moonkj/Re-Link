@@ -78,6 +78,7 @@ class ThenNowCard extends StatelessWidget {
                             child: Image.file(
                               File(beforeImagePath),
                               fit: BoxFit.cover,
+                              cacheWidth: 400,
                             ),
                           ),
                         ),
@@ -123,6 +124,7 @@ class ThenNowCard extends StatelessWidget {
                             child: Image.file(
                               File(afterImagePath),
                               fit: BoxFit.cover,
+                              cacheWidth: 400,
                             ),
                           ),
                         ),

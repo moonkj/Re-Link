@@ -293,6 +293,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       await ref.read(settingsRepositoryProvider).setOnboardingDone();
       if (!mounted) return;
       context.go(AppRoutes.firstFamily);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('프로필 저장 실패: $e')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }

@@ -57,6 +57,7 @@ class _ComparisonSliderState extends State<ComparisonSlider> {
                 child: Image.file(
                   File(widget.afterImagePath),
                   fit: BoxFit.cover,
+                  cacheWidth: 400,
                 ),
               ),
 
@@ -67,6 +68,7 @@ class _ComparisonSliderState extends State<ComparisonSlider> {
                   child: Image.file(
                     File(widget.beforeImagePath),
                     fit: BoxFit.cover,
+                    cacheWidth: 400,
                   ),
                 ),
               ),

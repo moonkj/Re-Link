@@ -133,7 +133,15 @@ class _EditNodeSheetState extends ConsumerState<EditNodeSheet> {
             // 생년월일
             _datePicker('생년월일', _birthDate, (d) => setState(() => _birthDate = d)),
             const SizedBox(height: AppSpacing.sm),
-            _datePicker('사망일 (선택)', _deathDate, (d) => setState(() => _deathDate = d)),
+            _datePicker('사망일 (선택)', _deathDate, (d) {
+              if (d != null && _birthDate != null && d.isBefore(_birthDate!)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('사망일은 생년월일 이후여야 합니다')),
+                );
+                return;
+              }
+              setState(() => _deathDate = d);
+            }),
             const SizedBox(height: AppSpacing.xxl),
 
             SizedBox(

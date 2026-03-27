@@ -44,6 +44,10 @@ part 'app_database.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  /// LIKE 쿼리용 특수문자 제거 (Drift는 escape 파라미터 미지원)
+  String _escapeLike(String query) =>
+      query.replaceAll('%', '').replaceAll('_', '').replaceAll("'", '');
+
   /// 테스트용 in-memory DB
   AppDatabase.forTesting(super.executor);
 
@@ -163,6 +167,91 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteNode(String id) =>
       (delete(nodesTable)..where((t) => t.id.equals(id))).go();
 
+  /// 노드 삭제 전, 관련 미디어 파일 경로를 모두 수집합니다.
+  /// (DB 레코드 삭제 전에 호출해야 합니다)
+  Future<List<String>> collectMediaPathsForNode(String nodeId) async {
+    final paths = <String?>[];
+
+    // memories 미디어 (사진/음성/영상)
+    final memories = await getMemoriesForNode(nodeId);
+    for (final m in memories) {
+      paths.add(m.filePath);
+      paths.add(m.thumbnailPath);
+    }
+
+    // voice_legacy 음성 파일
+    final legacies = await (select(voiceLegacyTable)
+          ..where(
+              (t) => t.fromNodeId.equals(nodeId) | t.toNodeId.equals(nodeId)))
+        .get();
+    for (final v in legacies) {
+      paths.add(v.voicePath);
+    }
+
+    // recipes 사진
+    final recipes = await (select(recipesTable)
+          ..where((t) => t.nodeId.equals(nodeId)))
+        .get();
+    for (final r in recipes) {
+      paths.add(r.photoPath);
+    }
+
+    return paths
+        .where((p) => p != null && p.isNotEmpty)
+        .cast<String>()
+        .toList();
+  }
+
+  /// 노드와 관련된 모든 테이블의 데이터를 원자적으로 삭제합니다.
+  /// CASCADE FK가 설정된 memories, node_edges 외에도
+  /// nodeId를 텍스트로 참조하는 8개 테이블을 함께 정리합니다.
+  Future<void> deleteNodeAndRelated(String id) => transaction(() async {
+        // 1. temperature_logs (nodeId)
+        await (delete(temperatureLogsTable)
+              ..where((t) => t.nodeId.equals(id)))
+            .go();
+
+        // 2. bouquets (fromNodeId OR toNodeId)
+        await (delete(bouquetsTable)
+              ..where((t) =>
+                  t.fromNodeId.equals(id) | t.toNodeId.equals(id)))
+            .go();
+
+        // 3. memorial_messages (nodeId)
+        await (delete(memorialMessagesTable)
+              ..where((t) => t.nodeId.equals(id)))
+            .go();
+
+        // 4. recipes (nodeId)
+        await (delete(recipesTable)
+              ..where((t) => t.nodeId.equals(id)))
+            .go();
+
+        // 5. node_locations (nodeId)
+        await (delete(nodeLocationsTable)
+              ..where((t) => t.nodeId.equals(id)))
+            .go();
+
+        // 6. voice_legacy (fromNodeId OR toNodeId)
+        await (delete(voiceLegacyTable)
+              ..where((t) =>
+                  t.fromNodeId.equals(id) | t.toNodeId.equals(id)))
+            .go();
+
+        // 7. family_events (nodeId)
+        await (delete(familyEventsTable)
+              ..where((t) => t.nodeId.equals(id)))
+            .go();
+
+        // 8. media_upload_queue (nodeId)
+        await (delete(mediaUploadQueueTable)
+              ..where((t) => t.nodeId.equals(id)))
+            .go();
+
+        // 9. nodes (CASCADE handles memories + node_edges)
+        await (delete(nodesTable)..where((t) => t.id.equals(id))).go();
+      });
+
   Future<int> nodeCount() =>
       nodesTable.count().getSingle();
 
@@ -251,9 +340,10 @@ class AppDatabase extends _$AppDatabase {
 
   /// 타입별 기억 수 (플랜 제한 체크용)
   Future<int> countMemoriesByType(String type) =>
-      (select(memoriesTable)..where((t) => t.type.equals(type)))
-          .get()
-          .then((rows) => rows.length);
+      customSelect(
+        'SELECT COUNT(*) AS c FROM memories WHERE type = ?',
+        variables: [Variable(type)],
+      ).map((row) => row.read<int>('c')).getSingle();
 
   /// 전체 음성 길이 합 (초, 플랜 제한용)
   Future<int> sumVoiceDuration() async {
@@ -429,7 +519,7 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<RecipesTableData>> searchRecipes(String query) =>
       (select(recipesTable)
-            ..where((t) => t.title.like('%$query%'))
+            ..where((t) => t.title.like('%${_escapeLike(query)}%'))
             ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
           .get();
 
@@ -553,18 +643,26 @@ class AppDatabase extends _$AppDatabase {
   // ── 검색 ──────────────────────────────────────────────────────────────────
 
   /// 노드 이름/별명 LIKE 검색
-  Future<List<NodesTableData>> searchNodes(String query) =>
-      (select(nodesTable)
-            ..where((t) => t.name.like('%$query%') | t.nickname.like('%$query%'))
-            ..orderBy([(t) => OrderingTerm.asc(t.name)]))
-          .get();
+  Future<List<NodesTableData>> searchNodes(String query) {
+    final escaped = _escapeLike(query);
+    return (select(nodesTable)
+          ..where((t) =>
+              t.name.like('%$escaped%') |
+              t.nickname.like('%$escaped%'))
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+        .get();
+  }
 
   /// 기억 제목/설명 LIKE 검색
-  Future<List<MemoriesTableData>> searchMemories(String query) =>
-      (select(memoriesTable)
-            ..where((t) => t.title.like('%$query%') | t.description.like('%$query%'))
-            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
-          .get();
+  Future<List<MemoriesTableData>> searchMemories(String query) {
+    final escaped = _escapeLike(query);
+    return (select(memoriesTable)
+          ..where((t) =>
+              t.title.like('%$escaped%') |
+              t.description.like('%$escaped%'))
+          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .get();
+  }
 
   // ── 통계 ──────────────────────────────────────────────────────────────────
 
@@ -593,7 +691,7 @@ class AppDatabase extends _$AppDatabase {
   }) async {
     final id = DateTime.now().microsecondsSinceEpoch.toString() +
         '_' +
-        recordId.replaceAll('-', '').substring(0, 8);
+        recordId.replaceAll('-', '').padRight(8, '0').substring(0, 8);
     await into(syncQueueTable).insertOnConflictUpdate(
       SyncQueueTableCompanion.insert(
         id: id,
@@ -753,7 +851,9 @@ QueryExecutor _openConnection() {
   return LazyDatabase(() async {
     final dir = await getApplicationDocumentsDirectory();
     final file = File(p.join(dir.path, 'relink.db'));
-    return NativeDatabase(file);
+    return NativeDatabase(file, setup: (db) {
+      db.execute('PRAGMA foreign_keys = ON');
+    });
   });
 }
 

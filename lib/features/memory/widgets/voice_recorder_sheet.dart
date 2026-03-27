@@ -41,6 +41,7 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
     with SingleTickerProviderStateMixin {
   late final RecorderController _recorderCtrl;
   PlayerController? _playerCtrl;
+  StreamSubscription? _playerSub;
 
   // ── Pulse 애니메이션 (녹음 중 마이크 버튼) ─────────────────────────────────
   late final AnimationController _pulseCtrl;
@@ -75,6 +76,7 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
 
   @override
   void dispose() {
+    _playerSub?.cancel();
     _timer?.cancel();
     _pulseCtrl.dispose();
     _recorderCtrl.dispose();
@@ -323,6 +325,17 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
   // ── 녹음 제어 ─────────────────────────────────────────────────────────────
 
   Future<void> _startRecording() async {
+    // 마이크 권한 확인
+    final hasPermission = await _recorderCtrl.checkPermission();
+    if (!hasPermission) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('마이크 권한이 필요합니다')),
+        );
+      }
+      return;
+    }
+
     final path = await ref.read(mediaServiceProvider).newVoicePath();
     await _recorderCtrl.record(path: path);
     _elapsed = 0;
@@ -345,7 +358,8 @@ class _VoiceRecorderSheetState extends ConsumerState<VoiceRecorderSheet>
     _playerCtrl?.dispose();
     _playerCtrl = PlayerController();
     await _playerCtrl!.preparePlayer(path: path, shouldExtractWaveform: true);
-    _playerCtrl!.onPlayerStateChanged.listen((_) {
+    _playerSub?.cancel();
+    _playerSub = _playerCtrl!.onPlayerStateChanged.listen((_) {
       if (mounted) setState(() {});
     });
 

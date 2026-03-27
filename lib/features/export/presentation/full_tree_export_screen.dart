@@ -518,6 +518,7 @@ class _ExportNodeCard extends StatelessWidget {
                       fit: BoxFit.cover,
                       width: 44,
                       height: 44,
+                      cacheWidth: 200,
                       errorBuilder: (_, e, s) => Icon(
                         Icons.person,
                         size: 24,

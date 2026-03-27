@@ -184,10 +184,15 @@ class MemoryNotifier extends _$MemoryNotifier {
   Future<void> deleteMemory(MemoryModel memory) async {
     state = const AsyncLoading();
     try {
-      // 파일 삭제
-      await _media.deleteFile(memory.filePath);
-      await _media.deleteFile(memory.thumbnailPath);
+      // DB 레코드 먼저 삭제 (실패 시 파일은 남지만 데이터 무결성 유지)
       await _repo.delete(memory.id);
+      // 파일 삭제 (실패해도 DB는 이미 정리됨)
+      try {
+        await _media.deleteFile(memory.filePath);
+        await _media.deleteFile(memory.thumbnailPath);
+      } catch (_) {
+        // 파일 삭제 실패는 무시 (고아 파일은 백업 시 정리됨)
+      }
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);

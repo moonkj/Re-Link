@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -70,10 +72,21 @@ class VoiceLegacyNotifier extends _$VoiceLegacyNotifier {
     }
   }
 
-  /// 삭제 — 알림도 함께 취소
+  /// 삭제 — 음성 파일 + 알림도 함께 삭제/취소
   Future<bool> delete(String id) async {
     state = const AsyncLoading();
     try {
+      // 음성 파일 삭제
+      final legacy = await _repo.get(id);
+      if (legacy != null) {
+        try {
+          final absPath = PathUtils.toAbsolute(legacy.voicePath);
+          if (absPath != null) {
+            final file = File(absPath);
+            if (await file.exists()) await file.delete();
+          }
+        } catch (_) {}
+      }
       // 해당 voice legacy 알림 취소
       _cancelVoiceLegacyNotification(id);
       await _repo.delete(id);

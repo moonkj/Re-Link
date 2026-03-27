@@ -26,6 +26,7 @@ class _WelcomeCapsuleSheetState extends ConsumerState<WelcomeCapsuleSheet>
   final _messageCtrl = TextEditingController();
   late final RecorderController _recorderCtrl;
   PlayerController? _playerCtrl;
+  StreamSubscription? _playerSub;
 
   late final AnimationController _pulseCtrl;
   late final Animation<double> _pulseAnim;
@@ -71,13 +72,15 @@ class _WelcomeCapsuleSheetState extends ConsumerState<WelcomeCapsuleSheet>
       path: path,
       shouldExtractWaveform: true,
     );
-    _playerCtrl!.onPlayerStateChanged.listen((_) {
+    _playerSub?.cancel();
+    _playerSub = _playerCtrl!.onPlayerStateChanged.listen((_) {
       if (mounted) setState(() {});
     });
   }
 
   @override
   void dispose() {
+    _playerSub?.cancel();
     _timer?.cancel();
     _pulseCtrl.dispose();
     _recorderCtrl.dispose();

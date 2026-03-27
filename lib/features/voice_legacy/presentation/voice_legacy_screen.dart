@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter/material.dart';
@@ -324,6 +325,7 @@ class _PlayLegacySheet extends ConsumerStatefulWidget {
 
 class _PlayLegacySheetState extends ConsumerState<_PlayLegacySheet> {
   PlayerController? _playerCtrl;
+  StreamSubscription? _playerSub;
   bool _prepared = false;
 
   @override
@@ -342,7 +344,7 @@ class _PlayLegacySheetState extends ConsumerState<_PlayLegacySheet> {
         path: resolvedPath,
         shouldExtractWaveform: true,
       );
-      _playerCtrl!.onPlayerStateChanged.listen((_) {
+      _playerSub = _playerCtrl!.onPlayerStateChanged.listen((_) {
         if (mounted) setState(() {});
       });
       if (mounted) setState(() => _prepared = true);
@@ -353,6 +355,7 @@ class _PlayLegacySheetState extends ConsumerState<_PlayLegacySheet> {
 
   @override
   void dispose() {
+    _playerSub?.cancel();
     _playerCtrl?.dispose();
     super.dispose();
   }

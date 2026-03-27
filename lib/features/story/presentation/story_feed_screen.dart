@@ -350,6 +350,7 @@ class _PhotoContent extends StatelessWidget {
               width: double.infinity,
               height: 180,
               fit: BoxFit.cover,
+              cacheWidth: 400,
             ),
           ),
         if (memory.description != null) ...[

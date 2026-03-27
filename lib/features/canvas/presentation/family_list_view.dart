@@ -524,6 +524,7 @@ class _FamilyMemberTile extends StatelessWidget {
             width: _avatarSize,
             height: _avatarSize,
             fit: BoxFit.cover,
+            cacheWidth: 200,
             errorBuilder: (context, error, stack) => _initialAvatar(tempColor),
           ),
         ),

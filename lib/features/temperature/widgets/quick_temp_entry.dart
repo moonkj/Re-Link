@@ -6,6 +6,7 @@ import '../../../design/motion/app_motion.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../shared/models/temperature_log_model.dart';
+import '../../../shared/repositories/node_repository.dart';
 import '../providers/temperature_diary_notifier.dart';
 
 /// 온도 일기 빠른 기록 바텀시트
@@ -72,6 +73,9 @@ class _QuickTempEntryState extends ConsumerState<QuickTempEntry> {
           temperature: _temperature,
           emotionTag: _emotionTag,
         );
+
+    // 노드의 온도 필드도 동기화
+    await ref.read(nodeRepositoryProvider).updateTemperature(widget.nodeId, _temperature);
 
     if (!mounted) return;
     HapticService.memoryAdded();

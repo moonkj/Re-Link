@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -168,8 +169,9 @@ class _PhotoGridItem extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             Image.file(
-              File(memory.filePath!),
+              File(PathUtils.toAbsolute(memory.filePath!) ?? memory.filePath!),
               fit: BoxFit.cover,
+              cacheWidth: 200,
             ),
             // 날짜 오버레이
             if (memory.dateTaken != null)

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/utils/haptic_service.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -50,10 +51,11 @@ class _RecipeCardState extends State<RecipeCard> {
                 top: Radius.circular(20),
               ),
               child: Image.file(
-                File(recipe.photoPath!),
+                File(PathUtils.toAbsolute(recipe.photoPath!) ?? recipe.photoPath!),
                 width: double.infinity,
                 height: 160,
                 fit: BoxFit.cover,
+                cacheWidth: 400,
                 errorBuilder: (_, __, ___) => _PhotoPlaceholder(),
               ),
             )

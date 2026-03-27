@@ -212,6 +212,7 @@ class _Thumbnail extends StatelessWidget {
           width: 44,
           height: 44,
           fit: BoxFit.cover,
+          cacheWidth: 200,
           errorBuilder: (_, __, ___) => _IconThumbnail(type: memory.type),
         ),
       );

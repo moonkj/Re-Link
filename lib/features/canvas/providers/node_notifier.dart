@@ -5,6 +5,7 @@ import '../../../shared/repositories/settings_repository.dart';
 import '../../../shared/models/user_plan.dart';
 import '../../../core/services/media/media_service.dart';
 import '../../../core/errors/app_error.dart';
+import '../../../shared/repositories/db_provider.dart';
 
 part 'node_notifier.g.dart';
 
@@ -78,11 +79,23 @@ class NodeNotifier extends _$NodeNotifier {
   Future<void> deleteNode(String id) async {
     state = const AsyncLoading();
     try {
+      final db = ref.read(appDatabaseProvider);
       final node = await _repo.getById(id);
-      // 관련 미디어 파일 삭제
-      if (node?.photoPath != null) {
-        await _media.deleteFile(node!.photoPath);
+
+      // ── 관련 미디어 파일 수집 (DB 삭제 전) ──
+      final mediaPaths = await db.collectMediaPathsForNode(id);
+
+      // 노드 아바타 사진 추가
+      if (node?.photoPath != null && node!.photoPath!.isNotEmpty) {
+        mediaPaths.add(node.photoPath!);
       }
+
+      // 미디어 파일 삭제
+      for (final path in mediaPaths) {
+        await _media.deleteFile(path);
+      }
+
+      // ── DB에서 노드 + 관련 레코드 원자적 삭제 ──
       await _repo.delete(id);
       state = const AsyncData(null);
     } catch (e, st) {

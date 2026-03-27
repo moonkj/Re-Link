@@ -157,7 +157,7 @@ class NodeRepository {
 
   // ── 삭제 ──────────────────────────────────────────────────────────────────
 
-  Future<void> delete(String id) => _db.deleteNode(id);
+  Future<void> delete(String id) => _db.deleteNodeAndRelated(id);
 
   // ── 엣지 ──────────────────────────────────────────────────────────────────
 

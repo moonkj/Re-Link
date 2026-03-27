@@ -803,7 +803,7 @@ class _Header extends StatelessWidget {
                 if (node.birthDate != null)
                   Text(
                     '${node.birthDate!.year}년생'
-                    '${node.isAlive ? '' : ' · ${node.deathDate!.year}년 사망'}',
+                    '${node.isAlive ? '' : node.deathDate != null ? ' · ${node.deathDate!.year}년 사망' : ' · 사망'}',
                     style: TextStyle(
                         fontSize: 13, color: AppColors.textTertiary),
                   ),
@@ -1607,6 +1607,7 @@ class _PhotoFullScreenDialog extends StatelessWidget {
                   child: Image.file(
                     File(photoPath),
                     fit: BoxFit.contain,
+                    cacheWidth: 800,
                   ),
                 ),
               ),

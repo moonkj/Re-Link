@@ -307,6 +307,7 @@ class _MemoryTile extends StatelessWidget {
                         width: 56,
                         height: 56,
                         fit: BoxFit.cover,
+                        cacheWidth: 200,
                       )
                     : Container(
                         width: 56,
@@ -325,6 +326,7 @@ class _MemoryTile extends StatelessWidget {
                       width: 56,
                       height: 56,
                       fit: BoxFit.cover,
+                      cacheWidth: 200,
                     )
                   : Container(
                       width: 56,
@@ -600,6 +602,7 @@ class _StoryContent extends StatelessWidget {
                   width: double.infinity,
                   height: 180,
                   fit: BoxFit.cover,
+                  cacheWidth: 400,
                 ),
               ),
             if (memory.description != null) ...[
@@ -731,7 +734,7 @@ class _VideoArchiveTile extends StatelessWidget {
             Container(color: AppColors.bgSurface),
             // 썸네일 이미지
             if (memory.thumbnailPath != null)
-              Image.file(File(memory.thumbnailPath!), fit: BoxFit.cover),
+              Image.file(File(memory.thumbnailPath!), fit: BoxFit.cover, cacheWidth: 400),
             Center(
               child: Container(
                 padding: const EdgeInsets.all(10),

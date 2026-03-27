@@ -389,7 +389,7 @@ class _PhotoForm extends StatelessWidget {
         if (photoPath != null)
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.file(PathUtils.resolveFile(photoPath) ?? File(photoPath!), height: 200, width: double.infinity, fit: BoxFit.cover),
+            child: Image.file(PathUtils.resolveFile(photoPath) ?? File(photoPath!), height: 200, width: double.infinity, fit: BoxFit.cover, cacheWidth: 400),
           )
         else
           Row(
@@ -736,7 +736,7 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
                 children: [
                   // 썸네일 이미지 (정적 프레임)
                   _thumbPath != null
-                      ? Image.file(PathUtils.resolveFile(_thumbPath) ?? File(_thumbPath!), fit: BoxFit.cover)
+                      ? Image.file(PathUtils.resolveFile(_thumbPath) ?? File(_thumbPath!), fit: BoxFit.cover, cacheWidth: 400)
                       : Container(color: AppColors.bgSurface),
                   // 재생 아이콘 (시각적 힌트)
                   Center(

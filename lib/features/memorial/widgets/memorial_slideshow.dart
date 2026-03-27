@@ -99,7 +99,7 @@ class _MemorialSlideshowState extends ConsumerState<MemorialSlideshow>
     try {
       _bgmPlayer = PlayerController();
       await _bgmPlayer!.preparePlayer(
-        path: _firstVoice!.filePath!,
+        path: PathUtils.toAbsolute(_firstVoice!.filePath!) ?? _firstVoice!.filePath!,
         shouldExtractWaveform: false,
       );
       if (!mounted) return;
@@ -322,11 +322,12 @@ class _SlideshowPage extends StatelessWidget {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 1000),
       child: Image.file(
-        File(memory.filePath!),
+        File(PathUtils.toAbsolute(memory.filePath!) ?? memory.filePath!),
         key: ValueKey(memory.id),
         width: double.infinity,
         height: double.infinity,
         fit: BoxFit.cover,
+        cacheWidth: 800,
         errorBuilder: (_, __, ___) => Container(
           color: AppColors.glassSurface,
           child: Center(

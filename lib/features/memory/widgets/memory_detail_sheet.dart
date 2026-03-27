@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:audio_waveforms/audio_waveforms.dart';
@@ -26,6 +27,7 @@ class MemoryDetailSheet extends ConsumerStatefulWidget {
 
 class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
   PlayerController? _playerCtrl;
+  StreamSubscription? _playerSub;
   bool _playerReady = false;
 
   /// 공개/개인 상태 (로컬 즉시 반영용)
@@ -93,10 +95,10 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
   Future<void> _initPlayer() async {
     _playerCtrl = PlayerController();
     await _playerCtrl!.preparePlayer(
-      path: widget.memory.filePath!,
+      path: PathUtils.toAbsolute(widget.memory.filePath!) ?? widget.memory.filePath!,
       shouldExtractWaveform: true,
     );
-    _playerCtrl!.onPlayerStateChanged.listen((_) {
+    _playerSub = _playerCtrl!.onPlayerStateChanged.listen((_) {
       if (mounted) setState(() {});
     });
     if (mounted) setState(() => _playerReady = true);
@@ -104,6 +106,7 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
 
   @override
   void dispose() {
+    _playerSub?.cancel();
     _playerCtrl?.dispose();
     super.dispose();
   }
@@ -480,12 +483,14 @@ class _BlurredPreview extends StatelessWidget {
           return Image.file(
             PathUtils.resolveFile(memory.thumbnailPath) ?? File(memory.thumbnailPath!),
             fit: BoxFit.cover,
+            cacheWidth: 400,
           );
         }
         if (memory.filePath != null) {
           return Image.file(
             PathUtils.resolveFile(memory.filePath) ?? File(memory.filePath!),
             fit: BoxFit.cover,
+            cacheWidth: 400,
           );
         }
         return Container(color: AppColors.glassSurface);
@@ -622,10 +627,11 @@ class _PhotoContent extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.file(
-              File(memory.filePath!),
+              File(PathUtils.toAbsolute(memory.filePath!) ?? memory.filePath!),
               height: 260,
               width: double.infinity,
               fit: BoxFit.cover,
+              cacheWidth: 400,
             ),
           ),
         ),
@@ -641,7 +647,7 @@ class _PhotoContent extends StatelessWidget {
           onTap: () => Navigator.pop(context),
           child: Center(
             child: InteractiveViewer(
-              child: Image.file(File(memory.filePath!)),
+              child: Image.file(File(PathUtils.toAbsolute(memory.filePath!) ?? memory.filePath!), cacheWidth: 800),
             ),
           ),
         ),
@@ -778,7 +784,7 @@ class _VideoContentState extends State<_VideoContent> {
   Future<void> _startPlay() async {
     if (_playerLoading || _playerReady) return;
     if (widget.memory.filePath == null) return;
-    final file = File(widget.memory.filePath!);
+    final file = File(PathUtils.toAbsolute(widget.memory.filePath!) ?? widget.memory.filePath!);
     if (!file.existsSync()) return;
 
     setState(() => _playerLoading = true);
@@ -843,7 +849,7 @@ class _VideoContentState extends State<_VideoContent> {
                   children: [
                     // 썸네일 포스터 (VideoPlayer 로드 전)
                     if (!_playerReady && widget.memory.thumbnailPath != null)
-                      Image.file(File(widget.memory.thumbnailPath!), fit: BoxFit.cover)
+                      Image.file(File(PathUtils.toAbsolute(widget.memory.thumbnailPath!) ?? widget.memory.thumbnailPath!), fit: BoxFit.cover, cacheWidth: 400)
                     else if (!_playerReady)
                       Container(color: AppColors.bgSurface),
 
