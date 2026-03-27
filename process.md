@@ -4248,3 +4248,28 @@ dependencies:
 ### MEDIUM 수정 ✅
 
 - [x] birth/death 날짜 검증 추가
+
+---
+
+## Phase 29 — 2차 전체 코드 리뷰 + 디버깅 8건 (2026-03-27)
+
+> 팀 에이전트 4명 2차 심층 리뷰 — UI부터 DB까지 기능별 정합성 점검
+
+---
+
+### 데이터 무결성 수정 ✅
+
+- [x] EditNodeSheet — clearNickname/Bio/BirthDate/DeathDate 플래그 적용 (필드 삭제 가능)
+- [x] deleteNodeAndRelated — then_now + capsule_items 고아 데이터 정리 추가
+- [x] restoreCompleted 플래그 → DB copy 성공 후로 이동
+
+### 클라우드 동기화 수정 ✅
+
+- [x] AddMemorySheet `_savePhoto` → MemoryNotifier 경유 (R2 업로드 큐 정상 등록)
+
+### 기능 정합성 수정 ✅
+
+- [x] 캡슐 삭제 시 스케줄 알림 취소 (고스트 알림 방지)
+- [x] 레시피 삭제 시 사진파일도 삭제 (고아 파일 방지)
+- [x] 프로필 이름 변경 → 나 노드 이름 자동 동기화
+- [x] 카카오 로그인 → "카카오 계정" 올바르게 표시 (3-way provider 분기)
