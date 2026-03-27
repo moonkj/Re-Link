@@ -39,33 +39,34 @@ class _RecipeCardState extends State<RecipeCard> {
     final hasPhoto = recipe.photoPath != null && recipe.photoPath!.isNotEmpty;
 
     return GlassCard(
-      onTap: _toggleExpand,
       padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // -- 사진 영역 -----------------------------------------------
-          if (hasPhoto)
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
-              ),
-              child: Image.file(
-                File(PathUtils.toAbsolute(recipe.photoPath!) ?? recipe.photoPath!),
-                width: double.infinity,
-                height: 160,
-                fit: BoxFit.cover,
-                cacheWidth: 400,
-                errorBuilder: (_, __, ___) => _PhotoPlaceholder(),
-              ),
-            )
-          else
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
-              ),
-              child: _PhotoPlaceholder(),
-            ),
+          // -- 사진 영역 (탭하면 확장/접기) --------------------------------
+          GestureDetector(
+            onTap: _toggleExpand,
+            child: hasPhoto
+              ? ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                  child: Image.file(
+                    File(PathUtils.toAbsolute(recipe.photoPath!) ?? recipe.photoPath!),
+                    width: double.infinity,
+                    height: 160,
+                    fit: BoxFit.cover,
+                    cacheWidth: 400,
+                    errorBuilder: (_, __, ___) => _PhotoPlaceholder(),
+                  ),
+                )
+              : ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                  child: _PhotoPlaceholder(),
+                ),
+          ),
 
           // -- 텍스트 영역 ---------------------------------------------
           Padding(
@@ -73,8 +74,11 @@ class _RecipeCardState extends State<RecipeCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 제목 + 노드 뱃지
-                Row(
+                // 제목 + 노드 뱃지 (탭하면 확장/접기)
+                GestureDetector(
+                  onTap: _toggleExpand,
+                  behavior: HitTestBehavior.opaque,
+                  child: Row(
                   children: [
                     Expanded(
                       child: Text(
@@ -126,6 +130,7 @@ class _RecipeCardState extends State<RecipeCard> {
                     ],
                   ],
                 ),
+                ),
 
                 // -- 재료 미리보기 (접힌 상태) --------------------------
                 const SizedBox(height: AppSpacing.xs),
@@ -143,11 +148,7 @@ class _RecipeCardState extends State<RecipeCard> {
                 // -- 확장 영역 (재료 전체 + 조리법 + 삭제) --------------
                 AnimatedCrossFade(
                   firstChild: const SizedBox.shrink(),
-                  secondChild: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {}, // 부모 GlassCard onTap 전파 차단
-                    child: _buildExpandedContent(recipe),
-                  ),
+                  secondChild: _buildExpandedContent(recipe),
                   crossFadeState: _expanded
                       ? CrossFadeState.showSecond
                       : CrossFadeState.showFirst,
