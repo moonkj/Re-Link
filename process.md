@@ -4273,3 +4273,36 @@ dependencies:
 - [x] 레시피 삭제 시 사진파일도 삭제 (고아 파일 방지)
 - [x] 프로필 이름 변경 → 나 노드 이름 자동 동기화
 - [x] 카카오 로그인 → "카카오 계정" 올바르게 표시 (3-way provider 분기)
+
+---
+
+## Phase 30 — 잔여 UI/UX 수정 + 초대링크 + 레시피 (2026-03-28)
+
+> 3~4차 리뷰 발견 이슈 수정, 초대링크 서버 미배포 대응, 레시피 인터랙션
+
+---
+
+### 초대 링크 생성 수정 ✅
+
+- [x] auth/plan 사전 체크 + InviteLinkResult 타입 도입
+- [x] 서버 미응답 시 로컬 초대 코드 자동 폴백 (InviteService.generateCode)
+- [x] 로그인 없이 패밀리 플랜이면 로컬 코드 생성 가능
+- [x] DB에서 직접 플랜 읽기 (AsyncNotifier 로딩 중 null 방지)
+- [x] 관리자 모드에서 구독 유효성 검증 건너뛰기 (플랜 다운그레이드 방지)
+
+### 레시피 UI 수정 ✅
+
+- [x] GlassCard onTap 제거 → 사진/제목 영역에만 탭 이벤트
+- [x] 확장 영역 공유/삭제 버튼 독립 동작
+- [x] Share.share에 sharePositionOrigin + await 추가 (iOS 공유시트 표시)
+
+### 기타 UI 수정 ✅
+
+- [x] DailyPromptCard 위치 원복 (불필요한 56px 오프셋 제거)
+- [x] 마음 리포트 닫기 버튼 반투명 배경
+- [x] 탭 타겟 확대 6곳 (삭제/공유/닫기 버튼 14px→38px)
+- [x] StoryFeed 날짜순 정렬 추가
+- [x] 마음 리포트 Top Receivers 노드 이름 표시
+- [x] 프라이버시 약속 문구 플랜별 분기
+- [x] Family Hub isFamily 로컬 플랜도 체크
+- [x] Google 로그인 취소 시 에러 메시지 제거
