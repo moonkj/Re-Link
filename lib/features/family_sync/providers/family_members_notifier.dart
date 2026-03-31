@@ -60,7 +60,9 @@ class FamilyMembersNotifier extends _$FamilyMembersNotifier {
       debugPrint('[FamilyMembers] 로그인 안됨 — 빈 목록 반환');
       return [];
     }
-    final plan = ref.read(planNotifierProvider).valueOrNull ?? UserPlan.free;
+    // DB에서 직접 플랜 읽기 (planNotifierProvider 로딩 중일 수 있으므로)
+    final settingsRepo = ref.read(settingsRepositoryProvider);
+    final plan = await settingsRepo.getUserPlan();
     if (!plan.hasCloud) {
       debugPrint('[FamilyMembers] 패밀리 플랜 아님 — 빈 목록 반환');
       return [];
@@ -68,7 +70,9 @@ class FamilyMembersNotifier extends _$FamilyMembersNotifier {
 
     try {
       final authClient = ref.read(authHttpClientProvider);
-      final response = await authClient.get('/family/members');
+      final response = await authClient.get('/family/members').timeout(
+        const Duration(seconds: 5),
+      );
 
       if (response.statusCode != 200) {
         debugPrint('[FamilyMembers] GET /family/members → ${response.statusCode}');

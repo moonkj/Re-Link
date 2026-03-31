@@ -156,9 +156,13 @@ class FamilyMembersScreen extends ConsumerWidget {
       }
       return;
     }
+    final box = context.findRenderObject() as RenderBox?;
     await Share.share(
       'Re-Link 가족 그룹에 초대합니다!\n${result.link}',
       subject: 'Re-Link 가족 초대',
+      sharePositionOrigin: box != null
+          ? box.localToGlobal(Offset.zero) & box.size
+          : null,
     );
   }
 
