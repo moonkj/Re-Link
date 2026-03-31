@@ -62,8 +62,10 @@ class ICloudBackup implements CloudBackupProvider {
 
   @override
   Future<File> download(String filename) async {
+    // iCloud가 한글 파일명을 URL 인코딩해서 반환할 수 있으므로 디코딩
+    final decodedFilename = Uri.decodeComponent(filename);
     final tmpDir = await getTemporaryDirectory();
-    final localPath = p.join(tmpDir.path, filename);
+    final localPath = p.join(tmpDir.path, decodedFilename);
 
     // 기존 파일 삭제 (이전 다운로드 잔여물 방지)
     final existing = File(localPath);
@@ -71,6 +73,7 @@ class ICloudBackup implements CloudBackupProvider {
       await existing.delete();
     }
 
+    // relativePath는 원본 (인코딩된 상태 그대로) 전달
     await ICloudStorage.download(
       containerId: _containerId,
       relativePath: filename,

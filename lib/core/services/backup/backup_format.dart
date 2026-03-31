@@ -57,13 +57,13 @@ class BackupManifest {
 
   String toJsonString() => jsonEncode(toJson());
 
-  /// 파일명 형식: ReLink_백업_20260319.rlink
-  /// 사용자가 알아보기 쉬운 한글 포함 파일명 사용
+  /// 파일명 형식: ReLink_backup_20260319.rlink
+  /// ASCII만 사용 (iCloud/Google Drive 한글 인코딩 문제 방지)
   static String generateFilename(DateTime dt) {
     final y = dt.year.toString().padLeft(4, '0');
     final mo = dt.month.toString().padLeft(2, '0');
     final d = dt.day.toString().padLeft(2, '0');
-    return 'ReLink_백업_$y$mo$d.rlink';
+    return 'ReLink_backup_$y$mo$d.rlink';
   }
 
   /// 버전 관리 파일명 형식: backup_v3_20260319_143022.rlink
