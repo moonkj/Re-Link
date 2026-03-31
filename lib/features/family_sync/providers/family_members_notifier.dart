@@ -132,24 +132,15 @@ class FamilyMembersNotifier extends _$FamilyMembersNotifier {
       debugPrint('[FamilyMembers] POST /family/invite → ${response.statusCode}');
 
       if (response.statusCode == 401) {
-        return const InviteLinkResult.failure(
-          '인증이 만료되었습니다. 다시 로그인해주세요.',
-          InviteErrorType.notLoggedIn,
-        );
+        // 인증 실패 → 로컬 초대 코드로 폴백
+        debugPrint('[FamilyMembers] 서버 401 → 로컬 초대 코드 폴백');
+        return _createLocalInvite();
       }
 
-      if (response.statusCode == 403) {
-        return const InviteLinkResult.failure(
-          '패밀리 플랜 이상이 필요합니다.',
-          InviteErrorType.noPlan,
-        );
-      }
-
-      if (response.statusCode == 404) {
-        return const InviteLinkResult.failure(
-          '가족 그룹이 없습니다.\n먼저 가족 그룹을 생성해주세요.',
-          InviteErrorType.noGroup,
-        );
+      if (response.statusCode == 403 || response.statusCode == 404) {
+        // 서버에서 플랜/그룹 미인식 → 로컬 초대 코드로 폴백
+        debugPrint('[FamilyMembers] 서버 ${response.statusCode} → 로컬 초대 코드 폴백');
+        return _createLocalInvite();
       }
 
       if (response.statusCode == 409) {
