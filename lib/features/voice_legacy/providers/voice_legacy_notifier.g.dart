@@ -28,7 +28,7 @@ final allVoiceLegaciesProvider =
 typedef AllVoiceLegaciesRef =
     AutoDisposeStreamProviderRef<List<VoiceLegacyTableData>>;
 String _$voiceLegacyNotifierHash() =>
-    r'22d4720d7535a7711ff085e2aa20c83f1e7e14cb';
+    r'c2602e2c49e4516ebd8f5e7ce4fe556fd8581b0d';
 
 /// 보이스 유언 CRUD 오퍼레이션
 ///

@@ -6,7 +6,7 @@ part of 'invite_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$inviteNotifierHash() => r'dcd0b53e6ae950c5830cafb7e2d8108f9efe488b';
+String _$inviteNotifierHash() => r'8c21d28ec0ff3e5121e05bffccce9a97f168ee73';
 
 /// See also [InviteNotifier].
 @ProviderFor(InviteNotifier)

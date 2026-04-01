@@ -26,7 +26,7 @@ final allRecipesProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AllRecipesRef = AutoDisposeStreamProviderRef<List<RecipesTableData>>;
-String _$recipeNotifierHash() => r'2158a344ef0819a04a7d93c011acf499cad72e49';
+String _$recipeNotifierHash() => r'43ed30f6988e907d90d1213cf8aacb434144270f';
 
 /// 레시피 CRUD 오퍼레이션
 ///

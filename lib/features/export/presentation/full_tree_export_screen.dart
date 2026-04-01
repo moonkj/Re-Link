@@ -202,12 +202,12 @@ class _FullTreeExportScreenState extends ConsumerState<FullTreeExportScreen> {
                         child: Stack(
                           clipBehavior: Clip.hardEdge,
                           children: [
-                            // 가족 나무 성장 배경 (캔버스 크기에 맞춰 제한)
+                            // 가족 나무 성장 배경 (하단 70%에만 표시, 잘림 방지)
                             Positioned(
                               bottom: 0,
-                              left: 0,
-                              right: 0,
-                              top: 0,
+                              left: canvasW * 0.1,
+                              right: canvasW * 0.1,
+                              height: canvasH * 0.7,
                               child: FittedBox(
                                 fit: BoxFit.contain,
                                 alignment: Alignment.bottomCenter,

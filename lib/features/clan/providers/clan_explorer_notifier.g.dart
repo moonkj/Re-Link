@@ -7,7 +7,7 @@ part of 'clan_explorer_notifier.dart';
 // **************************************************************************
 
 String _$clanExplorerNotifierHash() =>
-    r'638e66690edaeb02a10fa0501e95975178337faf';
+    r'6566ff92bef153d3d9a63c70008698fca72ec82b';
 
 /// 한국 성씨 탐색기 — JSON 로드 + 검색
 ///
