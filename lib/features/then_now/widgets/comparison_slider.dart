@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/tokens/app_colors.dart';
 
 /// 수평 드래그 디바이더로 두 사진을 비교하는 슬라이더 위젯
@@ -55,7 +56,7 @@ class _ComparisonSliderState extends State<ComparisonSlider> {
               // 오른쪽 이미지 (After / 지금) — 전체 배경
               Positioned.fill(
                 child: Image.file(
-                  File(widget.afterImagePath),
+                  PathUtils.resolveFile(widget.afterImagePath) ?? File(widget.afterImagePath),
                   fit: BoxFit.cover,
                   cacheWidth: 400,
                 ),
@@ -66,7 +67,7 @@ class _ComparisonSliderState extends State<ComparisonSlider> {
                 child: ClipRect(
                   clipper: _LeftClipper(dividerX),
                   child: Image.file(
-                    File(widget.beforeImagePath),
+                    PathUtils.resolveFile(widget.beforeImagePath) ?? File(widget.beforeImagePath),
                     fit: BoxFit.cover,
                     cacheWidth: 400,
                   ),

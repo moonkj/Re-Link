@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/utils/haptic_service.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
@@ -526,7 +527,7 @@ class _MemoryItemTile extends ConsumerWidget {
               ? ClipRRect(
                   borderRadius: BorderRadius.circular(6),
                   child: Image.file(
-                    File(memory.thumbnailPath!),
+                    PathUtils.resolveFile(memory.thumbnailPath) ?? File(memory.thumbnailPath!),
                     width: 36,
                     height: 36,
                     fit: BoxFit.cover,

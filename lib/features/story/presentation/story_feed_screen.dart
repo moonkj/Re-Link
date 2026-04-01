@@ -346,7 +346,7 @@ class _PhotoContent extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: Image.file(
-              File(memory.thumbnailPath!),
+              PathUtils.resolveFile(memory.thumbnailPath) ?? File(memory.thumbnailPath!),
               width: double.infinity,
               height: 180,
               fit: BoxFit.cover,

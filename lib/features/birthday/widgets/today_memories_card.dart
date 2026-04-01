@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../core/services/widget/today_memory_service.dart';
 import '../../../core/utils/haptic_service.dart';
 import '../../../design/glass/app_glass.dart';
@@ -208,7 +209,7 @@ class _Thumbnail extends StatelessWidget {
       return ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: Image.file(
-          File(imagePath!),
+          PathUtils.resolveFile(imagePath) ?? File(imagePath!),
           width: 44,
           height: 44,
           fit: BoxFit.cover,
