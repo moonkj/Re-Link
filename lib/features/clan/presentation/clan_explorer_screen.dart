@@ -162,6 +162,7 @@ class _ClanExplorerScreenState extends ConsumerState<ClanExplorerScreen> {
             fontWeight: FontWeight.w700,
           ),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -229,8 +230,8 @@ class _ClanExplorerScreenState extends ConsumerState<ClanExplorerScreen> {
                         .search(_query);
                 return _buildContent(filtered);
               },
-              loading: () => const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
+              loading: () => Center(
+                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
               ),
               error: (e, _) => Center(
                 child: Text(

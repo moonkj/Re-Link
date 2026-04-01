@@ -122,7 +122,7 @@ class _TreeShareCardState extends ConsumerState<TreeShareCard> {
                   ? const SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                     )
                   : const Icon(Icons.share, size: 20),
               label: Text(_isSharing ? '공유 준비 중...' : '나무 공유하기'),
@@ -137,7 +137,7 @@ class _TreeShareCardState extends ConsumerState<TreeShareCard> {
           ),
         ],
       ),
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => Center(child: CircularProgressIndicator(color: AppColors.primary)),
       error: (_, _) => const SizedBox.shrink(),
     );
   }

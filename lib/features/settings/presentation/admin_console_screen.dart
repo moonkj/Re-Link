@@ -256,6 +256,7 @@ class _AdminConsoleScreenState extends ConsumerState<AdminConsoleScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.bgBase,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('더미 기억 삭제',
             style: TextStyle(color: AppColors.textPrimary)),
         content: Text('__ADMIN_DUMMY__ 태그가 있는 모든 기억을 삭제합니다.',
@@ -308,6 +309,7 @@ class _AdminConsoleScreenState extends ConsumerState<AdminConsoleScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.bgBase,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('더미 데이터 삭제',
             style: TextStyle(color: AppColors.textPrimary)),
         content: Text('__ADMIN_DUMMY__ 태그가 있는 모든 노드를 삭제합니다.',
@@ -458,7 +460,7 @@ class _PlanOverrideSectionState extends ConsumerState<_PlanOverrideSection> {
         GlassCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: _loading
-              ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+              ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -787,7 +789,7 @@ class _BadgeSectionState extends ConsumerState<_BadgeSection> {
         GlassCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: _loading
-              ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+              ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -924,7 +926,7 @@ class _DbStatsSectionState extends ConsumerState<_DbStatsSection> {
         GlassCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: _loading
-              ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+              ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
               : Column(
                   children: [
                     _StatRow('노드', '${_stats?['nodes'] ?? 0}개'),
@@ -1008,7 +1010,7 @@ class _TreeGrowthSection extends ConsumerWidget {
               ],
             ),
             loading: () =>
-                const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary)),
             error: (e, _) => Text(
               '에러: $e',
               style: TextStyle(fontSize: 13, color: AppColors.accent),

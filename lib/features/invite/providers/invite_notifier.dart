@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_plus/share_plus.dart';
@@ -133,6 +133,7 @@ class InviteNotifier extends _$InviteNotifier {
       await Share.shareXFiles(
         [XFile(file.path)],
         text: shareText,
+        sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100),
       );
 
       state = state.copyWith(

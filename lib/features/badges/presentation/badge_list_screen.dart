@@ -50,6 +50,7 @@ class _BadgeListScreenState extends ConsumerState<BadgeListScreen> {
             fontWeight: FontWeight.w700,
           ),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(

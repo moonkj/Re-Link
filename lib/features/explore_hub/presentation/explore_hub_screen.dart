@@ -27,6 +27,7 @@ class ExploreHubScreen extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,

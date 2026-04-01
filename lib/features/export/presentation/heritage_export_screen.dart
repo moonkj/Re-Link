@@ -33,6 +33,7 @@ class _HeritageExportScreenState extends ConsumerState<HeritageExportScreen> {
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
         backgroundColor: AppColors.bgBase,
+        centerTitle: true,
         title: Text(
           '가계도 포스터',
           style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700),

@@ -321,6 +321,7 @@ class _MemoryDetailSheetState extends ConsumerState<MemoryDetailSheet> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.bgElevated,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('기억 삭제', style: TextStyle(color: AppColors.textPrimary)),
         content: Text('이 기억을 삭제합니다.', style: TextStyle(color: AppColors.textSecondary)),
         actions: [

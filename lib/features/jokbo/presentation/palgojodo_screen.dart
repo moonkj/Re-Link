@@ -32,6 +32,7 @@ class PalgojodoScreen extends ConsumerWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -40,7 +41,7 @@ class PalgojodoScreen extends ConsumerWidget {
         ),
       ),
       body: myNodeAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => Center(child: CircularProgressIndicator(color: AppColors.primary)),
         error: (e, _) => Center(
           child: Text('오류: $e', style: TextStyle(color: AppColors.textSecondary)),
         ),

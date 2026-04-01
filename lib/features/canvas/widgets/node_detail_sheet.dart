@@ -864,8 +864,8 @@ class _TimelineTab extends ConsumerWidget {
     final memoriesAsync = ref.watch(memoriesForNodeProvider(node.id));
 
     return memoriesAsync.when(
-      loading: () => const Center(
-          child: CircularProgressIndicator(strokeWidth: 2)),
+      loading: () => Center(
+          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary)),
       error: (e, _) => Center(
         child: Text('오류: $e',
             style: TextStyle(color: AppColors.textSecondary)),
@@ -1065,8 +1065,8 @@ class _MemoTab extends ConsumerWidget {
     final memoriesAsync = ref.watch(memoriesForNodeProvider(nodeId));
 
     return memoriesAsync.when(
-      loading: () => const Center(
-          child: CircularProgressIndicator(strokeWidth: 2)),
+      loading: () => Center(
+          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary)),
       error: (e, _) => Center(
         child: Text('오류: $e',
             style: TextStyle(color: AppColors.textSecondary)),
@@ -1169,8 +1169,8 @@ class _VoiceTab extends ConsumerWidget {
     final memoriesAsync = ref.watch(memoriesForNodeProvider(nodeId));
 
     return memoriesAsync.when(
-      loading: () => const Center(
-          child: CircularProgressIndicator(strokeWidth: 2)),
+      loading: () => Center(
+          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary)),
       error: (e, _) => Center(
         child: Text('오류: $e',
             style: TextStyle(color: AppColors.textSecondary)),
@@ -1613,7 +1613,7 @@ class _PhotoFullScreenDialog extends StatelessWidget {
                   minScale: 0.5,
                   maxScale: 4.0,
                   child: Image.file(
-                    File(photoPath),
+                    PathUtils.resolveFile(photoPath) ?? File(photoPath),
                     fit: BoxFit.contain,
                     cacheWidth: 800,
                   ),

@@ -19,6 +19,7 @@ class FamilyMembersScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('가족 멤버'),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: syncState.status == SyncStatus.syncing

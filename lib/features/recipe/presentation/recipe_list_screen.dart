@@ -107,6 +107,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
             fontWeight: FontWeight.w700,
           ),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(

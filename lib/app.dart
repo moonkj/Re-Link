@@ -236,6 +236,7 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.bgElevated,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
             Icon(Icons.file_present_outlined, color: AppColors.primary, size: 24),
@@ -287,6 +288,7 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
           backgroundColor: AppColors.bgElevated,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
               Icon(Icons.check_circle_outline, color: AppColors.success, size: 24),

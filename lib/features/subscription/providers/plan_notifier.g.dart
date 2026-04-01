@@ -6,7 +6,7 @@ part of 'plan_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$planNotifierHash() => r'2ea65b64f755925f6a1802940cbd82afce12cefd';
+String _$planNotifierHash() => r'f8290bf9febc8dd311f52faeee81087e818982c3';
 
 /// 현재 플랜 상태 (DB에서 읽음)
 ///

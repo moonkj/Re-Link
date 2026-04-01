@@ -48,6 +48,7 @@ class _ConflictResolveScreenState
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
         backgroundColor: AppColors.bgBase,
+        centerTitle: true,
         title: Text(
           '충돌 해결',
           style: TextStyle(

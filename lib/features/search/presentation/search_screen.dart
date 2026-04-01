@@ -47,6 +47,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bgElevated,
         elevation: 0,
+        centerTitle: true,
         titleSpacing: 0,
         title: TextField(
           controller: _controller,

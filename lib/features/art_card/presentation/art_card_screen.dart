@@ -209,6 +209,7 @@ class _ArtCardScreenState extends ConsumerState<ArtCardScreen> {
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
         backgroundColor: AppColors.bgBase,
+        centerTitle: true,
         title: Text(
           '아트 카드',
           style: TextStyle(

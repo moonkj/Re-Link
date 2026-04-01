@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../../../core/utils/path_utils.dart';
 
 /// 포스터 스타일 4종
 enum PosterStyle {
@@ -117,7 +118,7 @@ class _VintagePoster extends StatelessWidget {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(2),
                       child: Image.file(
-                        File(card.photoPath!),
+                        PathUtils.resolveFile(card.photoPath) ?? File(card.photoPath!),
                         fit: BoxFit.cover,
                         width: double.infinity,
                         cacheWidth: 800,
@@ -261,7 +262,7 @@ class _ModernPoster extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(2),
                   child: Image.file(
-                    File(card.photoPath!),
+                    PathUtils.resolveFile(card.photoPath) ?? File(card.photoPath!),
                     fit: BoxFit.cover,
                     width: double.infinity,
                     cacheWidth: 800,
@@ -386,7 +387,7 @@ class _EmotionalPoster extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: Image.file(
-                      File(card.photoPath!),
+                      PathUtils.resolveFile(card.photoPath) ?? File(card.photoPath!),
                       fit: BoxFit.cover,
                       width: double.infinity,
                       cacheWidth: 800,
@@ -507,7 +508,7 @@ class _MinimalPoster extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(2),
                   child: Image.file(
-                    File(card.photoPath!),
+                    PathUtils.resolveFile(card.photoPath) ?? File(card.photoPath!),
                     fit: BoxFit.cover,
                     width: double.infinity,
                     cacheWidth: 800,

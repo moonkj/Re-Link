@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 
@@ -76,7 +77,7 @@ class ThenNowCard extends StatelessWidget {
                           child: AspectRatio(
                             aspectRatio: 1,
                             child: Image.file(
-                              File(beforeImagePath),
+                              PathUtils.resolveFile(beforeImagePath) ?? File(beforeImagePath),
                               fit: BoxFit.cover,
                               cacheWidth: 400,
                             ),
@@ -122,7 +123,7 @@ class ThenNowCard extends StatelessWidget {
                           child: AspectRatio(
                             aspectRatio: 1,
                             child: Image.file(
-                              File(afterImagePath),
+                              PathUtils.resolveFile(afterImagePath) ?? File(afterImagePath),
                               fit: BoxFit.cover,
                               cacheWidth: 400,
                             ),

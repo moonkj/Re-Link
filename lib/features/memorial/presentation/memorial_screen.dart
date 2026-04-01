@@ -246,6 +246,7 @@ class MemorialScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.bgElevated,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           '메시지 삭제',
           style: TextStyle(color: AppColors.textPrimary),

@@ -34,6 +34,7 @@ class _MergePreviewScreenState extends ConsumerState<MergePreviewScreen> {
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
         backgroundColor: AppColors.bgBase,
+        centerTitle: true,
         title: Text(
           '가족 트리 가져오기',
           style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700),

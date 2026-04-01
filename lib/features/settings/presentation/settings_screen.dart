@@ -51,6 +51,7 @@ class SettingsScreen extends ConsumerWidget {
               fontSize: 18,
               fontWeight: FontWeight.w700),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
@@ -806,6 +807,8 @@ class _PinResetTileState extends ConsumerState<_PinResetTile> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('PIN 초기화'),
         content: Text(
           '${_providerLabel(user.provider)} 재인증 후 PIN을 초기화합니다.\n'
@@ -855,13 +858,13 @@ class _PinResetTileState extends ConsumerState<_PinResetTile> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const ListTile(
-        leading: Icon(Icons.pin_outlined, color: AppColors.accent),
-        title: Text('나 설정 PIN 초기화'),
+      return ListTile(
+        leading: const Icon(Icons.pin_outlined, color: AppColors.accent),
+        title: const Text('나 설정 PIN 초기화'),
         trailing: SizedBox(
           width: 20,
           height: 20,
-          child: CircularProgressIndicator(strokeWidth: 2),
+          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
         ),
       );
     }
@@ -1209,13 +1212,13 @@ class _PrivacyToggleState extends ConsumerState<_PrivacyToggle> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const ListTile(
-        leading: Icon(Icons.lock_outline, color: AppColors.accent),
-        title: Text('개인 메모 잠금'),
+      return ListTile(
+        leading: const Icon(Icons.lock_outline, color: AppColors.accent),
+        title: const Text('개인 메모 잠금'),
         trailing: SizedBox(
           width: 20,
           height: 20,
-          child: CircularProgressIndicator(strokeWidth: 2),
+          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
         ),
       );
     }
@@ -1497,6 +1500,8 @@ class _AccountSection extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('로그아웃'),
         content: const Text('로그아웃하면 클라우드 동기화가 중단됩니다.\n로컬 데이터는 유지됩니다.'),
         actions: [
@@ -1516,6 +1521,8 @@ class _AccountSection extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('계정 삭제'),
         content: const Text(
           '계정을 삭제하면 서버의 모든 동기화 데이터가 영구 삭제됩니다.\n'

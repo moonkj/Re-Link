@@ -35,6 +35,7 @@ class CapsuleListScreen extends ConsumerWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -51,7 +52,7 @@ class CapsuleListScreen extends ConsumerWidget {
       body: capsulesAsync.when(
         skipLoadingOnReload: true,
         skipLoadingOnRefresh: true,
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => Center(child: CircularProgressIndicator(color: AppColors.primary)),
         error: (e, _) => Center(
           child: Text(
             '캡슐을 불러올 수 없습니다.',
@@ -439,13 +440,13 @@ class _CapsuleMemories extends ConsumerWidget {
       future: ref.read(capsuleRepositoryProvider).getItems(capsuleId),
       builder: (context, itemsSnap) {
         if (itemsSnap.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(AppSpacing.lg),
+          return Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Center(
               child: SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
               ),
             ),
           );

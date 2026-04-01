@@ -26,6 +26,7 @@ class _BirthdayScreenState extends ConsumerState<BirthdayScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.bgBase,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           '일정 삭제',
           style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700),
@@ -79,6 +80,7 @@ class _BirthdayScreenState extends ConsumerState<BirthdayScreen> {
             fontWeight: FontWeight.w700,
           ),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(

@@ -65,6 +65,7 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
           SliverAppBar(
             backgroundColor: AppColors.bgBase,
             pinned: true,
+            centerTitle: true,
             title: Text(
               '기억',
               style: TextStyle(
@@ -148,7 +149,7 @@ class _ArchiveScreenState extends ConsumerState<ArchiveScreen>
         body: _currentTab == 0
             ? _StoryFeedTab(onPrivateTap: _handlePrivateTap)
             : state.isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: CircularProgressIndicator(color: AppColors.primary))
                 : state.isEmpty
                     ? EmptyStateWidget(
                         icon: _currentTab == 4
@@ -412,7 +413,7 @@ class _StoryFeedTab extends ConsumerWidget {
     final state = ref.watch(storyFeedNotifierProvider);
 
     if (state.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: CircularProgressIndicator(color: AppColors.primary));
     }
 
     if (state.items.isEmpty) {

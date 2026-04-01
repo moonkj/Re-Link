@@ -139,6 +139,7 @@ class _FullTreeExportScreenState extends ConsumerState<FullTreeExportScreen> {
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
         backgroundColor: AppColors.bgBase,
+        centerTitle: true,
         title: Text(
           '전체 족보 저장',
           style: TextStyle(

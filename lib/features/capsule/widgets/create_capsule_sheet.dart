@@ -252,13 +252,13 @@ class _MemorySelector extends ConsumerWidget {
     final memoriesAsync = ref.watch(_allMemoriesProvider);
 
     return memoriesAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.all(AppSpacing.lg),
+      loading: () => Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Center(
           child: SizedBox(
             width: 24,
             height: 24,
-            child: CircularProgressIndicator(strokeWidth: 2),
+            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
           ),
         ),
       ),

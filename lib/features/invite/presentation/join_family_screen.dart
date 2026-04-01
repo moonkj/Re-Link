@@ -263,6 +263,7 @@ class _JoinFamilyScreenState extends ConsumerState<JoinFamilyScreen> {
             fontWeight: FontWeight.w700,
           ),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(

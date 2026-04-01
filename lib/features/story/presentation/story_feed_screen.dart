@@ -48,6 +48,7 @@ class _StoryFeedScreenState extends ConsumerState<StoryFeedScreen> {
           SliverAppBar(
             backgroundColor: AppColors.bgBase,
             floating: true,
+            centerTitle: true,
             title: Text(
               '이야기',
               style: TextStyle(
@@ -58,8 +59,8 @@ class _StoryFeedScreenState extends ConsumerState<StoryFeedScreen> {
             ),
           ),
           if (state.isLoading)
-            const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
+            SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
             )
           else if (state.items.isEmpty)
             SliverFillRemaining(

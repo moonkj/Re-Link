@@ -118,6 +118,7 @@ class _TemperatureDiaryScreenState
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
         title: Text(
           '${widget.nodeName}와의 온도 그래프',
           style: TextStyle(

@@ -36,10 +36,11 @@ class FullTreeExportService {
   }
 
   /// 파일을 OS 공유시트로 공유
-  static Future<void> share(File file) async {
+  static Future<void> share(File file, {Rect? shareOrigin}) async {
     await Share.shareXFiles(
       [XFile(file.path, mimeType: 'image/png')],
       subject: 'Re-Link 전체 가족 트리',
+      sharePositionOrigin: shareOrigin,
     );
   }
 

@@ -48,6 +48,7 @@ class _FamilyMapScreenState extends ConsumerState<FamilyMapScreen> {
             fontWeight: FontWeight.w700,
           ),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(

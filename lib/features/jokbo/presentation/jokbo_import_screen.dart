@@ -45,6 +45,7 @@ class _JokboImportScreenState extends ConsumerState<JokboImportScreen> {
             fontWeight: FontWeight.w700,
           ),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
