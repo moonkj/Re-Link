@@ -186,11 +186,15 @@ class _ThenNowScreenState extends ConsumerState<ThenNowScreen>
       if (!mounted) return;
 
       // 공유
+      final box = context.findRenderObject() as RenderBox?;
       await Share.shareXFiles(
         [XFile(file.path)],
         text: _label != null && _label!.isNotEmpty
             ? '${_label!} - Then & Now | Re-Link'
             : 'Then & Now | Re-Link',
+        sharePositionOrigin: box != null
+            ? box.localToGlobal(Offset.zero) & box.size
+            : null,
       );
     } catch (_) {
       if (mounted) {

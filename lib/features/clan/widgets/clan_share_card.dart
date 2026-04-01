@@ -48,9 +48,13 @@ class _ClanShareCardState extends State<ClanShareCard> {
       final file = File('${dir.path}/clan_card_${widget.surname}_${widget.clan.origin}.png');
       await file.writeAsBytes(bytes);
 
+      final box = _repaintKey.currentContext?.findRenderObject() as RenderBox?;
       await Share.shareXFiles(
         [XFile(file.path)],
         text: '${widget.surname}(${widget.clan.origin}) 가문 — Re-Link',
+        sharePositionOrigin: box != null
+            ? box.localToGlobal(Offset.zero) & box.size
+            : null,
       );
     } catch (_) {
       // 공유 실패 시 무시

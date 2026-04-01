@@ -15,6 +15,7 @@ class SnapshotService {
   static Future<void> captureAndShare(
     GlobalKey repaintKey, {
     String? text,
+    Rect? shareOrigin,
   }) async {
     final context = repaintKey.currentContext;
     if (context == null) return;
@@ -34,6 +35,7 @@ class SnapshotService {
     await Share.shareXFiles(
       [XFile(file.path)],
       text: text,
+      sharePositionOrigin: shareOrigin,
     );
   }
 }

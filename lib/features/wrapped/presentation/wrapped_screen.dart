@@ -105,9 +105,13 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen>
       final file = File(p.join(dir.path, filename));
       await file.writeAsBytes(bytes);
 
+      final box = _summaryKey.currentContext?.findRenderObject() as RenderBox?;
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'image/png')],
         subject: 'Re-Link 연말 가족 리뷰',
+        sharePositionOrigin: box != null
+            ? box.localToGlobal(Offset.zero) & box.size
+            : null,
       );
     } catch (_) {
       // 공유 실패 무시

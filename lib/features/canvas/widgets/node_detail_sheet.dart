@@ -593,7 +593,14 @@ class _NodeDetailSheetState extends ConsumerState<NodeDetailSheet>
     final nameText = node.name.isNotEmpty ? node.name : '미확인 인물';
     final message =
         'Re-Link에서 가족 트리를 만들고 있어요. $nameText을(를) 아시나요? 알고 계시다면 알려주세요!';
-    Share.share(message, subject: 'Re-Link 가족 트리');
+    final box = context.findRenderObject() as RenderBox?;
+    Share.share(
+      message,
+      subject: 'Re-Link 가족 트리',
+      sharePositionOrigin: box != null
+          ? box.localToGlobal(Offset.zero) & box.size
+          : null,
+    );
   }
 
   void _convertGhost(BuildContext context, WidgetRef ref, NodeModel node) {

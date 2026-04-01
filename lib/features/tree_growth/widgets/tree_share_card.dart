@@ -72,9 +72,13 @@ class _TreeShareCardState extends ConsumerState<TreeShareCard> {
       final file = File(p.join(dir.path, filename));
       await file.writeAsBytes(bytes);
 
+      final box = _repaintKey.currentContext?.findRenderObject() as RenderBox?;
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'image/png')],
         subject: 'Re-Link 가족 나무',
+        sharePositionOrigin: box != null
+            ? box.localToGlobal(Offset.zero) & box.size
+            : null,
       );
     } catch (_) {
       // 공유 실패 시 무시

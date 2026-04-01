@@ -303,7 +303,7 @@ class _MemoryTile extends StatelessWidget {
                 blurSigma: 12,
                 child: memory.type == MemoryType.photo && memory.thumbnailPath != null
                     ? Image.file(
-                        File(memory.thumbnailPath!),
+                        PathUtils.resolveFile(memory.thumbnailPath) ?? File(memory.thumbnailPath!),
                         width: 56,
                         height: 56,
                         fit: BoxFit.cover,
@@ -322,7 +322,7 @@ class _MemoryTile extends StatelessWidget {
               borderRadius: AppRadius.radiusSm,
               child: memory.type == MemoryType.photo && memory.thumbnailPath != null
                   ? Image.file(
-                      File(memory.thumbnailPath!),
+                      PathUtils.resolveFile(memory.thumbnailPath) ?? File(memory.thumbnailPath!),
                       width: 56,
                       height: 56,
                       fit: BoxFit.cover,
@@ -598,7 +598,7 @@ class _StoryContent extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Image.file(
-                  File(memory.thumbnailPath!),
+                  PathUtils.resolveFile(memory.thumbnailPath) ?? File(memory.thumbnailPath!),
                   width: double.infinity,
                   height: 180,
                   fit: BoxFit.cover,
@@ -734,7 +734,7 @@ class _VideoArchiveTile extends StatelessWidget {
             Container(color: AppColors.bgSurface),
             // 썸네일 이미지
             if (memory.thumbnailPath != null)
-              Image.file(File(memory.thumbnailPath!), fit: BoxFit.cover, cacheWidth: 400),
+              Image.file(PathUtils.resolveFile(memory.thumbnailPath) ?? File(memory.thumbnailPath!), fit: BoxFit.cover, cacheWidth: 400),
             Center(
               child: Container(
                 padding: const EdgeInsets.all(10),

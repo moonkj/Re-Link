@@ -640,17 +640,23 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
             ),
           ),
 
-          // ── 명절/기념일 배너 ─────────────────────────────────────────
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 62, left: AppSpacing.lg, right: AppSpacing.lg,
-            child: const HolidayBanner(),
-          ),
-
-          // ── 데일리 프롬프트 카드 (캔버스 모드에서만) ──
+          // ── 명절 배너 + 데일리 프롬프트 (겹침 방지 Column) ──────────
           if (!_isListView)
             Positioned(
               top: MediaQuery.of(context).padding.top + 62, left: AppSpacing.lg, right: AppSpacing.lg,
-              child: const DailyPromptCard(),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  HolidayBanner(),
+                  SizedBox(height: 8),
+                  DailyPromptCard(),
+                ],
+              ),
+            ),
+          if (_isListView)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 62, left: AppSpacing.lg, right: AppSpacing.lg,
+              child: const HolidayBanner(),
             ),
 
           // ── 연결 모드 배너 ───────────────────────────────────────────────
