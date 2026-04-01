@@ -4306,3 +4306,42 @@ dependencies:
 - [x] 프라이버시 약속 문구 플랜별 분기
 - [x] Family Hub isFamily 로컬 플랜도 체크
 - [x] Google 로그인 취소 시 에러 메시지 제거
+
+---
+
+## Phase 31 — 5차 전체 리뷰 + iCloud/초대링크/iPad Share 수정 (2026-04-01)
+
+> 팀 에이전트 5차 전체 코드 리뷰 — 4명 병렬 시나리오 트레이스, 잔여 버그 3개로 수렴
+
+---
+
+### 초대 링크 최종 수정 ✅
+
+- [x] `build()` 서버 멤버조회에 5초 타임아웃 추가 (무한대기 방지)
+- [x] `planNotifierProvider` 대신 DB 직접 `getUserPlan()` (로딩 중 null 방지)
+- [x] 서버 401/403/404 응답 시 로컬 초대코드 자동 폴백
+- [x] `Share.share`에 `sharePositionOrigin` 추가 (iOS 공유시트)
+
+### iCloud 백업 한글 파일명 수정 ✅
+
+- [x] `download()` 시 `Uri.decodeComponent()` 추가 (이중 인코딩 방지)
+- [x] 백업 파일명 `ReLink_백업_` → `ReLink_backup_` (ASCII만 사용)
+
+### 5차 리뷰 수정 ✅
+
+- [x] HolidayBanner + DailyPromptCard Column으로 겹침 방지
+- [x] archive_screen 썸네일 `PathUtils.resolveFile()` 적용 (4곳)
+- [x] `Share.shareXFiles`에 `sharePositionOrigin` 추가 — iPad 크래시 방지 (9곳)
+  - wrapped_screen, then_now_screen, snapshot_service, tree_share_card
+  - clan_art_card, clan_share_card, node_detail_sheet, export_service
+- [x] 성씨 탐색기 — 1~2글자 검색 시 성씨+로마자만 매칭 (본관/인물 제외)
+
+### 5차 리뷰 결과 요약
+
+| 리뷰 차수 | 발견 버그 | 상태 |
+|-----------|----------|------|
+| 1차 | 20+ | 백업 전체 리팩토링 |
+| 2차 | 17+ | 캡슐/유언/백업 디버깅 |
+| 3차 | 12 | 설정/인증/레시피/초대 |
+| 4차 | 8 | 초대링크/iCloud/성씨검색 |
+| 5차 | 3 | 배너 겹침, 경로 해석, iPad Share |
