@@ -4345,3 +4345,41 @@ dependencies:
 | 3차 | 12 | 설정/인증/레시피/초대 |
 | 4차 | 8 | 초대링크/iCloud/성씨검색 |
 | 5차 | 3 | 배너 겹침, 경로 해석, iPad Share |
+
+---
+
+## Phase 32 — 6~7차 UX/UI + 패턴 전수 조사 (2026-04-01)
+
+> UX/UI 디자인 일관성 리뷰 + grep 기반 전수 조사로 동일 패턴 버그 일괄 소멸
+
+---
+
+### 6차 리뷰 — UX/UI + 아키텍처 리뷰 ✅
+
+- [x] story_feed_screen 썸네일 PathUtils 적용
+- [x] capsule_list_screen 캡슐 기억 썸네일 PathUtils 적용
+- [x] comparison_slider Then&Now 이미지 PathUtils 적용
+- [x] today_memories_card 생일카드 썸네일 PathUtils 적용
+
+### 7차 리뷰 — grep 패턴 전수 조사 (40파일 수정) ✅
+
+| 패턴 | 수정 | 잔여 |
+|------|------|------|
+| `File()` PathUtils 미적용 | 7곳 | 0 |
+| `Share` sharePositionOrigin 누락 | 3곳 | 0 |
+| `AlertDialog` 스타일 누락 | 10곳 | 0 |
+| `CircularProgressIndicator` 색상 | 19곳 | 0 |
+| `AppBar` centerTitle 누락 | 27곳 | 0 |
+| 리소스 누수 (Stream/Controller) | 전수 검증 | 0 |
+
+### 전체 리뷰 이력
+
+| 차수 | 방식 | 발견 | 수정 |
+|------|------|------|------|
+| 1차 | 기능별 리뷰 | 20+ | 백업 전체 리팩토링 |
+| 2차 | 기능별 리뷰 | 17+ | 캡슐/유언/백업 |
+| 3차 | 기능별 리뷰 | 12 | 설정/인증/레시피/초대 |
+| 4차 | 기능별 리뷰 | 8 | 초대링크/iCloud/성씨 |
+| 5차 | 시나리오 트레이스 | 3 | 배너/경로/iPad Share |
+| 6차 | UX/UI 전체 리뷰 | 4 | 썸네일 경로 4곳 |
+| 7차 | **grep 전수 조사** | 66 | **40파일 일괄 수정, 잔여 0** |
