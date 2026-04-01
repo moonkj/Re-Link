@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
@@ -217,13 +216,26 @@ class BackupService {
       // DB 복원 — 루트 또는 서브폴더에서 유연하게 검색
       final dbPath = await getDatabasePath();
       final backupDb = await _findFileRecursive(extractDir, 'relink.db');
-      if (backupDb != null) {
-        debugPrint('[BackupService] relink.db 경로: ${backupDb.path}');
+      if (backupDb == null) {
+        debugPrint('[BackupService] relink.db를 찾을 수 없습니다. 추출 경로: ${extractDir.path}');
+        throw Exception('백업 파일에 데이터베이스(relink.db)가 포함되어 있지 않습니다.');
+      }
+
+      debugPrint('[BackupService] relink.db 경로: ${backupDb.path}');
+
+      // 기존 DB 백업 (복원 실패 시 롤백용)
+      final dbBackupPath = '$dbPath.rollback';
+      final dbFile = File(dbPath);
+      if (await dbFile.exists()) {
+        await dbFile.copy(dbBackupPath);
+      }
+
+      try {
         // DB를 닫고 파일을 덮어씀
         await db.close();
         await backupDb.copy(dbPath);
-        // copy 성공 후 restoreCompleted 설정 — 실패 시 플래그가 남지 않도록
         restoreCompleted = true;
+
         // 기존 WAL/SHM 파일 삭제 — 새 DB와 충돌 방지
         try {
           final walFile = File('$dbPath-wal');
@@ -231,22 +243,49 @@ class BackupService {
           if (await walFile.exists()) await walFile.delete();
           if (await shmFile.exists()) await shmFile.delete();
         } catch (_) {}
-      } else {
-        debugPrint('[BackupService] relink.db를 찾을 수 없습니다. 추출 경로: ${extractDir.path}');
-        throw Exception('백업 파일에 데이터베이스(relink.db)가 포함되어 있지 않습니다.');
+      } catch (e) {
+        // DB copy 실패 → 롤백
+        debugPrint('[BackupService] DB copy 실패, 롤백: $e');
+        try {
+          final rollback = File(dbBackupPath);
+          if (await rollback.exists()) {
+            await rollback.copy(dbPath);
+          }
+        } catch (_) {}
+        rethrow;
       }
 
-      // 미디어 복원 — 기존 미디어 정리 후 복사
+      // 미디어 복원 — 안전한 순서: 이름변경 → 복사 → 성공 시 삭제
       final mediaDir = await media.mediaRootDir;
       final backupMedia = await _findDirectoryRecursive(extractDir, 'media');
       if (backupMedia != null && await backupMedia.exists()) {
         debugPrint('[BackupService] media 디렉토리 경로: ${backupMedia.path}');
-        // 기존 미디어 삭제 (고아 파일 방지)
+        final mediaBackupDir = Directory('${mediaDir.path}.rollback');
+        // 기존 미디어를 .rollback으로 이름변경 (삭제 대신)
         if (await mediaDir.exists()) {
-          await mediaDir.delete(recursive: true);
+          await mediaDir.rename(mediaBackupDir.path);
         }
-        await _copyDirectory(backupMedia, mediaDir);
+        try {
+          await _copyDirectory(backupMedia, mediaDir);
+          // 복사 성공 → 이전 미디어 삭제
+          if (await mediaBackupDir.exists()) {
+            await mediaBackupDir.delete(recursive: true);
+          }
+        } catch (e) {
+          // 복사 실패 → 이전 미디어 복원
+          debugPrint('[BackupService] media 복사 실패, 롤백: $e');
+          if (await mediaBackupDir.exists()) {
+            if (await mediaDir.exists()) await mediaDir.delete(recursive: true);
+            await mediaBackupDir.rename(mediaDir.path);
+          }
+        }
       }
+
+      // DB 롤백 파일 정리
+      try {
+        final rollback = File(dbBackupPath);
+        if (await rollback.exists()) await rollback.delete();
+      } catch (_) {}
 
       return manifest;
     } finally {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:icloud_storage/icloud_storage.dart';
@@ -62,7 +63,6 @@ class ICloudBackup implements CloudBackupProvider {
 
   @override
   Future<File> download(String filename) async {
-    // iCloud가 한글 파일명을 URL 인코딩해서 반환할 수 있으므로 디코딩
     final decodedFilename = Uri.decodeComponent(filename);
     final tmpDir = await getTemporaryDirectory();
     final localPath = p.join(tmpDir.path, decodedFilename);
@@ -73,26 +73,62 @@ class ICloudBackup implements CloudBackupProvider {
       await existing.delete();
     }
 
-    // relativePath도 디코딩 — iCloud SDK가 내부적으로 인코딩 처리
-    await ICloudStorage.download(
-      containerId: _containerId,
-      relativePath: decodedFilename,
-      destinationFilePath: localPath,
-    );
+    debugPrint('[ICloudBackup] 다운로드 시작: $decodedFilename → $localPath');
 
-    // 다운로드 완료 대기 (iCloud는 비동기 다운로드)
-    final file = File(localPath);
-    for (int i = 0; i < 30; i++) {
+    // Completer로 다운로드 완료를 정확히 감지
+    final completer = Completer<void>();
+    StreamSubscription<double>? progressSub;
+
+    try {
+      await ICloudStorage.download(
+        containerId: _containerId,
+        relativePath: decodedFilename,
+        destinationFilePath: localPath,
+        onProgress: (stream) {
+          progressSub = stream.listen(
+            (progress) {
+              debugPrint('[ICloudBackup] 다운로드 진행: ${(progress * 100).toStringAsFixed(0)}%');
+              if (progress >= 1.0 && !completer.isCompleted) {
+                completer.complete();
+              }
+            },
+            onError: (e) {
+              if (!completer.isCompleted) {
+                completer.completeError(e);
+              }
+            },
+            onDone: () {
+              if (!completer.isCompleted) {
+                completer.complete();
+              }
+            },
+          );
+        },
+      );
+
+      // onProgress 콜백이 호출되지 않는 경우 폴백 (이미 로컬에 있는 파일)
+      final file = File(localPath);
       if (await file.exists() && await file.length() > 0) {
-        return file;
+        if (!completer.isCompleted) completer.complete();
       }
-      await Future.delayed(const Duration(seconds: 1));
+
+      // 최대 60초 대기 (대용량 백업 대비)
+      await completer.future.timeout(
+        const Duration(seconds: 60),
+        onTimeout: () {
+          debugPrint('[ICloudBackup] 다운로드 타임아웃 (60초)');
+        },
+      );
+    } finally {
+      await progressSub?.cancel();
     }
 
+    final file = File(localPath);
     if (!await file.exists() || await file.length() == 0) {
       throw Exception('iCloud에서 파일 다운로드에 실패했습니다. 네트워크를 확인해주세요.');
     }
 
+    debugPrint('[ICloudBackup] 다운로드 완료: ${await file.length()} bytes');
     return file;
   }
 
