@@ -90,12 +90,15 @@ class _RestoreDetectScreenState extends ConsumerState<RestoreDetectScreen>
         return;
       }
 
-      final backups = await provider.listBackups().timeout(
+      final allBackups = await provider.listBackups().timeout(
             const Duration(seconds: 10),
             onTimeout: () => <BackupInfo>[],
           );
 
       if (!mounted) return;
+
+      // 5KB 미만은 손상된 백업으로 간주하여 필터링
+      final backups = allBackups.where((b) => b.sizeBytes > 5000).toList();
 
       if (backups.isEmpty) {
         _goToNotFound();
@@ -135,9 +138,12 @@ class _RestoreDetectScreenState extends ConsumerState<RestoreDetectScreen>
         return;
       }
 
+      debugPrint('[RestoreDetect] 다운로드 시작: ${backup.filename}');
       final file = await provider.download(backup.filename);
+      debugPrint('[RestoreDetect] 다운로드 완료: ${file.path}, 크기: ${await file.length()} bytes');
       final service = ref.read(backupServiceProvider);
       await service.restoreBackup(file);
+      debugPrint('[RestoreDetect] 복원 완료');
 
       // 복원 후 DB가 닫힌 상태 — 프로바이더 갱신 필수
       _invalidateIfRestored(service);
@@ -153,7 +159,8 @@ class _RestoreDetectScreenState extends ConsumerState<RestoreDetectScreen>
         _invalidateIfRestored(service);
       } catch (_) {}
       if (!mounted) return;
-      _showError('복원에 실패했습니다: $e');
+      debugPrint('[RestoreDetect] 복원 실패 상세: $e');
+      _showError('복원 실패: ${backup.filename}\n\n$e');
     }
   }
 
