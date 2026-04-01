@@ -45,7 +45,7 @@ class ICloudBackup implements CloudBackupProvider {
       return files
           .where((f) => f.relativePath.endsWith('.rlink'))
           .map((f) => BackupInfo(
-                filename: p.basename(f.relativePath),
+                filename: Uri.decodeComponent(p.basename(f.relativePath)),
                 createdAt: f.creationDate,
                 sizeBytes: f.sizeInBytes,
                 nodeCount: 0,
@@ -73,10 +73,10 @@ class ICloudBackup implements CloudBackupProvider {
       await existing.delete();
     }
 
-    // relativePath는 원본 (인코딩된 상태 그대로) 전달
+    // relativePath도 디코딩 — iCloud SDK가 내부적으로 인코딩 처리
     await ICloudStorage.download(
       containerId: _containerId,
-      relativePath: filename,
+      relativePath: decodedFilename,
       destinationFilePath: localPath,
     );
 
