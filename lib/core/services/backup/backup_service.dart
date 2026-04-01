@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
@@ -93,7 +94,7 @@ class BackupService {
 
     // DB 추가
     if (await File(dbPath).exists()) {
-      encoder.addFile(File(dbPath), 'relink.db');
+      await encoder.addFile(File(dbPath), 'relink.db');
     }
 
     // 미디어 파일 추가
@@ -128,9 +129,23 @@ class BackupService {
       inviteCode: inviteCode,
     );
     await manifestTmp.writeAsString(manifest.toJsonString());
-    encoder.addFile(manifestTmp, 'manifest.json');
+    await encoder.addFile(manifestTmp, 'manifest.json');
 
-    encoder.close();
+    await encoder.close();
+
+    // ZIP 내용 검증 로그
+    final outFile = File(outPath);
+    debugPrint('[Backup] ZIP 생성 완료: ${outFile.path}, 크기: ${await outFile.length()} bytes');
+    try {
+      final verifyBytes = await outFile.readAsBytes();
+      final verifyArchive = ZipDecoder().decodeBytes(verifyBytes);
+      debugPrint('[Backup] ZIP 엔트리 수: ${verifyArchive.length}');
+      for (final entry in verifyArchive) {
+        debugPrint('[Backup]   - ${entry.name} (${entry.size} bytes)');
+      }
+    } catch (e) {
+      debugPrint('[Backup] ZIP 검증 실패: $e');
+    }
 
     // 마지막 백업 시각 기록
     await settings.setLastBackupAt(now);

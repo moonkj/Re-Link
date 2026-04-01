@@ -97,8 +97,12 @@ class _RestoreDetectScreenState extends ConsumerState<RestoreDetectScreen>
 
       if (!mounted) return;
 
-      // 5KB 미만은 손상된 백업으로 간주하여 필터링
-      final backups = allBackups.where((b) => b.sizeBytes > 5000).toList();
+      // 크기순 정렬 (가장 큰 백업 우선)
+      final backups = allBackups..sort((a, b) => b.sizeBytes.compareTo(a.sizeBytes));
+      debugPrint('[RestoreDetect] 백업 ${backups.length}개 발견:');
+      for (final b in backups) {
+        debugPrint('[RestoreDetect]   ${b.filename} (${b.sizeBytes} bytes, ${b.createdAt})');
+      }
 
       if (backups.isEmpty) {
         _goToNotFound();
