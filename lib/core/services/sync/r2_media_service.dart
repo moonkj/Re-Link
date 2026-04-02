@@ -75,6 +75,15 @@ class R2MediaService {
         );
 
         if (putResponse.statusCode == 200 || putResponse.statusCode == 204) {
+          // 서버에 업로드 완료 확인 (스토리지 용량 추적)
+          try {
+            await authClient.post('/media/confirm-upload', body: {
+              'file_key': fileKey,
+              'file_size_bytes': bytes.length,
+            });
+          } catch (_) {
+            // confirm 실패해도 파일은 이미 R2에 올라감
+          }
           return fileKey;
         }
         return null;

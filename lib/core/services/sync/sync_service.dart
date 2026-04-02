@@ -77,7 +77,7 @@ class SyncService {
           name: Value(item['name'] as String),
           nickname: Value(item['nickname'] as String?),
           bio: Value(item['bio'] as String?),
-          r2PhotoKey: Value(item['r2_photo_key'] as String?),
+          r2PhotoKey: Value(item['photo_r2_key'] as String?),
           birthDate: Value(birthMs != null
               ? DateTime.fromMillisecondsSinceEpoch(birthMs)
               : null),
@@ -128,8 +128,8 @@ class SyncService {
           type: Value(item['type'] as String),
           title: Value(item['title'] as String?),
           description: Value(item['description'] as String?),
-          r2FileKey: Value(item['r2_file_key'] as String?),
-          r2ThumbnailKey: Value(item['r2_thumbnail_key'] as String?),
+          r2FileKey: Value(item['file_r2_key'] as String?),
+          r2ThumbnailKey: Value(item['thumbnail_r2_key'] as String?),
           durationSeconds: Value(item['duration_seconds'] as int?),
           dateTaken: Value(dateTakenMs != null
               ? DateTime.fromMillisecondsSinceEpoch(dateTakenMs)
@@ -177,8 +177,8 @@ class SyncService {
         if (memoryId != null) {
           final memRow = await db.getMemory(memoryId);
           if (memRow != null) {
-            data['r2_file_key'] = memRow.r2FileKey;
-            data['r2_thumbnail_key'] = memRow.r2ThumbnailKey;
+            data['file_r2_key'] = memRow.r2FileKey;
+            data['thumbnail_r2_key'] = memRow.r2ThumbnailKey;
           }
         }
       } else if (type == 'node') {
@@ -187,7 +187,7 @@ class SyncService {
         if (nodeId != null) {
           final nodeRow = await db.getNode(nodeId);
           if (nodeRow != null) {
-            data['r2_photo_key'] = nodeRow.r2PhotoKey;
+            data['photo_r2_key'] = nodeRow.r2PhotoKey;
           }
         }
       }

@@ -47,12 +47,14 @@ class AuthHttpClient {
 
   Uri _uri(String path) => Uri.parse('$baseUrl$path');
 
-  /// GET 요청 (인증 헤더 자동 주입)
+  /// GET 요청 (인증 헤더 자동 주입, 15초 타임아웃)
   Future<http.Response> get(String path) async {
     return _sendWithRetry(
       () async {
         final token = await tokenStorage.getAccessToken();
-        return _client.get(_uri(path), headers: _defaultHeaders(token));
+        return _client
+            .get(_uri(path), headers: _defaultHeaders(token))
+            .timeout(const Duration(seconds: 15));
       },
     );
   }
@@ -95,7 +97,9 @@ class AuthHttpClient {
     return _sendWithRetry(
       () async {
         final token = await tokenStorage.getAccessToken();
-        return _client.delete(_uri(path), headers: _defaultHeaders(token));
+        return _client
+            .delete(_uri(path), headers: _defaultHeaders(token))
+            .timeout(const Duration(seconds: 15));
       },
     );
   }

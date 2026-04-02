@@ -4309,6 +4309,48 @@ dependencies:
 
 ---
 
+## Phase 31 — 5차 전체 코드 리뷰 + iCloud 복원 수정 (2026-04-01)
+
+> 팀 에이전트 4명 5차 전체 코드 리뷰, 초대링크/iCloud/배너겹침/썸네일경로/iPad Share 수정
+
+---
+
+### iCloud 백업 복원 수정 ✅
+
+- [x] iCloud 다운로드 시 한글 파일명 이중 URL 인코딩 문제 수정 (Uri.decodeComponent)
+- [x] 백업 파일명 한글(백업) → ASCII(backup) 변경 — iCloud/Google Drive 호환성
+
+### 초대 링크 생성 수정 ✅
+
+- [x] `build()` 서버 멤버조회 5초 타임아웃 추가 (무한대기 방지)
+- [x] `planNotifierProvider` → DB 직접 `getUserPlan()` 호출 (AsyncNotifier 로딩 중 null 방지)
+- [x] 서버 401/403/404 응답 시 로컬 초대 코드 자동 폴백
+- [x] Share.share에 sharePositionOrigin 추가
+
+### 캔버스 배너 겹침 수정 ✅
+
+- [x] HolidayBanner + DailyPromptCard → Column으로 세로 배치 (동일 좌표 겹침 방지)
+
+### 아카이브 썸네일 경로 수정 ✅
+
+- [x] `archive_screen.dart` 4곳 `File(thumbnailPath!)` → `PathUtils.resolveFile()` 적용
+- [x] 백업 복원 후에도 썸네일 정상 표시
+
+### iPad Share 크래시 방지 ✅
+
+- [x] Share.shareXFiles에 sharePositionOrigin 추가 (9곳)
+  - wrapped_screen, then_now_screen, snapshot_service
+  - tree_share_card, clan_art_card, clan_share_card
+  - node_detail_sheet, export_service
+
+### 5차 리뷰 결과 요약
+
+- 1차~4차 대비 신규 버그 3건만 발견 (배너 겹침, 썸네일 경로, iPad Share)
+- 전체 65개 화면 시나리오 트레이스 완료
+- 잔여 사항: DB 인덱스 미정의(성능), COUNT/SUM 비효율(성능) — 런칭 후 최적화 예정
+
+---
+
 ## Phase 31 — 5차 전체 리뷰 + iCloud/초대링크/iPad Share 수정 (2026-04-01)
 
 > 팀 에이전트 5차 전체 코드 리뷰 — 4명 병렬 시나리오 트레이스, 잔여 버그 3개로 수렴
@@ -4383,3 +4425,53 @@ dependencies:
 | 5차 | 시나리오 트레이스 | 3 | 배너/경로/iPad Share |
 | 6차 | UX/UI 전체 리뷰 | 4 | 썸네일 경로 4곳 |
 | 7차 | **grep 전수 조사** | 66 | **40파일 일괄 수정, 잔여 0** |
+
+---
+
+## Phase 33 — 백업 CRITICAL 수정 + 서버 배포 + 연동 검증 (2026-04-01~03)
+
+> 백업 복원 안전성 강화, Cloudflare Workers 서버 배포, Flutter↔서버 연동 검증
+
+---
+
+### 백업 CRITICAL 4개 수정 ✅
+
+- [x] iCloud download() — `onProgress` 기반 100% 완료 대기 (폴링→Completer, 60초 타임아웃)
+- [x] 복원 시 DB 롤백 — `db.close()` 후 `copy()` 실패 시 `.rollback` 파일로 자동 복원
+- [x] 미디어 안전 복원 — 삭제 대신 `.rollback` 이름변경 → 복사 성공 시 삭제
+- [x] 미디어 복사 실패 시 자동 롤백 (이전 미디어 복원)
+- [x] iCloud 한글 파일명 `Uri.decodeComponent` 적용 (listBackups + download)
+- [x] 백업 ZIP 생성 후 내용 검증 로그 추가
+- [x] 복원 실패 시 에러 상세 표시 (파일명 + 에러 내용)
+
+### Cloudflare Workers 서버 배포 ✅
+
+- [x] `wrangler.toml` account_id 설정
+- [x] D1 Database `relink-db` — 10개 테이블 스키마 적용 확인
+- [x] R2 Bucket `relink-media` — 생성 확인
+- [x] JWT_SECRET, APPLE_CLIENT_ID, GOOGLE_CLIENT_ID 시크릿 설정
+- [x] `npx wrangler deploy` — 프로덕션 배포 완료
+- [x] API URL: `https://relink-api.relink-app.workers.dev`
+- [x] Health Check: `{"status":"ok","environment":"production"}`
+- [x] 23개 API 엔드포인트 전부 정상 응답 확인
+
+### Flutter ↔ 서버 연동 수정 ✅
+
+- [x] sync_service.dart — R2 키 필드명 서버와 일치 (`r2_photo_key` → `photo_r2_key` 등 6곳)
+- [x] r2_media_service.dart — 업로드 후 `POST /media/confirm-upload` 호출 추가
+- [x] auth_http_client.dart — GET/DELETE 요청에 15초 타임아웃 추가
+
+### iOS 검은 화면 해결 ✅
+
+- [x] `.g.dart` 10개 파일 build_runner 재생성 (해시 불일치 수정)
+- [x] `flutter run --debug` 실기기 금지 (watchdog SIGKILL → DB 손상)
+- [x] `xcrun devicectl` 기반 설치 워크플로우 확립
+
+### 코드 규모
+
+| 구분 | 줄 수 |
+|------|-------|
+| Flutter (직접 작성) | 67,914줄 |
+| Flutter (자동 생성 .g.dart) | 17,025줄 |
+| 서버 (TypeScript) | 3,198줄 |
+| **총합** | **~88,000줄** |

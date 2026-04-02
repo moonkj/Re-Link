@@ -3,7 +3,7 @@ main            = "src/index.ts"
 compatibility_date = "2024-01-01"
 
 # ── Account (fill in after `wrangler login`) ─────────────────
-# account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+account_id = "447713d8488b7fdb713ec27f8ec36b91"
 
 # ── D1 Database ──────────────────────────────────────────────
 [[d1_databases]]
