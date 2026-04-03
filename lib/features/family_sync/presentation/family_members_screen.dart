@@ -4,7 +4,6 @@ import 'package:share_plus/share_plus.dart';
 import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../design/glass/app_glass.dart';
-import '../providers/family_sync_notifier.dart';
 import '../providers/family_members_notifier.dart';
 
 /// 가족 멤버 화면 — 동기화 상태 배너 + 멤버 목록 + 초대 FAB
@@ -13,34 +12,15 @@ class FamilyMembersScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final syncState = ref.watch(familySyncNotifierProvider);
     final membersAsync = ref.watch(familyMembersNotifierProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('가족 멤버'),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: syncState.status == SyncStatus.syncing
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.sync_rounded),
-            tooltip: '동기화',
-            onPressed: syncState.status == SyncStatus.syncing
-                ? null
-                : () => ref.read(familySyncNotifierProvider.notifier).sync(),
-          ),
-        ],
       ),
       body: Column(
         children: [
-          // ── 동기화 상태 배너 ──────────────────────────────────────────────
-          _SyncStatusBanner(syncState: syncState),
-
           // ── 멤버 목록 ─────────────────────────────────────────────────────
           Expanded(
             child: membersAsync.when(
@@ -193,73 +173,6 @@ class FamilyMembersScreen extends ConsumerWidget {
     await ref.read(familyMembersNotifierProvider.notifier).leaveGroup();
     if (!context.mounted) return;
     Navigator.of(context).pop();
-  }
-}
-
-// ── 동기화 상태 배너 ─────────────────────────────────────────────────────────
-
-class _SyncStatusBanner extends StatelessWidget {
-  const _SyncStatusBanner({required this.syncState});
-  final FamilySyncState syncState;
-
-  @override
-  Widget build(BuildContext context) {
-    if (syncState.status == SyncStatus.idle) return const SizedBox.shrink();
-
-    final (bgColor, icon, message) = switch (syncState.status) {
-      SyncStatus.syncing => (
-          const Color(0xFF0EA5E9), // sky-500
-          Icons.sync_rounded,
-          '동기화 중...',
-        ),
-      SyncStatus.success => (
-          AppColors.success,
-          Icons.check_circle_outline_rounded,
-          syncState.lastSyncAt != null
-              ? '마지막 동기화: ${_formatTime(syncState.lastSyncAt!)}'
-              : '동기화 완료',
-        ),
-      SyncStatus.error => (
-          AppColors.error,
-          Icons.error_outline_rounded,
-          syncState.errorMessage ?? '동기화 실패',
-        ),
-      SyncStatus.idle => (AppColors.success, Icons.check_circle_outline_rounded, ''),
-    };
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.pagePadding,
-        vertical: AppSpacing.sm,
-      ),
-      color: bgColor.withValues(alpha: 0.15),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: bgColor),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(
-                fontSize: 13,
-                color: bgColor,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatTime(DateTime dt) {
-    final now = DateTime.now();
-    final diff = now.difference(dt);
-    if (diff.inSeconds < 60) return '방금 전';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
-    return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
   }
 }
 

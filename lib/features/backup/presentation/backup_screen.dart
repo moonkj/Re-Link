@@ -17,11 +17,11 @@ import '../../family_sync/providers/family_sync_notifier.dart';
 import '../../subscription/providers/plan_notifier.dart';
 import '../providers/backup_notifier.dart';
 
-/// 백업 & 복원 화면 — 4섹션 구성
-/// 섹션 1: 로컬 백업 (모든 플랜)
-/// 섹션 2: 클라우드 백업 (패밀리/패밀리플러스)
-/// 섹션 3: 서버 동기화 (패밀리/패밀리플러스)
-/// 섹션 4: 버전 관리 (패밀리플러스)
+/// 데이터 관리 화면 — 4섹션 구성
+/// 섹션 1: 파일 백업 (모든 플랜)
+/// 섹션 2: 자동 백업 (패밀리/패밀리플러스)
+/// 섹션 3: 가족 실시간 공유 (패밀리/패밀리플러스)
+/// 섹션 4: 버전 이력 (패밀리플러스)
 class BackupScreen extends ConsumerStatefulWidget {
   const BackupScreen({super.key});
 
@@ -48,7 +48,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       backgroundColor: AppColors.bgBase,
       appBar: AppBar(
         title: Text(
-          '백업 & 복원',
+          '데이터 관리',
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 18,
@@ -71,7 +71,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               // ── 섹션 1: 로컬 백업 (모든 플랜) ──────────────────────────
               _SectionHeader(
                 icon: Icons.inventory_2_outlined,
-                title: '로컬 백업',
+                title: '파일 백업',
                 subtitle: '기기 내 파일로 저장/복원',
                 iconColor: AppColors.primary,
               ),
@@ -97,8 +97,8 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               if (currentPlan.hasCloud) ...[
                 _SectionHeader(
                   icon: Icons.cloud_outlined,
-                  title: '클라우드 백업',
-                  subtitle: Platform.isIOS ? 'iCloud Drive' : 'Google Drive',
+                  title: '자동 백업',
+                  subtitle: 'iCloud/Google Drive에 전체 데이터를 저장합니다',
                   iconColor: AppColors.info,
                   badge: currentPlan.displayName,
                   badgeColor: currentPlan == UserPlan.familyPlus
@@ -139,22 +139,22 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
                 const SizedBox(height: AppSpacing.xxl),
               ] else ...[
-                // 업그레이드 유도 — 클라우드 백업
+                // 업그레이드 유도 — 자동 백업
                 _UpgradeBanner(
                   icon: Icons.cloud_outlined,
-                  title: '클라우드 백업',
+                  title: '자동 백업',
                   description: 'iCloud/Google Drive에 자동 백업하고\n이전 백업에서 복원할 수 있습니다.',
                   requiredPlan: '패밀리 플랜',
                 ),
                 const SizedBox(height: AppSpacing.xxl),
               ],
 
-              // ── 섹션 3: 가족 클라우드 동기화 (패밀리/패밀리플러스) ──────
+              // ── 섹션 3: 가족 실시간 공유 (패밀리/패밀리플러스) ──────
               if (currentPlan.hasCloud) ...[
                 _SectionHeader(
                   icon: Icons.sync_outlined,
-                  title: '가족 클라우드 동기화',
-                  subtitle: '가족 구성원 간 데이터 업로드/다운로드',
+                  title: '가족 실시간 공유',
+                  subtitle: '가족 간 변경사항을 자동으로 주고받습니다',
                   iconColor: AppColors.success,
                   badge: currentPlan.displayName,
                   badgeColor: currentPlan == UserPlan.familyPlus
@@ -168,21 +168,21 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
                 const SizedBox(height: AppSpacing.xxl),
               ] else ...[
-                // 업그레이드 유도 — 가족 클라우드 동기화
+                // 업그레이드 유도 — 가족 실시간 공유
                 _UpgradeBanner(
                   icon: Icons.sync_outlined,
-                  title: '가족 클라우드 동기화',
+                  title: '가족 실시간 공유',
                   description: '가족과 데이터를 클라우드에 업로드하고\n다른 기기에서 다운로드할 수 있습니다.',
                   requiredPlan: '패밀리 플랜',
                 ),
                 const SizedBox(height: AppSpacing.xxl),
               ],
 
-              // ── 섹션 4: 버전 관리 (패밀리플러스) ──────────────────────
+              // ── 섹션 4: 버전 이력 (패밀리플러스) ──────────────────────
               if (currentPlan.hasVersionedBackup) ...[
                 _SectionHeader(
                   icon: Icons.history_outlined,
-                  title: '버전 관리 백업',
+                  title: '버전 이력',
                   subtitle: '최근 5개 버전 보관',
                   iconColor: AppColors.planFamilyPlus,
                   badge: '패밀리플러스',
@@ -199,7 +199,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 // 패밀리 사용자에게 패밀리플러스 유도
                 _UpgradeBanner(
                   icon: Icons.history_outlined,
-                  title: '버전 관리 백업',
+                  title: '버전 이력',
                   description: '최근 5개 버전의 백업 이력을 보관합니다.\n실수로 덮어쓴 데이터를 복구할 수 있습니다.',
                   requiredPlan: '패밀리플러스',
                 ),

@@ -429,88 +429,43 @@ class _PlanSectionState extends ConsumerState<_PlanSection> {
 
 // ── 백업 섹션 ─────────────────────────────────────────────────────────────────
 
-class _BackupSection extends ConsumerStatefulWidget {
+class _BackupSection extends ConsumerWidget {
   const _BackupSection();
-
-  @override
-  ConsumerState<_BackupSection> createState() => _BackupSectionState();
-}
-
-class _BackupSectionState extends ConsumerState<_BackupSection> {
-  bool _autoBackupEnabled = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadAutoBackup();
-  }
-
-  Future<void> _loadAutoBackup() async {
-    final enabled =
-        await ref.read(settingsRepositoryProvider).isAutoBackupEnabled();
-    if (!mounted) return;
-    setState(() => _autoBackupEnabled = enabled);
-  }
-
-  Future<void> _onAutoBackupChanged(bool v) async {
-    setState(() => _autoBackupEnabled = v);
-    await ref.read(settingsRepositoryProvider).setAutoBackup(v);
-  }
 
   String _formatDate(DateTime dt) =>
       '${dt.year}.${dt.month.toString().padLeft(2, '0')}.${dt.day.toString().padLeft(2, '0')} '
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final backupState = ref.watch(backupNotifierProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionLabel(label: '백업'),
+        const SectionLabel(label: '데이터 관리'),
         const SizedBox(height: AppSpacing.sm),
         GlassCard(
           padding: EdgeInsets.zero,
-          child: Column(
-            children: [
-              // 마지막 백업
-              ListTile(
-                leading: Icon(Icons.cloud_done_outlined,
-                    color: AppColors.primary),
-                title: Text('마지막 백업',
-                    style: TextStyle(
-                        fontSize: 15, color: AppColors.textPrimary)),
-                subtitle: Text(
-                  backupState.lastBackupAt == null
-                      ? '백업 기록 없음'
-                      : _formatDate(backupState.lastBackupAt!),
-                  style: TextStyle(
-                      fontSize: 12, color: AppColors.textSecondary),
-                ),
-                trailing: GlassButton(
-                  onPressed: () => context.push(AppRoutes.backup),
-                  child: Text(
-                    '백업 화면',
-                    style: TextStyle(fontSize: 13, color: AppColors.primary),
-                  ),
-                ),
+          child: ListTile(
+            leading: Icon(Icons.cloud_done_outlined,
+                color: AppColors.primary),
+            title: Text('마지막 백업',
+                style: TextStyle(
+                    fontSize: 15, color: AppColors.textPrimary)),
+            subtitle: Text(
+              backupState.lastBackupAt == null
+                  ? '백업 기록 없음'
+                  : _formatDate(backupState.lastBackupAt!),
+              style: TextStyle(
+                  fontSize: 12, color: AppColors.textSecondary),
+            ),
+            trailing: GlassButton(
+              onPressed: () => context.push(AppRoutes.backup),
+              child: Text(
+                '데이터 관리',
+                style: TextStyle(fontSize: 13, color: AppColors.primary),
               ),
-              Divider(color: AppColors.glassBorder, height: 1),
-              // 자동 백업 토글
-              SwitchListTile(
-                secondary: Icon(Icons.schedule_outlined,
-                    color: AppColors.primary),
-                title: Text('자동 백업',
-                    style: TextStyle(
-                        fontSize: 15, color: AppColors.textPrimary)),
-                subtitle: Text('24시간마다 자동 저장',
-                    style: TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary)),
-                value: _autoBackupEnabled,
-                onChanged: _onAutoBackupChanged,
-                activeThumbColor: AppColors.primary,
-              ),
-            ],
+            ),
           ),
         ),
       ],
