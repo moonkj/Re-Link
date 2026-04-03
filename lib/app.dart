@@ -176,11 +176,13 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
       return;
     }
 
-    // 초대 링크: relink://invite/accept?token=xxx
+    // 초대 링크: relink://invite/accept?token=xxx 또는 ?code=xxx
     if (uri.pathSegments.length >= 2 &&
         uri.pathSegments[0] == 'invite' &&
         uri.pathSegments[1] == 'accept') {
-      final token = uri.queryParameters['token'] ?? '';
+      final token = uri.queryParameters['token'] ??
+          uri.queryParameters['code'] ??
+          '';
       if (token.isNotEmpty) {
         router.go('${AppRoutes.acceptInvite}?token=${Uri.encodeComponent(token)}');
       }

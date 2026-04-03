@@ -118,14 +118,23 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       // .rlink 파일 URI 가로채기 (카카오톡 등 외부 앱에서 열기)
       if (fullUri.contains('.rlink') || location.contains('.rlink')) {
-        // 파일 경로를 글로벌 키로 저장 → 스플래시 이후 복원 처리
         _pendingRlinkPath = Uri.decodeComponent(fullUri.replaceFirst('file://', ''));
         return AppRoutes.splash;
+      }
+
+      // 딥링크 초대: relink://invite/accept?code=XXX 또는 ?token=XXX
+      if (fullUri.contains('invite/accept')) {
+        final uri = state.uri;
+        final token = uri.queryParameters['token'] ??
+            uri.queryParameters['code'] ??
+            '';
+        if (token.isNotEmpty) {
+          return '${AppRoutes.acceptInvite}?token=${Uri.encodeComponent(token)}';
+        }
       }
       // 패밀리 전용 보호 라우트 (#18)
       const protectedRoutes = [
         AppRoutes.familyMembers,
-        AppRoutes.acceptInvite,
       ];
       if (!protectedRoutes.any((r) => location.startsWith(r))) return null;
 
