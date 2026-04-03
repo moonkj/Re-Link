@@ -277,7 +277,7 @@ export async function handleAppleAuth(
     return errorResponse('id_token is required', 400, request);
   }
 
-  const clientId = env.APPLE_CLIENT_ID ?? 'com.relink';
+  const clientId = env.APPLE_CLIENT_ID ?? 'com.relink.app';
 
   let providerInfo: { sub: string; email?: string };
   try {
