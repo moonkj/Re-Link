@@ -12,7 +12,6 @@ import '../../../shared/models/user_plan.dart';
 import '../../auth/providers/auth_notifier.dart';
 import '../../subscription/providers/plan_notifier.dart';
 import '../../canvas/widgets/birthday_calendar_section.dart';
-import '../../canvas/widgets/add_event_sheet.dart';
 import '../../family_sync/providers/family_sync_notifier.dart';
 
 /// 가족 탭 — 가족 생활 기능 허브
@@ -45,67 +44,7 @@ class FamilyHubScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.pagePadding),
         children: [
-          // ── 구분선 ──────────────────────────────────────────────────
-          Divider(color: AppColors.glassBorder, height: 1),
-          const SizedBox(height: AppSpacing.lg),
-
-          // ── 가족 일정 추가 ──────────────────────────────────────────
-          GlassCard(
-            onTap: () => _showAddEventSheet(context),
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.md,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primary.withAlpha(25),
-                  ),
-                  child: Icon(
-                    Icons.add_rounded,
-                    size: 22,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '가족 일정 추가',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '기념일, 약속, 행사 등을 추가하세요',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textTertiary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  size: 20,
-                  color: AppColors.textTertiary,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-
-          // ── 달력 섹션 (생일 + 가족 일정) ────────────────────────────
+          // ── 달력 섹션 (생일 + 가족 일정, 헤더에 일정 추가 버튼 포함) ──
           const BirthdayCalendarSection(),
           const SizedBox(height: AppSpacing.xl),
 
@@ -204,14 +143,6 @@ class FamilyHubScreen extends ConsumerWidget {
     );
   }
 
-  void _showAddEventSheet(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => const AddEventSheet(),
-    );
-  }
 }
 
 
