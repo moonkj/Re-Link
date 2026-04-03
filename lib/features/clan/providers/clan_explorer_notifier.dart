@@ -31,8 +31,8 @@ class ClanExplorerNotifier extends _$ClanExplorerNotifier {
     if (cleaned.isEmpty) return _allClans;
     final q = cleaned.toLowerCase();
 
-    // 1~2글자: 성씨 + 로마자만 매칭 (본관/인물 검색하면 너무 많이 걸림)
-    if (cleaned.length <= 2) {
+    // 1글자: 성씨 + 로마자만 매칭
+    if (cleaned.length == 1) {
       return _allClans.where((s) {
         if (s.surname == cleaned) return true;
         if (s.romanized.toLowerCase().startsWith(q)) return true;
@@ -40,7 +40,7 @@ class ClanExplorerNotifier extends _$ClanExplorerNotifier {
       }).toList();
     }
 
-    // 3글자 이상: 성씨 + 로마자 + 본관 + 시조 + 유명인 전체 검색
+    // 2글자 이상: 성씨 + 로마자 + 본관 검색 (예: "밀양", "경주")
     return _allClans.where((s) {
       if (s.surname.contains(cleaned)) return true;
       if (s.romanized.toLowerCase().contains(q)) return true;
