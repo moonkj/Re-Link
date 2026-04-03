@@ -100,5 +100,11 @@ abstract final class EnvConfig {
     defaultValue: '',
   );
 
+  // ── Google OAuth ─────────────────────────────────────────────────────
+  static const String googleClientId = String.fromEnvironment(
+    'GOOGLE_CLIENT_ID',
+    defaultValue: '547722763971-rq4rh30ldhs35cp7fdup8dg28jtqaqbs.apps.googleusercontent.com',
+  );
+
   static bool get isApiConfigured => workersBaseUrl.isNotEmpty;
 }

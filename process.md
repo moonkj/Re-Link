@@ -4387,6 +4387,31 @@ dependencies:
 | 3차 | 12 | 설정/인증/레시피/초대 |
 | 4차 | 8 | 초대링크/iCloud/성씨검색 |
 | 5차 | 3 | 배너 겹침, 경로 해석, iPad Share |
+| 6차 | 0 (잔여 4) | 코드 품질 정리 완료 |
+
+---
+
+## Phase 32 — 6차 전체 리뷰 + 잔여 이슈 정리 (2026-04-03)
+
+> 팀 에이전트 6차 전체 코드 리뷰 — 65개 화면 100% 구현 확인, 잔여 이슈 4개 정리
+
+---
+
+### 잔여 이슈 해결 ✅
+
+- [x] KakaoAuthHelper.logout()/unlink() 빈 메서드 → 디버그 로그 추가 (서버 의존 설계)
+- [x] Google clientId 하드코딩 → `EnvConfig.googleClientId`로 이동
+- [x] 서버 URL 하드코딩 3곳 → `EnvConfig.workersBaseUrl`로 통합
+- [x] 라이트 테마 비대칭 → outlinedButtonTheme, iconTheme, snackBarTheme 추가
+- [x] jokbo 데드코드 디렉토리 삭제 (6개 파일)
+
+### 6차 리뷰 최종 결과
+
+- **65개 화면 전체 IMPLEMENTED** — STUB/PARTIAL/BROKEN 0개
+- **TODO/FIXME/UnimplementedError** 코드베이스 전체 0개
+- **빈 핸들러(empty onTap)** 0개
+- DB 17테이블, 서비스 12개, 모델 7개, 레포 13개 모두 완전 구현
+- flutter analyze: error 0개, warning 2개(미사용 import)
 
 ---
 

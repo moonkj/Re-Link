@@ -124,11 +124,23 @@ flutter_image_compress: ^2.3.0 # WebP 압축
 ## DB 구조 (Drift SQLite)
 
 ```
-profile     — 내 프로필 (단일 row)
-nodes       — 인물 노드
-node_edges  — 노드 관계 (Adjacency List)
-memories    — 기억 메타데이터 (사진/음성/메모)
-settings    — 앱 설정 (key-value)
+profile            — 내 프로필 (단일 row)
+nodes              — 인물 노드
+node_edges         — 노드 관계 (Adjacency List)
+memories           — 기억 메타데이터 (사진/음성/메모/영상)
+settings           — 앱 설정 (key-value, ~40개 키)
+temperature_logs   — 온도 다이어리
+bouquets           — 마음 꽃다발
+capsules           — 기억 캡슐
+capsule_items      — 캡슐-기억 연결
+memorial_messages  — 추모 메시지
+recipes            — 가족 레시피
+node_locations     — 가족 지도 위치
+voice_legacy       — 보이스 유언
+then_now           — 과거 vs 현재 비교
+family_events      — 가족 일정
+sync_queue         — 클라우드 동기화 큐
+media_upload_queue — R2 미디어 업로드 큐
 ```
 
 ### Ghost Node
@@ -153,9 +165,13 @@ lib/
 │   ├── errors/          # 에러 처리
 │   ├── router/          # go_router
 │   ├── services/
+│   │   ├── auth/        # AuthService, AuthHttpClient, KakaoAuthHelper, TokenStorage
 │   │   ├── backup/      # BackupService (.rlink 생성/복원)
-│   │   ├── cloud/       # iCloud / Google Drive
-│   │   └── media/       # 사진/음성 파일 관리
+│   │   ├── cloud/       # iCloud / Google Drive 백업
+│   │   ├── media/       # 사진/음성/영상 파일 관리
+│   │   ├── plan/        # PlanService (IAP 인앱구매)
+│   │   ├── sync/        # SyncService, R2MediaService, MediaCacheService
+│   │   └── notification/ # 로컬 알림
 │   └── utils/
 ├── design/
 │   ├── tokens/          # 색상, 타이포, 간격, 반경, 그림자, 테마
@@ -163,13 +179,44 @@ lib/
 │   └── motion/          # 애니메이션 상수
 ├── features/
 │   ├── profile_setup/   # 첫 실행 프로필 설정
-│   ├── canvas/          # 무한 캔버스 + 노드
+│   ├── onboarding/      # 온보딩 3단계 + 첫 가족 추가
+│   ├── auth/            # 로그인 (Apple/Google/카카오)
+│   ├── canvas/          # 무한 캔버스 + 노드 + 관계선
 │   ├── node/            # 노드 상세, CRUD
-│   ├── memory/          # 기억 (사진/음성/메모)
-│   ├── family/          # 가족 공유 (.rlink 가져오기)
-│   ├── vibe/            # 온도계 시스템
+│   ├── memory/          # 기억 (사진/음성/메모/영상)
+│   ├── archive/         # 기억 아카이브 (5탭 필터)
+│   ├── story/           # 스토리 피드
+│   ├── family/          # 가족 공유 (.rlink 병합)
+│   ├── family_hub/      # 가족 허브 (생일/일정/클라우드)
+│   ├── family_sync/     # 클라우드 동기화 + 멤버 관리
+│   ├── family_map/      # 가족 지도 (FlutterMap)
+│   ├── invite/          # 초대 코드 + .rlink 공유
+│   ├── explore_hub/     # 탐색 허브 (특별 기능 모음)
+│   ├── capsule/         # 기억 캡슐 (타임캡슐)
+│   ├── voice_legacy/    # 보이스 유언
+│   ├── temperature/     # 온도 다이어리
+│   ├── hyodo/           # 효도 온도계 대시보드
+│   ├── vibe/            # 온도계 시스템 (프로바이더)
+│   ├── bouquet/         # 마음 꽃다발 리포트
+│   ├── birthday/        # 생일/이벤트 대시보드
+│   ├── memorial/        # 추모 공간
+│   ├── recipe/          # 가족 레시피
+│   ├── badges/          # 뱃지 컬렉션 (20개)
+│   ├── streak/          # 연속 기록 뱃지
+│   ├── wrapped/         # 연말 가족 리뷰
+│   ├── search/          # 통합 검색
+│   ├── snapshot/        # 기억 포스터 공유
+│   ├── then_now/        # 과거 vs 현재 비교
+│   ├── clan/            # 성씨 탐색기
+│   ├── art_card/        # 아트 카드 (4세대 트리)
+│   ├── export/          # 족보 이미지 내보내기
+│   ├── holiday/         # 의례 가이드
+│   ├── tree_growth/     # 나무 성장 오버레이
+│   ├── prompt/          # 일일 프롬프트 카드
+│   ├── changelog/       # 변경 로그 모달
+│   ├── settings/        # 앱 설정 + 관리자 콘솔
 │   ├── backup/          # 백업/복원 화면
-│   └── subscription/    # 인앱 구매
+│   └── subscription/    # 인앱 구매 (4-Tier)
 ├── shared/
 │   ├── models/          # NodeModel, MemoryModel, UserPlan
 │   ├── repositories/    # DB 접근 레이어
@@ -231,13 +278,20 @@ static const Color tempFire    = Color(0xFFE53935); // 열정
 
 ## 개발 단계
 
-| 단계 | 내용 |
-|------|------|
-| Phase 0 초기화 | 프로젝트 셋업, DB 스키마, 디자인 토큰 |
-| Phase 1 MVP | 캔버스, 프로필, 노드 CRUD, 기억 저장 |
-| Phase 2 확장 | 음성 캡슐, 백업 클라우드 연동, 가족 공유 |
-| Phase 3 폴리시 | 온도계, Ghost Node, 검색, 설정 |
-| Phase 4 런치 | 앱스토어 출시, 최적화 |
+| 단계 | 내용 | 상태 |
+|------|------|------|
+| Phase 0-10 | 초기화, MVP, DB 스키마, 디자인 토큰, 캔버스, 프로필, 노드 CRUD | ✅ 완료 |
+| Phase 11-20 | 기억, 백업, 클라우드, 가족 공유, 온도계, Ghost Node, 검색, 설정 | ✅ 완료 |
+| Phase 21-25 | 서버 배포, 백업 디버깅, 가족지도, 족보, 캡슐/유언 | ✅ 완료 |
+| Phase 26-32 | 6차 전체 리뷰, 65개 화면 100% 구현, 잔여 이슈 정리 | ✅ 완료 |
+| Phase 33+ | 앱스토어 출시 준비, 성능 최적화, 런치 | 🔜 예정 |
+
+### 현재 구현 완료 현황 (Phase 32 기준)
+- **화면**: 65개 전체 구현 (STUB/PARTIAL 0개)
+- **DB**: 17테이블, 스키마 v10, 10단계 마이그레이션
+- **서비스**: 인증, 백업, 미디어, 클라우드 동기화, IAP 전체 구현
+- **코드 품질**: TODO/FIXME/UnimplementedError 0개
+- **flutter analyze**: error 0개
 
 ---
 

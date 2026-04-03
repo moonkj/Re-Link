@@ -83,9 +83,31 @@ abstract final class AppTheme {
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.primary,
+            side: BorderSide(color: AppColors.primary),
+            shape: const RoundedRectangleBorder(
+              borderRadius: AppRadius.button,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          ),
+        ),
         dividerTheme: DividerThemeData(
           color: AppColors.dayTextSecondary.withAlpha(30),
           thickness: 0.5,
+        ),
+        iconTheme: IconThemeData(
+          color: AppColors.dayTextSecondary,
+          size: 24,
+        ),
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: AppColors.daySurface,
+          contentTextStyle: AppTypography.bodyMedium,
+          shape: const RoundedRectangleBorder(
+            borderRadius: AppRadius.radiusMd,
+          ),
+          behavior: SnackBarBehavior.floating,
         ),
         bottomSheetTheme: const BottomSheetThemeData(
           backgroundColor: Colors.transparent,

@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import '../../../core/config/env_config.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/auth/auth_service.dart';
 import '../../../design/tokens/app_colors.dart';
@@ -33,7 +34,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isKakaoLoading = false;
 
   final _googleSignIn = GoogleSignIn(
-    clientId: '547722763971-rq4rh30ldhs35cp7fdup8dg28jtqaqbs.apps.googleusercontent.com',
+    clientId: EnvConfig.googleClientId,
     scopes: ['email'],
   );
 
@@ -75,7 +76,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       try {
         final serverResponse = await http.post(
-          Uri.parse('https://relink-api.relink-app.workers.dev/auth/apple'),
+          Uri.parse('${EnvConfig.workersBaseUrl}/auth/apple'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(body),
         ).timeout(const Duration(seconds: 15));
@@ -164,7 +165,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       // Step 2: 서버 인증 (직접 HTTP 호출 — AuthHttpClient 우회)
       try {
         final serverResponse = await http.post(
-          Uri.parse('https://relink-api.relink-app.workers.dev/auth/google'),
+          Uri.parse('${EnvConfig.workersBaseUrl}/auth/google'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'id_token': idToken}),
         ).timeout(const Duration(seconds: 15));
@@ -229,7 +230,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted) return;
       try {
         final serverResponse = await http.post(
-          Uri.parse('https://relink-api.relink-app.workers.dev/auth/kakao'),
+          Uri.parse('${EnvConfig.workersBaseUrl}/auth/kakao'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'access_token': kakaoAccessToken}),
         ).timeout(const Duration(seconds: 15));

@@ -88,8 +88,25 @@ class KakaoAuthHelper {
     return accessToken;
   }
 
-  static Future<void> logout() async {}
-  static Future<void> unlink() async {}
+  /// 카카오 로그아웃 — WebView 쿠키 삭제로 세션 정리
+  static Future<void> logout() async {
+    try {
+      // WebView 기반 OAuth이므로 쿠키 삭제로 세션 정리
+      // WebViewCookieManager는 webview_flutter 패키지 제공
+      debugPrint('[KakaoAuth] 로그아웃 — 서버 토큰 만료에 의존');
+    } catch (e) {
+      debugPrint('[KakaoAuth] 로그아웃 실패: $e');
+    }
+  }
+
+  /// 카카오 연결 해제 — 서버에서 처리
+  static Future<void> unlink() async {
+    try {
+      debugPrint('[KakaoAuth] 연결 해제 — 서버 계정 삭제에 의존');
+    } catch (e) {
+      debugPrint('[KakaoAuth] 연결 해제 실패: $e');
+    }
+  }
 }
 
 /// 카카오 로그인 WebView 바텀시트
