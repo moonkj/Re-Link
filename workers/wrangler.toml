@@ -16,6 +16,10 @@ database_id   = "ee4ec1d4-a41f-47d5-851a-0187f6de5820"
 binding     = "MEDIA_BUCKET"
 bucket_name = "relink-media"
 
+# ── Cron Triggers ────────────────────────────────────────────
+[triggers]
+crons = ["0 3 * * *"]   # Daily at 3 AM UTC — subscription cleanup
+
 # ── Environment Variables (non-secret) ───────────────────────
 [vars]
 ENVIRONMENT = "production"
@@ -27,6 +31,7 @@ ENVIRONMENT = "production"
 # wrangler secret put R2_SECRET_ACCESS_KEY
 # wrangler secret put APPLE_CLIENT_ID      (e.g. com.relink)
 # wrangler secret put GOOGLE_CLIENT_ID
+# wrangler secret put ADMIN_SECRET
 
 # ── Development environment override ─────────────────────────
 [env.development]

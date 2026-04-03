@@ -96,6 +96,14 @@ class PlanNotifier extends _$PlanNotifier {
         final settings = ref.read(settingsRepositoryProvider);
         await settings.setUserPlan(UserPlan.free);
         state = const AsyncData(UserPlan.free);
+
+        // Notify server of downgrade
+        try {
+          final authClient = ref.read(authHttpClientProvider);
+          await authClient.post('/user/plan-downgrade', body: {'plan': 'free'}).timeout(const Duration(seconds: 5));
+        } catch (_) {
+          // Server notification is best-effort
+        }
       }
     } catch (e) {
       debugPrint('[PlanNotifier] 구독 유효성 체크 오류: $e');

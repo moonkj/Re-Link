@@ -134,14 +134,26 @@ class _PrivacyContent extends StatelessWidget {
         ),
         SizedBox(height: AppSpacing.md),
 
-        _SubHeading('7. 미성년자 보호'),
+        _SubHeading('7. 클라우드 데이터 보관'),
+        _Body(
+          '패밀리/패밀리플러스 구독자의 데이터는 Cloudflare 서버에 암호화되어 저장됩니다.\n\n'
+          '• 구독 중: 데이터가 안전하게 보관 및 동기화됩니다\n'
+          '• 구독 만료 후 30일: 유예 기간 동안 데이터가 보관됩니다. '
+          '이 기간에 재구독하면 데이터가 복원됩니다.\n'
+          '• 유예 기간 종료: 서버의 모든 데이터(노드, 관계, 기억, 미디어 파일)가 영구 삭제됩니다.\n'
+          '• 로컬 데이터: 구독 상태와 관계없이 기기에 저장된 데이터는 삭제되지 않습니다.\n\n'
+          '데이터 삭제를 원하시면 설정 > 계정 > 계정 삭제를 통해 즉시 삭제할 수 있습니다.',
+        ),
+        SizedBox(height: AppSpacing.md),
+
+        _SubHeading('8. 미성년자 보호'),
         _Body(
           'Re-Link는 13세 미만 아동으로부터 의도적으로 개인정보를 수집하지 않습니다. '
           '앱은 가족 구성원 정보를 보호자가 대신 입력하는 방식으로 운영됩니다.',
         ),
         SizedBox(height: AppSpacing.md),
 
-        _SubHeading('8. 문의'),
+        _SubHeading('9. 문의'),
         _Body(
           '개인정보 처리방침에 대한 문의 사항이 있으시면 아래로 연락해 주세요.\n'
           '이메일: relink.app@gmail.com',

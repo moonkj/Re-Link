@@ -196,6 +196,10 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                     currentPlan: currentPlan,
                   ),
 
+                // 데이터 보관 안내 (패밀리/패밀리플러스만)
+                if (currentPlan.isSubscription)
+                  const _DataRetentionNotice(),
+
                 // 구매 복원
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.lg),
@@ -862,6 +866,57 @@ class _InfoRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── 데이터 보관 안내 ──────────────────────────────────────────────────────────
+
+class _DataRetentionNotice extends StatelessWidget {
+  const _DataRetentionNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.xs,
+      ),
+      child: GlassCard(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.info_outline,
+                    size: 18, color: AppColors.warning),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  '데이터 보관 안내',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.warning,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              '• 구독 중: 클라우드에 데이터가 실시간 동기화됩니다\n'
+              '• 구독 만료: 로컬 데이터는 유지됩니다\n'
+              '• 만료 후 30일: 서버 데이터가 자동 삭제됩니다\n'
+              '• 삭제 전 로컬 백업을 권장합니다',
+              style: TextStyle(
+                fontSize: 12,
+                height: 1.6,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

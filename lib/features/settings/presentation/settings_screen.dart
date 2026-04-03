@@ -439,6 +439,9 @@ class _BackupSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final backupState = ref.watch(backupNotifierProvider);
+    final planAsync = ref.watch(planNotifierProvider);
+    final currentPlan = planAsync.valueOrNull ?? UserPlan.free;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -468,6 +471,22 @@ class _BackupSection extends ConsumerWidget {
             ),
           ),
         ),
+        // 패밀리 플랜 데이터 보관 안내
+        if (currentPlan.isSubscription)
+          Padding(
+            padding: const EdgeInsets.only(
+              top: AppSpacing.xs,
+              left: AppSpacing.sm,
+              right: AppSpacing.sm,
+            ),
+            child: Text(
+              '패밀리 플랜 해지 시 서버 데이터는 30일 후 삭제됩니다',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textTertiary,
+              ),
+            ),
+          ),
       ],
     );
   }

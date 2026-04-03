@@ -17,6 +17,8 @@ export interface Env {
   APPLE_CLIENT_ID?: string;
   /** Google OAuth client ID */
   GOOGLE_CLIENT_ID?: string;
+  /** Admin secret for manual cleanup endpoint (set via wrangler secret put ADMIN_SECRET) */
+  ADMIN_SECRET?: string;
 }
 
 // ============================================================

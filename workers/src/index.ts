@@ -1,8 +1,9 @@
 // Re-Link Workers — Main Entry Point
-// Cloudflare Workers fetch handler + URL router
+// Cloudflare Workers fetch handler + URL router + scheduled cron handler
 
 import type { Env } from './types';
-import { corsPreflightResponse, errorResponse, jsonResponse } from './middleware';
+import type { User } from './types';
+import { corsPreflightResponse, errorResponse, jsonResponse, requireAuth } from './middleware';
 
 // Auth handlers
 import {
@@ -40,6 +41,9 @@ import {
 
 // Purchase handlers
 import { handlePurchaseVerify } from './purchase';
+
+// Cleanup handlers
+import { handleScheduledCleanup, computeDataRetentionStatus } from './cleanup';
 
 // ============================================================
 // Route table type
@@ -206,6 +210,20 @@ const routes: Route[] = [
     pattern: /^\/purchase\/verify$/,
     handler: (req, env) => handlePurchaseVerify(req, env),
   },
+
+  // ── Admin ────────────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: /^\/admin\/cleanup$/,
+    handler: (req, env) => handleAdminCleanup(req, env),
+  },
+
+  // ── User Data Retention ──────────────────────────────────
+  {
+    method: 'GET',
+    pattern: /^\/user\/data-retention$/,
+    handler: (req, env) => handleDataRetention(req, env),
+  },
 ];
 
 // ============================================================
@@ -224,6 +242,46 @@ function matchRoute(
     }
   }
   return null;
+}
+
+// ============================================================
+// Admin: POST /admin/cleanup — manual cleanup trigger
+// ============================================================
+async function handleAdminCleanup(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  // Verify admin secret header
+  const adminSecret = request.headers.get('X-Admin-Secret');
+  if (!env.ADMIN_SECRET || !adminSecret || adminSecret !== env.ADMIN_SECRET) {
+    return errorResponse('Forbidden', 403, request);
+  }
+
+  const result = await handleScheduledCleanup(env);
+  return jsonResponse({ data: result }, 200, request);
+}
+
+// ============================================================
+// User: GET /user/data-retention — data retention status
+// ============================================================
+async function handleDataRetention(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const { ctx, error } = await requireAuth(request, env);
+  if (error) return error;
+
+  const user = await env.DB
+    .prepare('SELECT plan, plan_expires_at FROM users WHERE id = ?')
+    .bind(ctx.userId)
+    .first<Pick<User, 'plan' | 'plan_expires_at'>>();
+
+  if (!user) {
+    return errorResponse('User not found', 404, request);
+  }
+
+  const status = computeDataRetentionStatus(user.plan, user.plan_expires_at);
+  return jsonResponse({ data: status }, 200, request);
 }
 
 // ============================================================
@@ -280,5 +338,17 @@ export default {
 
       return errorResponse(message, 500, request);
     }
+  },
+
+  async scheduled(
+    _controller: ScheduledController,
+    env: Env,
+    ctx: ExecutionContext,
+  ): Promise<void> {
+    ctx.waitUntil(
+      handleScheduledCleanup(env).catch((err) => {
+        console.error('Scheduled cleanup failed:', err);
+      }),
+    );
   },
 } satisfies ExportedHandler<Env>;
