@@ -125,9 +125,12 @@ class _FullTreeExportScreenState extends ConsumerState<FullTreeExportScreen> {
       padding: padding,
     );
 
-    // 캔버스 크기 = 콘텐츠 크기 그대로 (최소값 없음, 노드 기반 자연스러운 크기)
-    final canvasW = contentBounds?.width ?? 800.0;
-    final canvasH = contentBounds?.height ?? 1000.0;
+    // 캔버스 크기 = 콘텐츠 + 하단 나무 여백 (나무 줄기/뿌리가 잘리지 않도록)
+    final rawW = contentBounds?.width ?? 800.0;
+    final rawH = contentBounds?.height ?? 1000.0;
+    final treeBottomMargin = rawH * 0.15; // 나무 뿌리 여백 15%
+    final canvasW = rawW;
+    final canvasH = rawH + treeBottomMargin;
     final offsetX = contentBounds?.left ?? 0.0;
     final offsetY = contentBounds?.top ?? 0.0;
 
