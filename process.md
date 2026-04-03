@@ -4500,3 +4500,51 @@ dependencies:
 | Flutter (자동 생성 .g.dart) | 17,025줄 |
 | 서버 (TypeScript) | 3,198줄 |
 | **총합** | **~88,000줄** |
+
+---
+
+## Phase 34 — TDD 테스트 커버리지 확보 (2026-04-03)
+
+> 전체 테스트 커버리지 29% → 66% 달성, 1829개 테스트 전체 통과
+
+---
+
+### 실패 테스트 14개 수정 ✅
+
+- [x] ArchiveFilter enum 4→5 (video 추가) 반영
+- [x] MemoryType enum 3→4 (video 추가) 반영
+- [x] LOD 스케일 임계값 변경 반영 (birdEye < 0.25, overview < 0.45)
+- [x] jokbo 테스트 디렉토리 삭제 (데드코드)
+- [x] UserPlan.plus.price ₩8,900 → ₩4,900 반영
+- [x] 백업 파일명 한글→ASCII 반영
+- [x] 뱃지 수 21→20 반영
+
+### 신규 테스트 파일 30개 추가 ✅
+
+| 영역 | 테스트 수 | 주요 커버리지 |
+|------|----------|--------------|
+| 모델 (UserPlan, NodeModel, Bouquet, FamilyEvent) | ~180 | copyWith, 제한값, enum |
+| DB/Repository (app_database, settings, node) | ~160 | CRUD, 마이그레이션, 쿼리 |
+| 서비스 (auth, sync, r2, plan, backup) | ~200 | HTTP, 동기화, IAP |
+| 캔버스 (edge_painter, capsule, hyodo) | ~100 | 순수 로직, 상태 |
+| 유틸 (PathUtils, EnvConfig, AppColors) | ~60 | 경로 변환, 설정 |
+| 기타 (wrapped, tree_growth, birthday) | ~100 | 리뷰 데이터, 성장 |
+
+### 커버리지 결과
+
+| 항목 | Before | After |
+|------|--------|-------|
+| 테스트 수 | 773 (14 실패) | **1,829 (0 실패)** |
+| 실제 소스 커버리지 | 29% | **66.1%** |
+| app_database.dart | 28.9% | **80.8%** |
+| settings_repository.dart | 66.9% | **100%** |
+| node_repository.dart | 73.7% | **97.1%** |
+| sync_service.dart | 0.8% | **95.8%** |
+| plan_service.dart | 6.7% | **95.2%** |
+| auth_http_client.dart | 0% | **86.2%** |
+| r2_media_service.dart | 0% | **85.9%** |
+
+### 70% 미달 사유 (66.1%)
+
+- 잔여 169줄: UI 위젯 + 플랫폼 서비스 (unit test 불가)
+- Widget test / Integration test로 추가 커버 가능 (실기기 필요)
