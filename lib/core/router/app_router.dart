@@ -125,11 +125,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       // 딥링크 초대: relink://invite/accept?code=XXX 또는 ?token=XXX
       if (fullUri.contains('invite/accept')) {
         final uri = state.uri;
-        final token = uri.queryParameters['token'] ??
-            uri.queryParameters['code'] ??
-            '';
-        if (token.isNotEmpty) {
-          return '${AppRoutes.acceptInvite}?token=${Uri.encodeComponent(token)}';
+        final serverToken = uri.queryParameters['token'];
+        final localCode = uri.queryParameters['code'];
+        // 서버 토큰 → 초대 수락 화면
+        if (serverToken != null && serverToken.isNotEmpty) {
+          return '${AppRoutes.acceptInvite}?token=${Uri.encodeComponent(serverToken)}';
+        }
+        // 로컬 코드 → 참여하기 화면 (코드 자동 입력)
+        if (localCode != null && localCode.isNotEmpty) {
+          return '${AppRoutes.joinFamily}?code=${Uri.encodeComponent(localCode)}';
         }
       }
       // 패밀리 전용 보호 라우트 (#18)
@@ -276,7 +280,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.joinFamily,
-        builder: (_, s) => const JoinFamilyScreen(),
+        builder: (_, s) => JoinFamilyScreen(
+          initialCode: s.uri.queryParameters['code'],
+        ),
       ),
       GoRoute(
         path: AppRoutes.snapshot,

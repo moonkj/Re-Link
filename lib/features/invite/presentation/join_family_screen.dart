@@ -17,7 +17,8 @@ import '../services/invite_service.dart';
 
 /// 초대 코드 입력 화면 — 받는 쪽 사용자가 가족 트리에 합류
 class JoinFamilyScreen extends ConsumerStatefulWidget {
-  const JoinFamilyScreen({super.key});
+  const JoinFamilyScreen({super.key, this.initialCode});
+  final String? initialCode;
 
   @override
   ConsumerState<JoinFamilyScreen> createState() => _JoinFamilyScreenState();
@@ -47,10 +48,19 @@ class _JoinFamilyScreenState extends ConsumerState<JoinFamilyScreen> {
   @override
   void initState() {
     super.initState();
-    // 첫 필드에 자동 포커스
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _codeFocusNodes[0].requestFocus();
-    });
+    // 딥링크에서 초대 코드가 전달된 경우 자동 입력
+    final code = widget.initialCode;
+    if (code != null && code.length == 6) {
+      for (int i = 0; i < 6; i++) {
+        _codeControllers[i].text = code[i];
+        _previousValues[i] = code[i];
+      }
+    } else {
+      // 첫 필드에 자동 포커스
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _codeFocusNodes[0].requestFocus();
+      });
+    }
   }
 
   @override

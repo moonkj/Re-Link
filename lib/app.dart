@@ -180,11 +180,12 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
     if (uri.pathSegments.length >= 2 &&
         uri.pathSegments[0] == 'invite' &&
         uri.pathSegments[1] == 'accept') {
-      final token = uri.queryParameters['token'] ??
-          uri.queryParameters['code'] ??
-          '';
-      if (token.isNotEmpty) {
-        router.go('${AppRoutes.acceptInvite}?token=${Uri.encodeComponent(token)}');
+      final serverToken = uri.queryParameters['token'];
+      final localCode = uri.queryParameters['code'];
+      if (serverToken != null && serverToken.isNotEmpty) {
+        router.go('${AppRoutes.acceptInvite}?token=${Uri.encodeComponent(serverToken)}');
+      } else if (localCode != null && localCode.isNotEmpty) {
+        router.go('${AppRoutes.joinFamily}?code=${Uri.encodeComponent(localCode)}');
       }
     }
   }
