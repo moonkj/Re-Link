@@ -123,11 +123,18 @@ class _FullTreeExportScreenState extends ConsumerState<FullTreeExportScreen> {
       padding: 300.0,
     );
 
-    // 캔버스 크기 결정 — 콘텐츠 기반 or 기본 4000x4000
-    final canvasW = contentBounds?.width ?? 4000.0;
-    final canvasH = contentBounds?.height ?? 4000.0;
-    final offsetX = contentBounds?.left ?? 0.0;
-    final offsetY = contentBounds?.top ?? 0.0;
+    // 캔버스 크기 결정 — 콘텐츠 기반, 최소 1200x1600 보장 (미리보기+캡처 품질)
+    const minW = 1200.0;
+    const minH = 1600.0;
+    final rawW = contentBounds?.width ?? 4000.0;
+    final rawH = contentBounds?.height ?? 4000.0;
+    final canvasW = rawW < minW ? minW : rawW;
+    final canvasH = rawH < minH ? minH : rawH;
+    // 콘텐츠를 캔버스 중앙에 배치하기 위한 오프셋 보정
+    final rawOffX = contentBounds?.left ?? 0.0;
+    final rawOffY = contentBounds?.top ?? 0.0;
+    final offsetX = rawOffX - (canvasW - rawW) / 2;
+    final offsetY = rawOffY - (canvasH - rawH) / 2;
 
     final bgColor = switch (_bgOption) {
       _ExportBg.dark => const Color(0xFF0D1117),
