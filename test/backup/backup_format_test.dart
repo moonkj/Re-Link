@@ -6,13 +6,13 @@ void main() {
     test('generateFilename — 형식이 올바르다', () {
       final dt = DateTime(2026, 3, 19, 14, 30, 5);
       final name = BackupManifest.generateFilename(dt);
-      expect(name, 'backup_20260319_143005.rlink');
+      expect(name, 'ReLink_backup_20260319.rlink');
     });
 
-    test('generateFilename — 한 자리 월/일/시/분/초 패딩', () {
+    test('generateFilename — 한 자리 월/일 패딩', () {
       final dt = DateTime(2026, 1, 5, 9, 3, 7);
       final name = BackupManifest.generateFilename(dt);
-      expect(name, 'backup_20260105_090307.rlink');
+      expect(name, 'ReLink_backup_20260105.rlink');
     });
 
     test('toJson / fromJson 왕복', () {

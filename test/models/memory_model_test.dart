@@ -12,7 +12,7 @@ void main() {
     test('photo → "사진"', () => expect(MemoryType.photo.label, '사진'));
     test('voice → "음성"', () => expect(MemoryType.voice.label, '음성'));
     test('note → "메모"', () => expect(MemoryType.note.label, '메모'));
-    test('3가지 값 존재', () => expect(MemoryType.values.length, 3));
+    test('4가지 값 존재', () => expect(MemoryType.values.length, 4));
   });
 
   // ── MemoryModel.formattedDuration ─────────────────────────────────────────

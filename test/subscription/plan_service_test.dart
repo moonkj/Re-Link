@@ -103,7 +103,7 @@ void main() {
 
     test('price 문자열 반환', () {
       expect(UserPlan.free.price, '무료');
-      expect(UserPlan.plus.price, '₩8,900');
+      expect(UserPlan.plus.price, '₩4,900');
       expect(UserPlan.family.price, '₩3,900/월');
       expect(UserPlan.familyPlus.price, '₩6,900/월');
     });

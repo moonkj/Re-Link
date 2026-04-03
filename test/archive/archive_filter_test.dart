@@ -5,8 +5,8 @@ import 'package:re_link/shared/models/node_model.dart';
 
 void main() {
   group('ArchiveFilter 열거형', () {
-    test('all/photo/voice/note 4가지 값 존재', () {
-      expect(ArchiveFilter.values.length, 4);
+    test('all/photo/voice/note/video 5가지 값 존재', () {
+      expect(ArchiveFilter.values.length, 5);
     });
 
     test('ArchiveFilter.photo.name == "photo"', () {

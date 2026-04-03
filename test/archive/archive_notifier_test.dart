@@ -313,7 +313,7 @@ void main() {
   // ── ArchiveFilter enum ──────────────────────────────────────────────────
 
   group('ArchiveFilter enum', () {
-    test('4가지 값 존재', () => expect(ArchiveFilter.values.length, 4));
+    test('5가지 값 존재', () => expect(ArchiveFilter.values.length, 5));
     test('all.name == "all"', () => expect(ArchiveFilter.all.name, 'all'));
     test('photo.name == "photo"', () => expect(ArchiveFilter.photo.name, 'photo'));
     test('voice.name == "voice"', () => expect(ArchiveFilter.voice.name, 'voice'));

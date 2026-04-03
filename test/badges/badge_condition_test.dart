@@ -4,8 +4,8 @@ import 'package:re_link/features/badges/models/badge_definition.dart';
 void main() {
   // ── BadgeDefinition enum 기본 검증 ─────────────────────────────────────────
   group('BadgeDefinition enum', () {
-    test('has exactly 21 badges', () {
-      expect(BadgeDefinition.values.length, 21);
+    test('has exactly 20 badges', () {
+      expect(BadgeDefinition.values.length, 20);
     });
 
     test('all badge IDs are unique', () {
@@ -48,7 +48,7 @@ void main() {
       final common = BadgeDefinition.values
           .where((b) => b.rarity == BadgeRarity.common)
           .toList();
-      expect(common.length, 8);
+      expect(common.length, 7);
     });
 
     test('rare badges count', () {
