@@ -4548,3 +4548,49 @@ dependencies:
 
 - 잔여 169줄: UI 위젯 + 플랫폼 서비스 (unit test 불가)
 - Widget test / Integration test로 추가 커버 가능 (실기기 필요)
+
+---
+
+## Phase 35 — 로그인 3사 정상화 + 빌드 키 설정 (2026-04-03)
+
+> Apple/Google/카카오 로그인 전체 정상화, 빌드 환경 키 관리 체계 확립
+
+---
+
+### Apple 로그인 수정 ✅
+
+- [x] 서버 `APPLE_CLIENT_ID` secret `com.relink` → `com.relink.app` 업데이트
+- [x] `auth.ts` 기본값도 `com.relink.app`으로 변경
+- [x] Cloudflare Workers 재배포 완료
+
+### 카카오 로그인 수정 ✅
+
+- [x] KOE101 에러 원인: `--dart-define` 미주입 → REST API 키 빈 문자열
+- [x] `.env` 파일 생성 (KAKAO_REST_API_KEY, KAKAO_NATIVE_APP_KEY, KAKAO_CLIENT_SECRET)
+- [x] `--dart-define` 3개 키 포함 빌드로 정상 동작 확인
+
+### Google 로그인 ✅
+
+- [x] `EnvConfig.googleClientId`로 이동 완료 (이전 Phase)
+- [x] 서버 `GOOGLE_CLIENT_ID` secret 정상 확인
+
+### 로그인 화면 UX 수정 ✅
+
+- [x] 혜택 문구: 패밀리 플랜 혜택 → 실제 로그인 이점으로 변경
+  - 기기 변경 시 데이터 복원
+  - 구독 플랜 구매 내역 연동
+  - 패밀리 플랜 가족 공유 활성화
+
+### 빌드 키 관리 체계 ✅
+
+- [x] `.env` 파일로 카카오 키 관리 (`.gitignore`에 이미 포함)
+- [x] 빌드 명령: `flutter build ios --release --dart-define=KAKAO_REST_API_KEY=... --dart-define=KAKAO_NATIVE_APP_KEY=... --dart-define=KAKAO_CLIENT_SECRET=...`
+- [x] Cloudflare Workers secrets: APPLE_CLIENT_ID, GOOGLE_CLIENT_ID, JWT_SECRET, KAKAO_CLIENT_SECRET
+
+### 로그인 최종 테스트 결과
+
+| 프로바이더 | 상태 | 비고 |
+|-----------|------|------|
+| Apple | ✅ 정상 | APPLE_CLIENT_ID secret 수정 |
+| Google | ✅ 정상 | EnvConfig 적용 |
+| 카카오 | ✅ 정상 | --dart-define 키 주입 |
