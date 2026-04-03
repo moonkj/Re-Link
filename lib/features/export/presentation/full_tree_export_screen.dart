@@ -116,25 +116,20 @@ class _FullTreeExportScreenState extends ConsumerState<FullTreeExportScreen> {
 
     // 콘텐츠 영역 계산 (노드 위치 기반)
     final positions = nodes.map((n) => Offset(n.positionX, n.positionY)).toList();
+    // 노드 수에 따라 패딩 조정 (적을수록 패딩 작게 → 노드가 크게 보임)
+    final padding = nodes.length <= 3 ? 150.0 : 300.0;
     final contentBounds = FullTreeExportService.computeContentBounds(
       nodePositions: positions,
       nodeWidth: kNodeCardWidth,
       nodeHeight: kNodeCardHeight,
-      padding: 300.0,
+      padding: padding,
     );
 
-    // 캔버스 크기 결정 — 콘텐츠 기반, 최소 1200x1600 보장 (미리보기+캡처 품질)
-    const minW = 1200.0;
-    const minH = 1600.0;
-    final rawW = contentBounds?.width ?? 4000.0;
-    final rawH = contentBounds?.height ?? 4000.0;
-    final canvasW = rawW < minW ? minW : rawW;
-    final canvasH = rawH < minH ? minH : rawH;
-    // 콘텐츠를 캔버스 중앙에 배치하기 위한 오프셋 보정
-    final rawOffX = contentBounds?.left ?? 0.0;
-    final rawOffY = contentBounds?.top ?? 0.0;
-    final offsetX = rawOffX - (canvasW - rawW) / 2;
-    final offsetY = rawOffY - (canvasH - rawH) / 2;
+    // 캔버스 크기 = 콘텐츠 크기 그대로 (최소값 없음, 노드 기반 자연스러운 크기)
+    final canvasW = contentBounds?.width ?? 800.0;
+    final canvasH = contentBounds?.height ?? 1000.0;
+    final offsetX = contentBounds?.left ?? 0.0;
+    final offsetY = contentBounds?.top ?? 0.0;
 
     final bgColor = switch (_bgOption) {
       _ExportBg.dark => const Color(0xFF0D1117),
@@ -209,16 +204,18 @@ class _FullTreeExportScreenState extends ConsumerState<FullTreeExportScreen> {
                         child: Stack(
                           clipBehavior: Clip.hardEdge,
                           children: [
-                            // 가족 나무 성장 배경 (하단 70%에만 표시, 잘림 방지)
-                            Positioned(
-                              bottom: 0,
-                              left: canvasW * 0.1,
-                              right: canvasW * 0.1,
-                              height: canvasH * 0.7,
-                              child: FittedBox(
-                                fit: BoxFit.contain,
+                            // 가족 나무 성장 배경 (캔버스 내부에 맞춤)
+                            Positioned.fill(
+                              child: Align(
                                 alignment: Alignment.bottomCenter,
-                                child: TreeGrowthOverlay(),
+                                child: SizedBox(
+                                  width: canvasW * 0.6,
+                                  height: canvasH * 0.5,
+                                  child: FittedBox(
+                                    fit: BoxFit.contain,
+                                    child: TreeGrowthOverlay(),
+                                  ),
+                                ),
                               ),
                             ),
                             // 관계선 레이어
