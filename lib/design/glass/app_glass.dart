@@ -60,7 +60,12 @@ class GlassCard extends StatelessWidget {
     );
 
     if (onTap != null || onLongPress != null) {
-      return GestureDetector(onTap: onTap, onLongPress: onLongPress, child: card);
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        onLongPress: onLongPress,
+        child: card,
+      );
     }
     return card;
   }
