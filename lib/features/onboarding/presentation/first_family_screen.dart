@@ -352,7 +352,7 @@ class _RelationButtonRow extends StatelessWidget {
     return Row(
       children: [
         _RelationBtn(
-          icon: Icons.elderly,
+          icon: Icons.people_outline,
           label: '부모',
           color: const Color(0xFF6EC6CA),
           count: entries
