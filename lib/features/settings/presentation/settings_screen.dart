@@ -1216,14 +1216,26 @@ class _AdminModeSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // 관리자 이메일로 로그인한 경우에만 표시
     final authUser = ref.watch(authNotifierProvider).valueOrNull;
+    final userEmail = authUser?.email?.toLowerCase();
     final isAdmin = authUser != null &&
-        _adminEmails.contains(authUser.email?.toLowerCase());
-    if (!isAdmin) return const SizedBox.shrink();
+        (userEmail != null && _adminEmails.contains(userEmail));
+    // 로그인했으나 관리자 아닌 경우 — DB 기반 adminModeEnabled 폴백
+    final adminAsync = ref.watch(_adminEnabledProvider);
+    final adminEnabled = adminAsync.valueOrNull ?? false;
+    if (!isAdmin && !adminEnabled) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SectionLabel(label: '개발자 모드'),
+        if (authUser != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 8),
+            child: Text(
+              '로그인: ${authUser.email ?? "이메일 없음"} (${authUser.provider})',
+              style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
+            ),
+          ),
         const SizedBox(height: AppSpacing.sm),
         GlassCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
