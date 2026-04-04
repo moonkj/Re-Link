@@ -7,7 +7,7 @@ void main() {
   // ── 기본 제한 ──────────────────────────────────────────────────────────────
 
   group('maxNodes', () {
-    test('free → 15', () => expect(UserPlan.free.maxNodes, 15));
+    test('free → 15', () => expect(UserPlan.free.maxNodes, 10));
     test('plus → 999999', () => expect(UserPlan.plus.maxNodes, 999999));
     test('family → 999999', () => expect(UserPlan.family.maxNodes, 999999));
     test('familyPlus → 999999', () => expect(UserPlan.familyPlus.maxNodes, 999999));

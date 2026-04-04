@@ -338,30 +338,12 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
 
 // ── 요금제 섹션 ────────────────────────────────────────────────────────────────
 
-class _PlanSection extends ConsumerStatefulWidget {
+class _PlanSection extends ConsumerWidget {
   const _PlanSection();
 
   @override
-  ConsumerState<_PlanSection> createState() => _PlanSectionState();
-}
-
-class _PlanSectionState extends ConsumerState<_PlanSection> {
-  UserPlan _plan = UserPlan.free;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadPlan();
-  }
-
-  Future<void> _loadPlan() async {
-    final plan = await ref.read(settingsRepositoryProvider).getUserPlan();
-    if (!mounted) return;
-    setState(() => _plan = plan);
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final plan = ref.watch(planNotifierProvider).valueOrNull ?? UserPlan.free;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -372,16 +354,16 @@ class _PlanSectionState extends ConsumerState<_PlanSection> {
           child: Row(
             children: [
               Icon(
-                _plan == UserPlan.familyPlus
+                plan == UserPlan.familyPlus
                     ? Icons.workspace_premium
-                    : _plan == UserPlan.family
+                    : plan == UserPlan.family
                         ? Icons.family_restroom
-                        : _plan == UserPlan.plus
+                        : plan == UserPlan.plus
                             ? Icons.star_outline
                             : Icons.person_outline,
-                color: _plan == UserPlan.familyPlus
+                color: plan == UserPlan.familyPlus
                     ? AppColors.planFamilyPlus
-                    : _plan == UserPlan.family
+                    : plan == UserPlan.family
                         ? AppColors.planFamily
                         : AppColors.primary,
                 size: 28,
@@ -392,7 +374,7 @@ class _PlanSectionState extends ConsumerState<_PlanSection> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _plan.displayName,
+                      plan.displayName,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -400,15 +382,15 @@ class _PlanSectionState extends ConsumerState<_PlanSection> {
                       ),
                     ),
                     Text(
-                      '노드 ${_plan.isUnlimited ? "무제한" : "${_plan.maxNodes}개"} · '
-                      '사진 ${_plan.isUnlimited ? "무제한" : "${_plan.maxPhotos}장"}',
+                      '노드 ${plan.isUnlimited ? "무제한" : "${plan.maxNodes}개"} · '
+                      '사진 ${plan.isUnlimited ? "무제한" : "${plan.maxPhotos}장"}',
                       style: TextStyle(
                           fontSize: 12, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
               ),
-              if (_plan != UserPlan.familyPlus)
+              if (plan != UserPlan.familyPlus)
                 GlassButton(
                   onPressed: () => context.push(AppRoutes.subscription),
                   child: Text(

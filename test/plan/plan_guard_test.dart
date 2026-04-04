@@ -23,7 +23,7 @@ void main() {
 
   group('UserPlan 제한값', () {
     test('Free — maxNodes 15, 사진 50, 음성 5분, 광고 있음', () {
-      expect(UserPlan.free.maxNodes, 15);
+      expect(UserPlan.free.maxNodes, 10);
       expect(UserPlan.free.maxPhotos, 50);
       expect(UserPlan.free.hasVoice, isTrue);
       expect(UserPlan.free.maxVoiceMinutes, 5);
@@ -91,7 +91,7 @@ void main() {
   });
 
   group('노드 개수 제한 (PlanGuard)', () {
-    test('노드 15개 생성 → Free 한도 도달', () async {
+    test('노드 10개 생성 → Free 한도 도달', () async {
       for (var i = 0; i < 15; i++) {
         await nodeRepo.create(
           name: '인물$i',

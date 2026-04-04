@@ -22,7 +22,7 @@ enum UserPlan {
       };
 
   int get maxNodes => switch (this) {
-        free => 15,
+        free => 10,
         plus => 999999, // 무제한
         family => 999999,
         familyPlus => 999999,

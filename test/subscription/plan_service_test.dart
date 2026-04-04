@@ -59,8 +59,8 @@ void main() {
   });
 
   group('UserPlan 제한 값', () {
-    test('free — 노드 15, 사진 50, 음성 5분', () {
-      expect(UserPlan.free.maxNodes, 15);
+    test('free — 노드 10, 사진 50, 음성 5분', () {
+      expect(UserPlan.free.maxNodes, 10);
       expect(UserPlan.free.maxPhotos, 50);
       expect(UserPlan.free.hasVoice, isTrue);
       expect(UserPlan.free.maxVoiceMinutes, 5);

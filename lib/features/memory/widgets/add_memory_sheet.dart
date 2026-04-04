@@ -621,14 +621,12 @@ class _VideoFormState extends ConsumerState<_VideoForm> {
         return;
       }
 
-      await ref.read(memoryRepositoryProvider).create(
+      await ref.read(memoryNotifierProvider.notifier).addVideo(
         nodeId: widget.nodeId,
-        type: MemoryType.video,
         title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
-        filePath: _videoPath,
+        filePath: _videoPath!,
         thumbnailPath: _thumbPath,
         durationSeconds: _durationSeconds,
-        dateTaken: DateTime.now(),
         isPrivate: _isPrivate,
       );
 

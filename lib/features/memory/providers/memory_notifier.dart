@@ -269,6 +269,37 @@ class MemoryNotifier extends _$MemoryNotifier {
 
   // ── 영상 추가 ────────────────────────────────────────────────────────────
 
+  /// 이미 저장된 영상 파일을 DB에 등록 + R2 업로드 큐
+  Future<MemoryModel?> addVideo({
+    required String nodeId,
+    String? title,
+    required String filePath,
+    String? thumbnailPath,
+    int? durationSeconds,
+    bool isPrivate = false,
+  }) async {
+    try {
+      final relPath = PathUtils.toRelative(filePath) ?? filePath;
+      final relThumb = thumbnailPath != null
+          ? (PathUtils.toRelative(thumbnailPath) ?? thumbnailPath)
+          : null;
+      final memory = await _repo.create(
+        nodeId: nodeId,
+        type: MemoryType.video,
+        title: title,
+        filePath: relPath,
+        thumbnailPath: relThumb,
+        durationSeconds: durationSeconds,
+        dateTaken: DateTime.now(),
+        isPrivate: isPrivate,
+      );
+      await _enqueueVideoUploadIfCloud(memory);
+      return memory;
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// 갤러리에서 영상 선택 후 저장
   Future<MemoryModel?> addVideoFromGallery({
     required String nodeId,
