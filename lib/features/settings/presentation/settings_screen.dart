@@ -1210,6 +1210,7 @@ class _AdminModeSection extends ConsumerWidget {
   static const _adminEmails = {
     'imurmkj@naver.com',
     'imurmkj@gmail.com',
+    'htmq9xm22d@privaterelay.appleid.com',
   };
 
   @override
