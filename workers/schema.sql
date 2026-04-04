@@ -160,3 +160,25 @@ CREATE TABLE IF NOT EXISTS access_logs (
   accessed_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_access_logs_date ON access_logs(accessed_at);
+
+-- ============================================================
+-- Error Logs (server error tracking)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS error_logs (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  endpoint      TEXT    NOT NULL,
+  method        TEXT    NOT NULL,
+  error_message TEXT    NOT NULL,
+  user_id       TEXT,
+  created_at    INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_error_logs_date ON error_logs(created_at);
+
+-- ============================================================
+-- System Config (key-value store for announcements, etc.)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS system_config (
+  key        TEXT PRIMARY KEY,
+  value      TEXT NOT NULL,
+  updated_at INTEGER NOT NULL
+);

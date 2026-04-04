@@ -237,6 +237,56 @@ const routes: Route[] = [
     pattern: /^\/admin\/reset-stats$/,
     handler: (req, env) => handleAdminResetStats(req, env),
   },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/revenue$/,
+    handler: (req, env) => handleAdminRevenue(req, env),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/user-detail$/,
+    handler: (req, env) => handleAdminUserDetail(req, env),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/health$/,
+    handler: (req, env) => handleAdminHealth(req, env),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/storage-overview$/,
+    handler: (req, env) => handleAdminStorageOverview(req, env),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/errors$/,
+    handler: (req, env) => handleAdminErrors(req, env),
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/force-logout$/,
+    handler: (req, env) => handleAdminForceLogout(req, env),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/announcement$/,
+    handler: (req, env) => handleGetAnnouncement(req, env),
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/announcement$/,
+    handler: (req, env) => handleSetAnnouncement(req, env),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/families$/,
+    handler: (req, env) => handleAdminFamilies(req, env),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/system\/announcement$/,
+    handler: (req, env) => handlePublicAnnouncement(req, env),
+  },
 
   // ── User Data Retention ──────────────────────────────────
   {
@@ -484,6 +534,520 @@ async function handleAdminResetStats(
 }
 
 // ============================================================
+// Admin: GET /admin/revenue — purchase & subscription revenue stats
+// ============================================================
+async function handleAdminRevenue(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const adminSecret = request.headers.get('X-Admin-Secret');
+  if (!env.ADMIN_SECRET || !adminSecret || adminSecret !== env.ADMIN_SECRET) {
+    return errorResponse('Forbidden', 403, request);
+  }
+
+  const now = Date.now();
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const weekStart = new Date(todayStart);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const monthStart = new Date(todayStart);
+  monthStart.setDate(1);
+
+  const todayMs = todayStart.getTime();
+  const weekMs = weekStart.getTime();
+  const monthMs = monthStart.getTime();
+
+  // Purchase counts by period
+  const todayCount = await env.DB
+    .prepare('SELECT COUNT(*) as cnt FROM purchase_receipts WHERE verified_at >= ?')
+    .bind(todayMs)
+    .first<{ cnt: number }>();
+  const weekCount = await env.DB
+    .prepare('SELECT COUNT(*) as cnt FROM purchase_receipts WHERE verified_at >= ?')
+    .bind(weekMs)
+    .first<{ cnt: number }>();
+  const monthCount = await env.DB
+    .prepare('SELECT COUNT(*) as cnt FROM purchase_receipts WHERE verified_at >= ?')
+    .bind(monthMs)
+    .first<{ cnt: number }>();
+
+  // Breakdown by product_id
+  const byProduct = await env.DB
+    .prepare('SELECT product_id, COUNT(*) as cnt FROM purchase_receipts GROUP BY product_id')
+    .all<{ product_id: string; cnt: number }>();
+  const productBreakdown: Record<string, number> = {};
+  for (const row of byProduct.results) {
+    productBreakdown[row.product_id] = row.cnt;
+  }
+
+  // iOS vs Android
+  const byPlatform = await env.DB
+    .prepare('SELECT platform, COUNT(*) as cnt FROM purchase_receipts GROUP BY platform')
+    .all<{ platform: string; cnt: number }>();
+  const platformBreakdown: Record<string, number> = {};
+  for (const row of byPlatform.results) {
+    platformBreakdown[row.platform] = row.cnt;
+  }
+
+  // Active subscriptions
+  const activeSubs = await env.DB
+    .prepare('SELECT product_id, COUNT(*) as cnt FROM purchase_receipts WHERE expires_at > ? AND is_valid = 1 GROUP BY product_id')
+    .bind(now)
+    .all<{ product_id: string; cnt: number }>();
+  const activeBreakdown: Record<string, number> = {};
+  for (const row of activeSubs.results) {
+    activeBreakdown[row.product_id] = row.cnt;
+  }
+
+  // MRR estimate
+  const familyMonthly = activeBreakdown['family_monthly'] ?? 0;
+  const familyAnnual = activeBreakdown['family_annual'] ?? 0;
+  const familyPlusMonthly = activeBreakdown['family_plus_monthly'] ?? 0;
+  const familyPlusAnnual = activeBreakdown['family_plus_annual'] ?? 0;
+
+  const mrr =
+    familyMonthly * 3900 +
+    familyAnnual * 3158 +
+    familyPlusMonthly * 6900 +
+    familyPlusAnnual * 5158;
+
+  return jsonResponse({
+    data: {
+      purchases_today: todayCount?.cnt ?? 0,
+      purchases_this_week: weekCount?.cnt ?? 0,
+      purchases_this_month: monthCount?.cnt ?? 0,
+      by_product: productBreakdown,
+      by_platform: platformBreakdown,
+      active_subscriptions: activeBreakdown,
+      mrr_krw: mrr,
+    },
+  }, 200, request);
+}
+
+// ============================================================
+// Admin: GET /admin/user-detail — detailed user info
+// ============================================================
+async function handleAdminUserDetail(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const adminSecret = request.headers.get('X-Admin-Secret');
+  if (!env.ADMIN_SECRET || !adminSecret || adminSecret !== env.ADMIN_SECRET) {
+    return errorResponse('Forbidden', 403, request);
+  }
+
+  const url = new URL(request.url);
+  const userId = url.searchParams.get('id');
+  const email = url.searchParams.get('email');
+
+  if (!userId && !email) {
+    return errorResponse('id or email query parameter required', 400, request);
+  }
+
+  // Fetch user
+  let user: User | null;
+  if (userId) {
+    user = await env.DB
+      .prepare('SELECT * FROM users WHERE id = ?')
+      .bind(userId)
+      .first<User>();
+  } else {
+    user = await env.DB
+      .prepare('SELECT * FROM users WHERE email = ?')
+      .bind(email!)
+      .first<User>();
+  }
+
+  if (!user) {
+    return errorResponse('User not found', 404, request);
+  }
+
+  // Last access
+  const lastAccess = await env.DB
+    .prepare('SELECT accessed_at FROM access_logs WHERE user_id = ? ORDER BY accessed_at DESC LIMIT 1')
+    .bind(user.id)
+    .first<{ accessed_at: number }>();
+
+  // Purchase count
+  const purchaseCount = await env.DB
+    .prepare('SELECT COUNT(*) as cnt FROM purchase_receipts WHERE user_id = ?')
+    .bind(user.id)
+    .first<{ cnt: number }>();
+
+  // Family group info
+  let familyGroup: { id: string; name: string | null; owner_id: string; max_members: number; storage_limit_bytes: number } | null = null;
+  if (user.family_group_id) {
+    familyGroup = await env.DB
+      .prepare('SELECT id, name, owner_id, max_members, storage_limit_bytes FROM family_groups WHERE id = ?')
+      .bind(user.family_group_id)
+      .first<{ id: string; name: string | null; owner_id: string; max_members: number; storage_limit_bytes: number }>();
+  }
+
+  return jsonResponse({
+    data: {
+      id: user.id,
+      provider: user.provider,
+      provider_id: user.provider_id,
+      email: user.email,
+      name: user.name,
+      plan: user.plan,
+      plan_expires_at: user.plan_expires_at ? new Date(user.plan_expires_at).toISOString() : null,
+      family_group_id: user.family_group_id,
+      storage_used_bytes: user.storage_used_bytes,
+      storage_used_mb: Math.round(user.storage_used_bytes / 1024 / 1024 * 10) / 10,
+      created_at: new Date(user.created_at).toISOString(),
+      updated_at: new Date(user.updated_at).toISOString(),
+      last_access: lastAccess ? new Date(lastAccess.accessed_at).toISOString() : null,
+      purchase_count: purchaseCount?.cnt ?? 0,
+      family_group: familyGroup ? {
+        id: familyGroup.id,
+        name: familyGroup.name,
+        owner_id: familyGroup.owner_id,
+        max_members: familyGroup.max_members,
+        storage_limit_bytes: familyGroup.storage_limit_bytes,
+      } : null,
+    },
+  }, 200, request);
+}
+
+// ============================================================
+// Admin: GET /admin/health — table row counts
+// ============================================================
+async function handleAdminHealth(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const adminSecret = request.headers.get('X-Admin-Secret');
+  if (!env.ADMIN_SECRET || !adminSecret || adminSecret !== env.ADMIN_SECRET) {
+    return errorResponse('Forbidden', 403, request);
+  }
+
+  const tables = [
+    'users',
+    'family_groups',
+    'family_invites',
+    'sync_nodes',
+    'sync_edges',
+    'sync_memories',
+    'sync_checkpoints',
+    'refresh_tokens',
+    'purchase_receipts',
+    'access_logs',
+    'error_logs',
+  ];
+
+  const counts: Record<string, number> = {};
+  for (const table of tables) {
+    const result = await env.DB
+      .prepare(`SELECT COUNT(*) as cnt FROM ${table}`)
+      .first<{ cnt: number }>();
+    counts[table] = result?.cnt ?? 0;
+  }
+
+  return jsonResponse({
+    data: {
+      table_counts: counts,
+      timestamp: new Date().toISOString(),
+    },
+  }, 200, request);
+}
+
+// ============================================================
+// Admin: GET /admin/storage-overview — storage usage summary
+// ============================================================
+async function handleAdminStorageOverview(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const adminSecret = request.headers.get('X-Admin-Secret');
+  if (!env.ADMIN_SECRET || !adminSecret || adminSecret !== env.ADMIN_SECRET) {
+    return errorResponse('Forbidden', 403, request);
+  }
+
+  // Total storage used
+  const totalStorage = await env.DB
+    .prepare('SELECT SUM(storage_used_bytes) as total FROM users')
+    .first<{ total: number | null }>();
+
+  // Top 5 families by storage
+  const topFamilies = await env.DB
+    .prepare(`
+      SELECT
+        fg.id as group_id,
+        fg.name as group_name,
+        fg.owner_id,
+        fg.storage_limit_bytes,
+        COUNT(u.id) as member_count,
+        SUM(u.storage_used_bytes) as total_storage
+      FROM family_groups fg
+      LEFT JOIN users u ON u.family_group_id = fg.id
+      GROUP BY fg.id
+      ORDER BY total_storage DESC
+      LIMIT 5
+    `)
+    .all<{
+      group_id: string;
+      group_name: string | null;
+      owner_id: string;
+      storage_limit_bytes: number;
+      member_count: number;
+      total_storage: number | null;
+    }>();
+
+  return jsonResponse({
+    data: {
+      total_storage_bytes: totalStorage?.total ?? 0,
+      total_storage_mb: Math.round((totalStorage?.total ?? 0) / 1024 / 1024 * 10) / 10,
+      top_families: topFamilies.results.map((f) => ({
+        group_id: f.group_id,
+        group_name: f.group_name,
+        owner_id: f.owner_id,
+        member_count: f.member_count,
+        storage_used_bytes: f.total_storage ?? 0,
+        storage_used_mb: Math.round((f.total_storage ?? 0) / 1024 / 1024 * 10) / 10,
+        storage_limit_bytes: f.storage_limit_bytes,
+      })),
+    },
+  }, 200, request);
+}
+
+// ============================================================
+// Admin: GET /admin/errors — recent error logs
+// ============================================================
+async function handleAdminErrors(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const adminSecret = request.headers.get('X-Admin-Secret');
+  if (!env.ADMIN_SECRET || !adminSecret || adminSecret !== env.ADMIN_SECRET) {
+    return errorResponse('Forbidden', 403, request);
+  }
+
+  const errors = await env.DB
+    .prepare('SELECT * FROM error_logs ORDER BY created_at DESC LIMIT 50')
+    .all<{
+      id: number;
+      endpoint: string;
+      method: string;
+      error_message: string;
+      user_id: string | null;
+      created_at: number;
+    }>();
+
+  return jsonResponse({
+    data: {
+      count: errors.results.length,
+      errors: errors.results.map((e) => ({
+        id: e.id,
+        endpoint: e.endpoint,
+        method: e.method,
+        error_message: e.error_message,
+        user_id: e.user_id,
+        created_at: new Date(e.created_at).toISOString(),
+      })),
+    },
+  }, 200, request);
+}
+
+// ============================================================
+// Admin: POST /admin/force-logout — revoke all refresh tokens
+// ============================================================
+async function handleAdminForceLogout(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const adminSecret = request.headers.get('X-Admin-Secret');
+  if (!env.ADMIN_SECRET || !adminSecret || adminSecret !== env.ADMIN_SECRET) {
+    return errorResponse('Forbidden', 403, request);
+  }
+
+  let body: { user_id: string };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return errorResponse('Invalid JSON body', 400, request);
+  }
+
+  if (!body.user_id) {
+    return errorResponse('user_id is required', 400, request);
+  }
+
+  const result = await env.DB
+    .prepare('DELETE FROM refresh_tokens WHERE user_id = ?')
+    .bind(body.user_id)
+    .run();
+
+  return jsonResponse({
+    data: {
+      message: `Force logout successful for user ${body.user_id}`,
+      tokens_revoked: result.meta.changes ?? 0,
+    },
+  }, 200, request);
+}
+
+// ============================================================
+// Admin: GET /admin/announcement — get current announcement
+// ============================================================
+async function handleGetAnnouncement(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const adminSecret = request.headers.get('X-Admin-Secret');
+  if (!env.ADMIN_SECRET || !adminSecret || adminSecret !== env.ADMIN_SECRET) {
+    return errorResponse('Forbidden', 403, request);
+  }
+
+  const text = await env.DB
+    .prepare("SELECT value FROM system_config WHERE key = 'announcement_text'")
+    .first<{ value: string }>();
+  const type = await env.DB
+    .prepare("SELECT value FROM system_config WHERE key = 'announcement_type'")
+    .first<{ value: string }>();
+
+  return jsonResponse({
+    data: {
+      text: text?.value ?? null,
+      type: type?.value ?? null,
+    },
+  }, 200, request);
+}
+
+// ============================================================
+// Admin: POST /admin/announcement — set announcement
+// ============================================================
+async function handleSetAnnouncement(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const adminSecret = request.headers.get('X-Admin-Secret');
+  if (!env.ADMIN_SECRET || !adminSecret || adminSecret !== env.ADMIN_SECRET) {
+    return errorResponse('Forbidden', 403, request);
+  }
+
+  let body: { text: string; type: 'info' | 'warning' | 'critical' };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return errorResponse('Invalid JSON body', 400, request);
+  }
+
+  if (!body.text || !body.type) {
+    return errorResponse('text and type are required', 400, request);
+  }
+
+  const validTypes = ['info', 'warning', 'critical'];
+  if (!validTypes.includes(body.type)) {
+    return errorResponse(`Invalid type. Must be one of: ${validTypes.join(', ')}`, 400, request);
+  }
+
+  const now = Date.now();
+
+  await env.DB.batch([
+    env.DB
+      .prepare("INSERT OR REPLACE INTO system_config (key, value, updated_at) VALUES ('announcement_text', ?, ?)")
+      .bind(body.text, now),
+    env.DB
+      .prepare("INSERT OR REPLACE INTO system_config (key, value, updated_at) VALUES ('announcement_type', ?, ?)")
+      .bind(body.type, now),
+  ]);
+
+  return jsonResponse({
+    data: {
+      message: 'Announcement updated',
+      text: body.text,
+      type: body.type,
+    },
+  }, 200, request);
+}
+
+// ============================================================
+// Public: GET /system/announcement — public announcement
+// ============================================================
+async function handlePublicAnnouncement(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const text = await env.DB
+    .prepare("SELECT value FROM system_config WHERE key = 'announcement_text'")
+    .first<{ value: string }>();
+  const type = await env.DB
+    .prepare("SELECT value FROM system_config WHERE key = 'announcement_type'")
+    .first<{ value: string }>();
+
+  if (!text) {
+    return jsonResponse({ data: null }, 200, request);
+  }
+
+  return jsonResponse({
+    data: {
+      text: text.value,
+      type: type?.value ?? 'info',
+    },
+  }, 200, request);
+}
+
+// ============================================================
+// Admin: GET /admin/families — list all family groups
+// ============================================================
+async function handleAdminFamilies(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const adminSecret = request.headers.get('X-Admin-Secret');
+  if (!env.ADMIN_SECRET || !adminSecret || adminSecret !== env.ADMIN_SECRET) {
+    return errorResponse('Forbidden', 403, request);
+  }
+
+  const families = await env.DB
+    .prepare(`
+      SELECT
+        fg.id,
+        fg.name,
+        fg.owner_id,
+        fg.max_members,
+        fg.storage_limit_bytes,
+        fg.created_at,
+        owner.email as owner_email,
+        COUNT(u.id) as member_count,
+        SUM(u.storage_used_bytes) as total_storage
+      FROM family_groups fg
+      LEFT JOIN users owner ON owner.id = fg.owner_id
+      LEFT JOIN users u ON u.family_group_id = fg.id
+      GROUP BY fg.id
+      ORDER BY fg.created_at DESC
+    `)
+    .all<{
+      id: string;
+      name: string | null;
+      owner_id: string;
+      max_members: number;
+      storage_limit_bytes: number;
+      created_at: number;
+      owner_email: string | null;
+      member_count: number;
+      total_storage: number | null;
+    }>();
+
+  return jsonResponse({
+    data: {
+      count: families.results.length,
+      families: families.results.map((f) => ({
+        id: f.id,
+        name: f.name,
+        owner_id: f.owner_id,
+        owner_email: f.owner_email,
+        max_members: f.max_members,
+        member_count: f.member_count,
+        storage_used_bytes: f.total_storage ?? 0,
+        storage_used_mb: Math.round((f.total_storage ?? 0) / 1024 / 1024 * 10) / 10,
+        storage_limit_bytes: f.storage_limit_bytes,
+        created_at: new Date(f.created_at).toISOString(),
+      })),
+    },
+  }, 200, request);
+}
+
+// ============================================================
 // Health check
 // ============================================================
 function handleHealth(request: Request, env: Env): Response {
@@ -529,6 +1093,17 @@ export default {
       return await matched.handler(request, env, ...matched.params);
     } catch (err) {
       console.error('Unhandled error:', err);
+
+      // Log error to D1 error_logs table
+      try {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        await env.DB
+          .prepare('INSERT INTO error_logs (endpoint, method, error_message, user_id, created_at) VALUES (?, ?, ?, ?, ?)')
+          .bind(pathname, method, errMsg, null, Date.now())
+          .run();
+      } catch {
+        // Silently ignore logging failures to avoid masking the original error
+      }
 
       const message =
         env.ENVIRONMENT === 'development' && err instanceof Error

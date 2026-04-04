@@ -70,8 +70,44 @@ class _AdminConsoleScreenState extends ConsumerState<AdminConsoleScreen> {
           _AccessStatsSection(),
           const SizedBox(height: AppSpacing.xl),
 
+          // 매출 대시보드
+          _RevenueSection(),
+          const SizedBox(height: AppSpacing.xl),
+
+          // 사용자 상세 조회
+          _UserDetailSection(),
+          const SizedBox(height: AppSpacing.xl),
+
           // 요금제 오버라이드
           _PlanOverrideSection(),
+          const SizedBox(height: AppSpacing.xl),
+
+          // 사용자 플랜 부여
+          _GrantPlanSection(),
+          const SizedBox(height: AppSpacing.xl),
+
+          // 서버 헬스
+          _ServerHealthSection(),
+          const SizedBox(height: AppSpacing.xl),
+
+          // R2 스토리지
+          _StorageOverviewSection(),
+          const SizedBox(height: AppSpacing.xl),
+
+          // 에러 로그
+          _ErrorLogSection(),
+          const SizedBox(height: AppSpacing.xl),
+
+          // 강제 로그아웃
+          _ForceLogoutSection(),
+          const SizedBox(height: AppSpacing.xl),
+
+          // 공지사항 관리
+          _AnnouncementSection(),
+          const SizedBox(height: AppSpacing.xl),
+
+          // 가족 그룹 목록
+          _FamilyGroupSection(),
           const SizedBox(height: AppSpacing.xl),
 
           // 더미 노드 데이터
@@ -98,10 +134,6 @@ class _AdminConsoleScreenState extends ConsumerState<AdminConsoleScreen> {
 
           // 나무 성장 상태
           _TreeGrowthSection(),
-          const SizedBox(height: AppSpacing.xl),
-
-          // 사용자 플랜 부여
-          _GrantPlanSection(),
           const SizedBox(height: AppSpacing.xl),
 
           // DB 통계
@@ -1302,6 +1334,1175 @@ class _GrantPlanSectionState extends ConsumerState<_GrantPlanSection> {
     );
   }
 }
+
+// ── 매출 대시보드 섹션 ──────────────────────────────────────────────────────
+
+class _RevenueSection extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_RevenueSection> createState() => _RevenueSectionState();
+}
+
+class _RevenueSectionState extends ConsumerState<_RevenueSection> {
+  bool _loading = true;
+  String? _error;
+  int _todayRevenue = 0;
+  int _weekRevenue = 0;
+  int _monthRevenue = 0;
+  int _iosRevenue = 0;
+  int _androidRevenue = 0;
+  int _activeSubscriptions = 0;
+  int _mrr = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRevenue();
+  }
+
+  Future<void> _loadRevenue() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      const adminSecret =
+          String.fromEnvironment('ADMIN_SECRET', defaultValue: '');
+      final response = await http.get(
+        Uri.parse('${EnvConfig.workersBaseUrl}/admin/revenue'),
+        headers: {'X-Admin-Secret': adminSecret},
+      ).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = body['data'] as Map<String, dynamic>;
+        setState(() {
+          _todayRevenue = (data['today'] as num?)?.toInt() ?? 0;
+          _weekRevenue = (data['this_week'] as num?)?.toInt() ?? 0;
+          _monthRevenue = (data['this_month'] as num?)?.toInt() ?? 0;
+          _iosRevenue = (data['ios'] as num?)?.toInt() ?? 0;
+          _androidRevenue = (data['android'] as num?)?.toInt() ?? 0;
+          _activeSubscriptions =
+              (data['active_subscriptions'] as num?)?.toInt() ?? 0;
+          _mrr = (data['mrr'] as num?)?.toInt() ?? 0;
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'HTTP ${response.statusCode}';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(child: SectionLabel(label: '매출 대시보드')),
+            if (!_loading)
+              GestureDetector(
+                onTap: _loadRevenue,
+                child: Icon(Icons.refresh, color: AppColors.primary, size: 20),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: _loading
+              ? Center(
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.primary))
+              : _error != null
+                  ? Text(
+                      '오류: $_error',
+                      style:
+                          TextStyle(fontSize: 13, color: AppColors.accent),
+                    )
+                  : Column(
+                      children: [
+                        _StatRow('오늘 결제', '${_todayRevenue.toStringAsFixed(0)}원'),
+                        _StatRow('이번 주', '${_weekRevenue.toStringAsFixed(0)}원'),
+                        _StatRow('이번 달', '${_monthRevenue.toStringAsFixed(0)}원'),
+                        const Divider(height: 16),
+                        _StatRow('iOS', '${_iosRevenue.toStringAsFixed(0)}원'),
+                        _StatRow('Android', '${_androidRevenue.toStringAsFixed(0)}원'),
+                        const Divider(height: 16),
+                        _StatRow('활성 구독', '$_activeSubscriptions건'),
+                        _StatRow('예상 MRR', '${_mrr.toStringAsFixed(0)}원'),
+                      ],
+                    ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── 사용자 상세 조회 섹션 ──────────────────────────────────────────────────
+
+class _UserDetailSection extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_UserDetailSection> createState() =>
+      _UserDetailSectionState();
+}
+
+class _UserDetailSectionState extends ConsumerState<_UserDetailSection> {
+  final _searchCtrl = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  Map<String, dynamic>? _userData;
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _searchUser() async {
+    final query = _searchCtrl.text.trim();
+    if (query.isEmpty) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+      _userData = null;
+    });
+    try {
+      const adminSecret =
+          String.fromEnvironment('ADMIN_SECRET', defaultValue: '');
+      final response = await http.get(
+        Uri.parse(
+            '${EnvConfig.workersBaseUrl}/admin/user-detail?email=${Uri.encodeComponent(query)}'),
+        headers: {'X-Admin-Secret': adminSecret},
+      ).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = body['data'] as Map<String, dynamic>;
+        setState(() {
+          _userData = data;
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'HTTP ${response.statusCode}';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionLabel(label: '사용자 상세 조회'),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _searchCtrl,
+                decoration: InputDecoration(
+                  hintText: '이메일 또는 ID 입력',
+                  hintStyle: TextStyle(color: AppColors.textTertiary),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  border:
+                      OutlineInputBorder(borderRadius: AppRadius.radiusMd),
+                ),
+                style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                onSubmitted: (_) => _searchUser(),
+              ),
+            ),
+            const SizedBox(width: 8),
+            GlassButton(
+              onPressed: _loading ? null : _searchUser,
+              child: _loading
+                  ? SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: AppColors.primary))
+                  : Icon(Icons.search, size: 20, color: AppColors.primary),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        if (_error != null)
+          GlassCard(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Text(
+              '오류: $_error',
+              style: TextStyle(fontSize: 13, color: AppColors.accent),
+            ),
+          ),
+        if (_userData != null)
+          GlassCard(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              children: [
+                _StatRow('이메일', '${_userData!['email'] ?? '-'}'),
+                _StatRow('프로바이더', '${_userData!['provider'] ?? '-'}'),
+                _StatRow('플랜', '${_userData!['plan'] ?? '-'}'),
+                _StatRow('만료일', '${_userData!['plan_expires_at'] ?? '-'}'),
+                _StatRow('마지막 접속', '${_userData!['last_access'] ?? '-'}'),
+                _StatRow('구매 건수', '${_userData!['purchase_count'] ?? 0}건'),
+                _StatRow('저장 용량', '${_userData!['storage_used_mb'] ?? 0}MB'),
+                _StatRow('가입일', '${_userData!['created_at'] ?? '-'}'),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ── 서버 헬스 섹션 ──────────────────────────────────────────────────────────
+
+class _ServerHealthSection extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_ServerHealthSection> createState() =>
+      _ServerHealthSectionState();
+}
+
+class _ServerHealthSectionState extends ConsumerState<_ServerHealthSection> {
+  bool _loading = true;
+  String? _error;
+  Map<String, int> _tableCounts = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHealth();
+  }
+
+  Future<void> _loadHealth() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      const adminSecret =
+          String.fromEnvironment('ADMIN_SECRET', defaultValue: '');
+      final response = await http.get(
+        Uri.parse('${EnvConfig.workersBaseUrl}/admin/health'),
+        headers: {'X-Admin-Secret': adminSecret},
+      ).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = body['data'] as Map<String, dynamic>;
+        final tables = <String, int>{};
+        for (final entry in data.entries) {
+          tables[entry.key] = (entry.value as num?)?.toInt() ?? 0;
+        }
+        setState(() {
+          _tableCounts = tables;
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'HTTP ${response.statusCode}';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(child: SectionLabel(label: '서버 헬스')),
+            if (!_loading)
+              GestureDetector(
+                onTap: _loadHealth,
+                child: Icon(Icons.refresh, color: AppColors.primary, size: 20),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: _loading
+              ? Center(
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.primary))
+              : _error != null
+                  ? Text(
+                      '오류: $_error',
+                      style:
+                          TextStyle(fontSize: 13, color: AppColors.accent),
+                    )
+                  : Column(
+                      children: _tableCounts.entries
+                          .map((e) =>
+                              _StatRow(e.key, '${e.value}행'))
+                          .toList(),
+                    ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── R2 스토리지 섹션 ────────────────────────────────────────────────────────
+
+class _StorageOverviewSection extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_StorageOverviewSection> createState() =>
+      _StorageOverviewSectionState();
+}
+
+class _StorageOverviewSectionState
+    extends ConsumerState<_StorageOverviewSection> {
+  bool _loading = true;
+  String? _error;
+  String _totalUsage = '-';
+  List<Map<String, dynamic>> _topFamilies = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStorage();
+  }
+
+  Future<void> _loadStorage() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      const adminSecret =
+          String.fromEnvironment('ADMIN_SECRET', defaultValue: '');
+      final response = await http.get(
+        Uri.parse('${EnvConfig.workersBaseUrl}/admin/storage-overview'),
+        headers: {'X-Admin-Secret': adminSecret},
+      ).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = body['data'] as Map<String, dynamic>;
+        setState(() {
+          _totalUsage = '${data['total_usage'] ?? '-'}';
+          _topFamilies = (data['top_families'] as List?)
+                  ?.cast<Map<String, dynamic>>() ??
+              [];
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'HTTP ${response.statusCode}';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(child: SectionLabel(label: 'R2 스토리지')),
+            if (!_loading)
+              GestureDetector(
+                onTap: _loadStorage,
+                child: Icon(Icons.refresh, color: AppColors.primary, size: 20),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: _loading
+              ? Center(
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.primary))
+              : _error != null
+                  ? Text(
+                      '오류: $_error',
+                      style:
+                          TextStyle(fontSize: 13, color: AppColors.accent),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _StatRow('전체 사용량', _totalUsage),
+                        if (_topFamilies.isNotEmpty) ...[
+                          const Divider(height: 16),
+                          Text(
+                            '상위 5 가족 그룹',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ..._topFamilies.map((f) => _StatRow(
+                                '${f['owner_email'] ?? f['family_id'] ?? '-'}',
+                                '${f['usage'] ?? '-'}',
+                              )),
+                        ],
+                      ],
+                    ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── 에러 로그 섹션 ──────────────────────────────────────────────────────────
+
+class _ErrorLogSection extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_ErrorLogSection> createState() => _ErrorLogSectionState();
+}
+
+class _ErrorLogSectionState extends ConsumerState<_ErrorLogSection> {
+  bool _loading = true;
+  String? _error;
+  List<Map<String, dynamic>> _errors = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadErrors();
+  }
+
+  Future<void> _loadErrors() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      const adminSecret =
+          String.fromEnvironment('ADMIN_SECRET', defaultValue: '');
+      final response = await http.get(
+        Uri.parse('${EnvConfig.workersBaseUrl}/admin/errors'),
+        headers: {'X-Admin-Secret': adminSecret},
+      ).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = body['data'] as List?;
+        setState(() {
+          _errors = data?.cast<Map<String, dynamic>>() ?? [];
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'HTTP ${response.statusCode}';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _clearErrors() async {
+    setState(() => _loading = true);
+    try {
+      const adminSecret =
+          String.fromEnvironment('ADMIN_SECRET', defaultValue: '');
+      await http.post(
+        Uri.parse('${EnvConfig.workersBaseUrl}/admin/clear-errors'),
+        headers: {'X-Admin-Secret': adminSecret},
+      ).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      await _loadErrors();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(child: SectionLabel(label: '에러 로그')),
+            if (!_loading)
+              GestureDetector(
+                onTap: _loadErrors,
+                child: Icon(Icons.refresh, color: AppColors.primary, size: 20),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: _loading
+              ? Center(
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.primary))
+              : _error != null
+                  ? Text(
+                      '오류: $_error',
+                      style:
+                          TextStyle(fontSize: 13, color: AppColors.accent),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_errors.isEmpty)
+                          Text(
+                            '에러 없음',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          )
+                        else ...[
+                          ..._errors.map((err) => Padding(
+                                padding:
+                                    const EdgeInsets.only(bottom: 8),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${err['timestamp'] ?? '-'}',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.textTertiary,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${err['endpoint'] ?? '-'}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${err['message'] ?? '-'}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.accent,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              )),
+                        ],
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextButton.icon(
+                            onPressed: _loading ? null : _clearErrors,
+                            icon: Icon(Icons.delete_outline,
+                                size: 16, color: AppColors.error),
+                            label: Text('로그 삭제',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.error)),
+                          ),
+                        ),
+                      ],
+                    ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── 강제 로그아웃 섹션 ──────────────────────────────────────────────────────
+
+class _ForceLogoutSection extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_ForceLogoutSection> createState() =>
+      _ForceLogoutSectionState();
+}
+
+class _ForceLogoutSectionState extends ConsumerState<_ForceLogoutSection> {
+  final _userIdCtrl = TextEditingController();
+  bool _loading = false;
+  String? _result;
+
+  @override
+  void dispose() {
+    _userIdCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _forceLogout() async {
+    final userId = _userIdCtrl.text.trim();
+    if (userId.isEmpty) return;
+    setState(() {
+      _loading = true;
+      _result = null;
+    });
+    try {
+      const adminSecret =
+          String.fromEnvironment('ADMIN_SECRET', defaultValue: '');
+      final response = await http.post(
+        Uri.parse('${EnvConfig.workersBaseUrl}/admin/force-logout'),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Secret': adminSecret,
+        },
+        body: jsonEncode({'user_id': userId}),
+      ).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        setState(() {
+          _result = '로그아웃 완료: $userId';
+          _loading = false;
+        });
+      } else {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        setState(() {
+          _result = '실패: ${body['message'] ?? response.statusCode}';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _result = '오류: $e';
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionLabel(label: '강제 로그아웃'),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _userIdCtrl,
+                      decoration: InputDecoration(
+                        hintText: '사용자 ID 입력',
+                        hintStyle: TextStyle(color: AppColors.textTertiary),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
+                        border: OutlineInputBorder(
+                            borderRadius: AppRadius.radiusMd),
+                      ),
+                      style: TextStyle(
+                          fontSize: 14, color: AppColors.textPrimary),
+                      onSubmitted: (_) => _forceLogout(),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GlassButton(
+                    onPressed: _loading ? null : _forceLogout,
+                    backgroundColor: AppColors.accent.withAlpha(20),
+                    child: _loading
+                        ? SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: AppColors.accent))
+                        : Text(
+                            '로그아웃',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.accent,
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+              if (_result != null) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  _result!,
+                  style:
+                      TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── 공지사항 관리 섹션 ──────────────────────────────────────────────────────
+
+class _AnnouncementSection extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_AnnouncementSection> createState() =>
+      _AnnouncementSectionState();
+}
+
+class _AnnouncementSectionState extends ConsumerState<_AnnouncementSection> {
+  final _textCtrl = TextEditingController();
+  String _type = 'info';
+  bool _loading = true;
+  String? _error;
+  String? _currentText;
+  String? _currentType;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAnnouncement();
+  }
+
+  @override
+  void dispose() {
+    _textCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadAnnouncement() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      const adminSecret =
+          String.fromEnvironment('ADMIN_SECRET', defaultValue: '');
+      final response = await http.get(
+        Uri.parse('${EnvConfig.workersBaseUrl}/admin/announcement'),
+        headers: {'X-Admin-Secret': adminSecret},
+      ).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = body['data'] as Map<String, dynamic>?;
+        setState(() {
+          _currentText = data?['text'] as String?;
+          _currentType = data?['type'] as String?;
+          if (_currentText != null && _currentText!.isNotEmpty) {
+            _textCtrl.text = _currentText!;
+          }
+          if (_currentType != null) {
+            _type = _currentType!;
+          }
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'HTTP ${response.statusCode}';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _saveAnnouncement() async {
+    setState(() => _loading = true);
+    try {
+      const adminSecret =
+          String.fromEnvironment('ADMIN_SECRET', defaultValue: '');
+      final response = await http.post(
+        Uri.parse('${EnvConfig.workersBaseUrl}/admin/announcement'),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Secret': adminSecret,
+        },
+        body: jsonEncode({
+          'text': _textCtrl.text.trim(),
+          'type': _type,
+        }),
+      ).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        await _loadAnnouncement();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('공지사항 저장 완료'),
+            backgroundColor: AppColors.primary,
+          ),
+        );
+      } else {
+        setState(() {
+          _error = 'HTTP ${response.statusCode}';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _deleteAnnouncement() async {
+    setState(() => _loading = true);
+    try {
+      const adminSecret =
+          String.fromEnvironment('ADMIN_SECRET', defaultValue: '');
+      await http.post(
+        Uri.parse('${EnvConfig.workersBaseUrl}/admin/announcement'),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Secret': adminSecret,
+        },
+        body: jsonEncode({
+          'text': '',
+          'type': _type,
+        }),
+      ).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      _textCtrl.clear();
+      await _loadAnnouncement();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('공지사항 삭제 완료'),
+          backgroundColor: AppColors.accent,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionLabel(label: '공지사항 관리'),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: _loading
+              ? Center(
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.primary))
+              : _error != null
+                  ? Text(
+                      '오류: $_error',
+                      style:
+                          TextStyle(fontSize: 13, color: AppColors.accent),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_currentText != null &&
+                            _currentText!.isNotEmpty) ...[
+                          Text(
+                            '현재 공지: $_currentText',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          Text(
+                            '타입: ${_currentType ?? '-'}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textTertiary,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                        ],
+                        TextField(
+                          controller: _textCtrl,
+                          maxLines: 3,
+                          decoration: InputDecoration(
+                            hintText: '공지사항 내용 입력',
+                            hintStyle:
+                                TextStyle(color: AppColors.textTertiary),
+                            contentPadding: const EdgeInsets.all(12),
+                            border: OutlineInputBorder(
+                                borderRadius: AppRadius.radiusMd),
+                          ),
+                          style: TextStyle(
+                              fontSize: 14, color: AppColors.textPrimary),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Row(
+                          children: [
+                            Text(
+                              '타입: ',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            DropdownButton<String>(
+                              value: _type,
+                              dropdownColor: AppColors.bgSurface,
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textPrimary),
+                              items: const [
+                                DropdownMenuItem(
+                                    value: 'info', child: Text('info')),
+                                DropdownMenuItem(
+                                    value: 'warning',
+                                    child: Text('warning')),
+                                DropdownMenuItem(
+                                    value: 'critical',
+                                    child: Text('critical')),
+                              ],
+                              onChanged: (v) =>
+                                  setState(() => _type = v ?? 'info'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: GlassButton(
+                                onPressed: _saveAnnouncement,
+                                backgroundColor:
+                                    AppColors.primary.withAlpha(20),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.save,
+                                        color: AppColors.primary,
+                                        size: 18),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      '저장',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: GlassButton(
+                                onPressed: _deleteAnnouncement,
+                                backgroundColor:
+                                    AppColors.accent.withAlpha(20),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.delete_outline,
+                                        color: AppColors.accent,
+                                        size: 18),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      '삭제',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.accent,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── 가족 그룹 목록 섹션 ─────────────────────────────────────────────────────
+
+class _FamilyGroupSection extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_FamilyGroupSection> createState() =>
+      _FamilyGroupSectionState();
+}
+
+class _FamilyGroupSectionState extends ConsumerState<_FamilyGroupSection> {
+  bool _loading = true;
+  String? _error;
+  List<Map<String, dynamic>> _families = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFamilies();
+  }
+
+  Future<void> _loadFamilies() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      const adminSecret =
+          String.fromEnvironment('ADMIN_SECRET', defaultValue: '');
+      final response = await http.get(
+        Uri.parse('${EnvConfig.workersBaseUrl}/admin/families'),
+        headers: {'X-Admin-Secret': adminSecret},
+      ).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = body['data'] as List?;
+        setState(() {
+          _families = data?.cast<Map<String, dynamic>>() ?? [];
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'HTTP ${response.statusCode}';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(child: SectionLabel(label: '가족 그룹 목록')),
+            if (!_loading)
+              GestureDetector(
+                onTap: _loadFamilies,
+                child: Icon(Icons.refresh, color: AppColors.primary, size: 20),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: _loading
+              ? Center(
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.primary))
+              : _error != null
+                  ? Text(
+                      '오류: $_error',
+                      style:
+                          TextStyle(fontSize: 13, color: AppColors.accent),
+                    )
+                  : _families.isEmpty
+                      ? Text(
+                          '가족 그룹 없음',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
+                        )
+                      : Column(
+                          children: _families
+                              .map((f) => Padding(
+                                    padding:
+                                        const EdgeInsets.only(bottom: 8),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        _StatRow(
+                                          '소유자',
+                                          '${f['owner_email'] ?? '-'}',
+                                        ),
+                                        _StatRow(
+                                          '멤버 수',
+                                          '${f['member_count'] ?? 0}명',
+                                        ),
+                                        _StatRow(
+                                          '저장 용량',
+                                          '${f['storage_used'] ?? '-'}',
+                                        ),
+                                        if (f !=
+                                            _families.last)
+                                          const Divider(height: 12),
+                                      ],
+                                    ),
+                                  ))
+                              .toList(),
+                        ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── 통계 행 위젯 ────────────────────────────────────────────────────────────
 
 class _StatRow extends StatelessWidget {
   const _StatRow(this.label, this.value);
