@@ -978,6 +978,12 @@ class _AppInfoSectionState extends ConsumerState<_AppInfoSection> {
   Timer? _tapTimer;
 
   void _onVersionTap() {
+    // 관리자 이메일인 경우에만 7탭 활성화
+    final authUser = ref.read(authNotifierProvider).valueOrNull;
+    final isAdmin = authUser != null &&
+        _AdminModeSection._adminEmails.contains(authUser.email?.toLowerCase());
+    if (!isAdmin) return;
+
     _tapCount++;
     _tapTimer?.cancel();
     _tapTimer = Timer(const Duration(seconds: 3), () => _tapCount = 0);
@@ -1201,11 +1207,18 @@ class _PrivacyToggleState extends ConsumerState<_PrivacyToggle> {
 class _AdminModeSection extends ConsumerWidget {
   const _AdminModeSection();
 
+  static const _adminEmails = {
+    'imurmkj@naver.com',
+    'imurmkj@gmail.com',
+  };
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final adminAsync = ref.watch(_adminEnabledProvider);
-    final enabled = adminAsync.valueOrNull ?? false;
-    if (!enabled) return const SizedBox.shrink();
+    // 관리자 이메일로 로그인한 경우에만 표시
+    final authUser = ref.watch(authNotifierProvider).valueOrNull;
+    final isAdmin = authUser != null &&
+        _adminEmails.contains(authUser.email?.toLowerCase());
+    if (!isAdmin) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
