@@ -94,7 +94,7 @@ class InviteNotifier extends _$InviteNotifier {
 
   /// .rlink 백업 생성 + OS 공유 시트로 공유
   /// 공유 전 welcomeMessage/welcomeAudioPath를 settings에 기록
-  Future<void> shareInvite() async {
+  Future<void> shareInvite({Rect? shareOrigin}) async {
     if (state.code == null) return;
     state = state.copyWith(isSharing: true, clearError: true);
     try {
@@ -134,7 +134,7 @@ class InviteNotifier extends _$InviteNotifier {
         text: shareText,
         // sharePositionOrigin은 iPad에서 필요하지만, provider에서는
         // BuildContext에 접근할 수 없으므로 null 전달 (UI에서 처리)
-        sharePositionOrigin: null,
+        sharePositionOrigin: shareOrigin,
       );
 
       state = state.copyWith(

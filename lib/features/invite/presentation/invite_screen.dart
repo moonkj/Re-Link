@@ -194,7 +194,11 @@ class InviteScreen extends ConsumerWidget {
               onPressed: hasCode
                   ? () {
                       HapticService.medium();
-                      ref.read(inviteNotifierProvider.notifier).shareInvite();
+                      final box = context.findRenderObject() as RenderBox?;
+                      final origin = box != null
+                          ? box.localToGlobal(Offset.zero) & box.size
+                          : null;
+                      ref.read(inviteNotifierProvider.notifier).shareInvite(shareOrigin: origin);
                     }
                   : null,
             ),
