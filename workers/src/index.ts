@@ -931,24 +931,30 @@ async function handleSetAnnouncement(
     return errorResponse('Invalid JSON body', 400, request);
   }
 
-  if (!body.text || !body.type) {
-    return errorResponse('text and type are required', 400, request);
+  const now = Date.now();
+
+  // 텍스트가 비어있으면 공지사항 삭제
+  if (!body.text || body.text.trim() === '') {
+    await env.DB.batch([
+      env.DB.prepare("DELETE FROM system_config WHERE key = 'announcement_text'"),
+      env.DB.prepare("DELETE FROM system_config WHERE key = 'announcement_type'"),
+    ]);
+    return jsonResponse({ data: { message: 'Announcement cleared' } }, 200, request);
   }
 
+  const type = body.type || 'info';
   const validTypes = ['info', 'warning', 'critical'];
-  if (!validTypes.includes(body.type)) {
+  if (!validTypes.includes(type)) {
     return errorResponse(`Invalid type. Must be one of: ${validTypes.join(', ')}`, 400, request);
   }
-
-  const now = Date.now();
 
   await env.DB.batch([
     env.DB
       .prepare("INSERT OR REPLACE INTO system_config (key, value, updated_at) VALUES ('announcement_text', ?, ?)")
-      .bind(body.text, now),
+      .bind(body.text.trim(), now),
     env.DB
       .prepare("INSERT OR REPLACE INTO system_config (key, value, updated_at) VALUES ('announcement_type', ?, ?)")
-      .bind(body.type, now),
+      .bind(type, now),
   ]);
 
   return jsonResponse({
