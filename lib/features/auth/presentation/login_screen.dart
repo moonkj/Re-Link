@@ -274,10 +274,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e, st) {
       debugPrint('[KakaoLogin] ✗ Exception: $e');
       debugPrint('[KakaoLogin] Stack: $st');
-      if (!mounted) {
-        debugPrint('[KakaoLogin] ⚠ Widget not mounted in catch — error swallowed');
-        return;
-      }
+      // 사용자 취소는 에러 아님 — 무시
+      if (e.toString().contains('취소')) return;
+      if (!mounted) return;
       _showError(e is AuthException ? e.message : '로그인 실패: $e');
     } finally {
       if (mounted) setState(() => _isKakaoLoading = false);

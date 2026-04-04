@@ -466,7 +466,7 @@ class _NodeAvatar extends StatelessWidget {
         color: AppColors.primary.withAlpha(60),
         image: fileExists
             ? DecorationImage(
-                image: FileImage(resolvedFile),
+                image: ResizeImage(FileImage(resolvedFile), width: 156),
                 fit: BoxFit.cover,
               )
             : null,

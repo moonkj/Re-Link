@@ -79,9 +79,13 @@ class _SnapshotShareScreenState extends ConsumerState<SnapshotShareScreen> {
     setState(() => _isSharing = true);
 
     try {
+      final box = context.findRenderObject() as RenderBox?;
       await SnapshotService.captureAndShare(
         _repaintKey,
         text: _memory?.title ?? 'Re-Link 기억 공유',
+        shareOrigin: box != null
+            ? box.localToGlobal(Offset.zero) & box.size
+            : null,
       );
       HapticService.medium();
     } catch (_) {

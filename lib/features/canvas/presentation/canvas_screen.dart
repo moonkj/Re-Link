@@ -1076,8 +1076,11 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
         return;
       }
 
-      // 고해상도 캡처 — 4000x4000 캔버스 전체 (나무 포함)
-      final exportImage = await boundary.toImage(pixelRatio: 3.0);
+      // 고해상도 캡처 — OOM 방지: 캔버스 크기에 따라 pixelRatio 조정
+      final canvasSize = boundary.size;
+      final maxPixels = 8000.0; // 최대 8000px (안전한 메모리 범위)
+      final safeRatio = (maxPixels / (canvasSize.width > canvasSize.height ? canvasSize.width : canvasSize.height)).clamp(1.0, 2.0);
+      final exportImage = await boundary.toImage(pixelRatio: safeRatio);
 
       final byteData =
           await exportImage.toByteData(format: ui.ImageByteFormat.png);
