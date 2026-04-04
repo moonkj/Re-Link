@@ -4551,6 +4551,35 @@ dependencies:
 
 ---
 
+## Phase 36 — 242파일 전수 리뷰 + 캡슐/유언 삭제 UX (2026-04-04)
+
+> 4개 팀 에이전트 242파일 65,709줄 전수 리뷰, 13개 버그 수정, 캡슐/유언 삭제 UX 개선
+
+---
+
+### 전수 리뷰 — 13개 버그 수정 ✅
+
+- [x] 타이포그래피 17개 스타일 static final → static get (다크/라이트 색상 갱신)
+- [x] 미디어 업로드 큐 Future.any 동시성 제어 수정
+- [x] 가족 동기화 copyWith clearErrorMessage 플래그 추가
+- [x] 초대 generateInvite() state.copyWith 사용 (환영 캡슐 데이터 보존)
+- [x] Heritage Export Share sharePositionOrigin 추가
+- [x] Snapshot 서비스 force cast → safe cast
+- [x] 아트카드 PathUtils.resolveFile 적용
+- [x] 초대 Share 하드코딩 Rect 제거
+- [x] 햅틱 7개 메서드 enabled 체크 추가
+- [x] 성씨 공유카드 currentContext safe null check
+- [x] 풀스크린 사진 cacheWidth 800→1600
+- [x] Wrapped 빈 이름 가드 추가
+- [x] 윤년 2/29 생일 계산 수정
+
+### 캡슐/보이스유언 삭제 UX 개선 ✅
+
+- [x] GlassCard에 onLongPress 파라미터 추가 + HitTestBehavior.opaque
+- [x] 캡슐/유언 카드 GlassCard.onLongPress 직접 사용 (외부 GestureDetector 제거)
+- [x] 봉인 상태 탭 → "삭제하려면 길게 누르세요" 안내 문구 추가
+- [x] 실기기 테스트 완료 — 롱프레스 삭제 + 안내 정상 동작
+
 ## Phase 35 — 로그인 3사 정상화 + 빌드 키 설정 (2026-04-03)
 
 > Apple/Google/카카오 로그인 전체 정상화, 빌드 환경 키 관리 체계 확립
