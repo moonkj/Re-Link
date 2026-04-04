@@ -31,7 +31,7 @@ abstract final class AppTypography {
   // ══════════════════════════════════════════════════════════════════════════
   // ── T2 — Heading Large (Pretendard) ──────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
-  static final TextStyle t2 = TextStyle(
+  static TextStyle get t2 => TextStyle(
     fontFamily: _pretendard,
     fontSize: 28,
     fontWeight: FontWeight.w700,
@@ -43,7 +43,7 @@ abstract final class AppTypography {
   // ══════════════════════════════════════════════════════════════════════════
   // ── T3 — Heading Small (Pretendard) ──────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
-  static final TextStyle t3 = TextStyle(
+  static TextStyle get t3 => TextStyle(
     fontFamily: _pretendard,
     fontSize: 22,
     fontWeight: FontWeight.w600,
@@ -55,7 +55,7 @@ abstract final class AppTypography {
   // ══════════════════════════════════════════════════════════════════════════
   // ── T4 — Body Large (Pretendard) ─────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
-  static final TextStyle t4 = TextStyle(
+  static TextStyle get t4 => TextStyle(
     fontFamily: _pretendard,
     fontSize: 17,
     fontWeight: FontWeight.w500,
@@ -67,7 +67,7 @@ abstract final class AppTypography {
   // ══════════════════════════════════════════════════════════════════════════
   // ── T5 — Body Regular (Pretendard) ───────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
-  static final TextStyle t5 = TextStyle(
+  static TextStyle get t5 => TextStyle(
     fontFamily: _pretendard,
     fontSize: 15,
     fontWeight: FontWeight.w400,
@@ -79,7 +79,7 @@ abstract final class AppTypography {
   // ══════════════════════════════════════════════════════════════════════════
   // ── T6 — Caption (Pretendard) ────────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
-  static final TextStyle t6 = TextStyle(
+  static TextStyle get t6 => TextStyle(
     fontFamily: _pretendard,
     fontSize: 12,
     fontWeight: FontWeight.w400,
@@ -91,7 +91,7 @@ abstract final class AppTypography {
   // ══════════════════════════════════════════════════════════════════════════
   // ── Code (JetBrains Mono) ────────────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
-  static final TextStyle code = TextStyle(
+  static TextStyle get code => TextStyle(
     fontFamily: _monospace,
     fontSize: 14,
     fontWeight: FontWeight.w400,
@@ -123,25 +123,25 @@ abstract final class AppTypography {
 
   // Headline
   static TextStyle get headlineLarge => t2;
-  static final TextStyle headlineMedium = TextStyle(
+  static TextStyle get headlineMedium => TextStyle(
     fontFamily: _pretendard,
     fontSize: 24,
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
     color: AppColors.textPrimary,
   );
-  static final TextStyle headlineSmall = t3;
+  static TextStyle get headlineSmall => t3;
 
   // Title
-  static final TextStyle titleLarge = t3;
-  static final TextStyle titleMedium = TextStyle(
+  static TextStyle get titleLarge => t3;
+  static TextStyle get titleMedium => TextStyle(
     fontFamily: _pretendard,
     fontSize: 16,
     fontWeight: FontWeight.w600,
     letterSpacing: 0.15,
     color: AppColors.textPrimary,
   );
-  static final TextStyle titleSmall = TextStyle(
+  static TextStyle get titleSmall => TextStyle(
     fontFamily: _pretendard,
     fontSize: 14,
     fontWeight: FontWeight.w600,
@@ -150,26 +150,26 @@ abstract final class AppTypography {
   );
 
   // Body
-  static final TextStyle bodyLarge = t4;
-  static final TextStyle bodyMedium = t5;
-  static final TextStyle bodySmall = t6;
+  static TextStyle get bodyLarge => t4;
+  static TextStyle get bodyMedium => t5;
+  static TextStyle get bodySmall => t6;
 
   // Label
-  static final TextStyle labelLarge = TextStyle(
+  static TextStyle get labelLarge => TextStyle(
     fontFamily: _pretendard,
     fontSize: 14,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.1,
     color: AppColors.textPrimary,
   );
-  static final TextStyle labelMedium = TextStyle(
+  static TextStyle get labelMedium => TextStyle(
     fontFamily: _pretendard,
     fontSize: 12,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.5,
     color: AppColors.textPrimary,
   );
-  static final TextStyle labelSmall = TextStyle(
+  static TextStyle get labelSmall => TextStyle(
     fontFamily: _pretendard,
     fontSize: 11,
     fontWeight: FontWeight.w500,

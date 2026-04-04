@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_plus/share_plus.dart';
@@ -74,7 +73,7 @@ class InviteNotifier extends _$InviteNotifier {
   void generateInvite() {
     state = state.copyWith(isGenerating: true, clearError: true);
     final code = InviteService.generateCode();
-    state = InviteState(code: code, isGenerating: false);
+    state = state.copyWith(code: code, isGenerating: false);
   }
 
   /// 웰컴 캡슐 데이터를 InviteState에 반영
@@ -133,7 +132,9 @@ class InviteNotifier extends _$InviteNotifier {
       await Share.shareXFiles(
         [XFile(file.path)],
         text: shareText,
-        sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100),
+        // sharePositionOrigin은 iPad에서 필요하지만, provider에서는
+        // BuildContext에 접근할 수 없으므로 null 전달 (UI에서 처리)
+        sharePositionOrigin: null,
       );
 
       state = state.copyWith(

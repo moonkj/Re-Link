@@ -54,22 +54,40 @@ abstract final class HapticService {
   }
 
   /// 온도 슬라이더 스텝 변경 (selectionClick)
-  static Future<void> vibeMeterStep() => HapticFeedback.selectionClick();
+  static Future<void> vibeMeterStep() {
+    if (!enabled) return Future.value();
+    return HapticFeedback.selectionClick();
+  }
 
   /// 노드 연결 완료 (mediumImpact)
-  static Future<void> connectionMade() => HapticFeedback.mediumImpact();
+  static Future<void> connectionMade() {
+    if (!enabled) return Future.value();
+    return HapticFeedback.mediumImpact();
+  }
 
   /// 기억 저장 완료 (mediumImpact)
-  static Future<void> memoryAdded() => HapticFeedback.mediumImpact();
+  static Future<void> memoryAdded() {
+    if (!enabled) return Future.value();
+    return HapticFeedback.mediumImpact();
+  }
 
   /// 노드 삭제 확인 (heavyImpact)
-  static Future<void> nodeDeleted() => HapticFeedback.heavyImpact();
+  static Future<void> nodeDeleted() {
+    if (!enabled) return Future.value();
+    return HapticFeedback.heavyImpact();
+  }
 
   /// 플랜 제한 도달 (heavyImpact)
-  static Future<void> planLimitReached() => HapticFeedback.heavyImpact();
+  static Future<void> planLimitReached() {
+    if (!enabled) return Future.value();
+    return HapticFeedback.heavyImpact();
+  }
 
   /// 백업 완료 (lightImpact)
-  static Future<void> backupComplete() => HapticFeedback.lightImpact();
+  static Future<void> backupComplete() {
+    if (!enabled) return Future.value();
+    return HapticFeedback.lightImpact();
+  }
 
   /// 축하 (마일스톤 달성 등) — heavyImpact × 3 연속
   static Future<void> celebration() async {

@@ -33,9 +33,6 @@ class MediaUploadQueueService {
   /// 최대 재시도 횟수
   static const int _maxRetryCount = 5;
 
-  /// 현재 진행 중인 업로드 수
-  int _activeUploads = 0;
-
   /// 큐 처리 중 여부
   bool _isProcessing = false;
 
@@ -110,20 +107,16 @@ class MediaUploadQueueService {
       debugPrint('[MediaUploadQueue] 처리 시작: ${allItems.length}개 항목');
 
       // 동시 업로드 제한을 두고 병렬 처리
-      final futures = <Future<void>>[];
+      final activeFutures = <Future<void>>{};
       for (final item in allItems) {
-        if (_activeUploads >= _maxConcurrentUploads) {
-          // 하나가 끝날 때까지 대기
-          if (futures.isNotEmpty) {
-            await Future.any(futures);
-          }
+        if (activeFutures.length >= _maxConcurrentUploads) {
+          await Future.any(activeFutures.toList());
         }
         final future = _processItem(item);
-        futures.add(future);
+        activeFutures.add(future);
+        future.whenComplete(() => activeFutures.remove(future));
       }
-
-      // 모든 업로드 완료 대기
-      await Future.wait(futures);
+      await Future.wait(activeFutures);
 
       debugPrint('[MediaUploadQueue] 처리 완료');
 
@@ -147,7 +140,6 @@ class MediaUploadQueueService {
 
   /// 개별 항목 업로드 처리
   Future<void> _processItem(MediaUploadQueueEntry item) async {
-    _activeUploads++;
     final db = _ref.read(appDatabaseProvider);
 
     try {
@@ -203,7 +195,7 @@ class MediaUploadQueueService {
       debugPrint('[MediaUploadQueue] 항목 처리 오류: ${item.id} — $e');
       await db.incrementMediaUploadRetry(item.id);
     } finally {
-      _activeUploads--;
+      // completed — tracked by activeFutures.whenComplete in processQueue
     }
   }
 

@@ -662,7 +662,7 @@ class _PhotoContent extends StatelessWidget {
           onTap: () => Navigator.pop(context),
           child: Center(
             child: InteractiveViewer(
-              child: Image.file(File(PathUtils.toAbsolute(memory.filePath!) ?? memory.filePath!), cacheWidth: 800),
+              child: Image.file(File(PathUtils.toAbsolute(memory.filePath!) ?? memory.filePath!), cacheWidth: 1600),
             ),
           ),
         ),

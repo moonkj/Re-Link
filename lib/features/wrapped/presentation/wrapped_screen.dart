@@ -353,7 +353,7 @@ class _WrappedScreenState extends ConsumerState<WrappedScreen>
                   ),
                   child: Center(
                     child: Text(
-                      hasWarmest
+                      (data.warmestNodeName != null && data.warmestNodeName!.isNotEmpty)
                           ? data.warmestNodeName![0]
                           : '?',
                       style: const TextStyle(

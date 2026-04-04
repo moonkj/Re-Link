@@ -65,13 +65,14 @@ class FamilySyncNotifier extends _$FamilySyncNotifier {
       return;
     }
 
-    state = state.copyWith(status: SyncStatus.syncing, errorMessage: null);
+    state = state.copyWith(status: SyncStatus.syncing, clearErrorMessage: true);
     try {
       final result = await ref.read(syncServiceProvider).sync();
       state = state.copyWith(
         status: SyncStatus.success,
         lastSyncAt: DateTime.now(),
         pendingCount: 0,
+        clearErrorMessage: true,
       );
       debugPrint('[Sync] 다운로드=${result.pulled}, 업로드=${result.pushed}');
     } catch (e) {
@@ -97,11 +98,12 @@ extension FamilySyncStateExtension on FamilySyncState {
     SyncStatus? status,
     DateTime? lastSyncAt,
     String? errorMessage,
+    bool clearErrorMessage = false,
     int? pendingCount,
   }) => FamilySyncState(
     status: status ?? this.status,
     lastSyncAt: lastSyncAt ?? this.lastSyncAt,
-    errorMessage: errorMessage ?? this.errorMessage,
+    errorMessage: clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
     pendingCount: pendingCount ?? this.pendingCount,
   );
 }

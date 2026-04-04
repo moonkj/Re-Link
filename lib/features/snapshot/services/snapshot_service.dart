@@ -20,7 +20,8 @@ class SnapshotService {
     final context = repaintKey.currentContext;
     if (context == null) return;
 
-    final boundary = context.findRenderObject() as RenderRepaintBoundary;
+    final boundary = context.findRenderObject() as RenderRepaintBoundary?;
+    if (boundary == null) return;
     final image = await boundary.toImage(pixelRatio: 3.0);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     if (byteData == null) return;

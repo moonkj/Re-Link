@@ -6,6 +6,7 @@ import '../../../design/tokens/app_colors.dart';
 import '../../../design/tokens/app_spacing.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../core/utils/haptic_service.dart';
+import '../../../core/utils/path_utils.dart';
 import '../../../shared/models/node_model.dart';
 import '../../../shared/models/user_plan.dart';
 import '../../subscription/providers/plan_notifier.dart';
@@ -112,7 +113,7 @@ class _ArtCardScreenState extends ConsumerState<ArtCardScreen> {
   /// 로컬 파일 경로에서 dart:ui.Image를 로드 (실패 시 null 반환)
   Future<ui.Image?> _loadImageFromFile(String filePath) async {
     try {
-      final file = File(filePath);
+      final file = PathUtils.resolveFile(filePath) ?? File(filePath);
       if (!await file.exists()) return null;
 
       final bytes = await file.readAsBytes();

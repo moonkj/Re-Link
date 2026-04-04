@@ -45,9 +45,21 @@ class BirthdayNotifier extends _$BirthdayNotifier {
       }
 
       final birth = node.birthDate!;
-      var nextBday = DateTime(now.year, birth.month, birth.day);
+      final birthMonth = birth.month;
+      final birthDay = birth.day;
+
+      // Feb 29 birthdays: use Feb 28 in non-leap years
+      int adjustedDay(int year) {
+        if (birthMonth == 2 && birthDay == 29) {
+          final isLeapYear = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+          if (!isLeapYear) return 28;
+        }
+        return birthDay;
+      }
+
+      var nextBday = DateTime(now.year, birthMonth, adjustedDay(now.year));
       if (nextBday.isBefore(today)) {
-        nextBday = DateTime(now.year + 1, birth.month, birth.day);
+        nextBday = DateTime(now.year + 1, birthMonth, adjustedDay(now.year + 1));
       }
       final daysUntil = nextBday.difference(today).inDays;
       final turningAge = nextBday.year - birth.year;

@@ -185,7 +185,9 @@ class _HeritageExportScreenState extends ConsumerState<HeritageExportScreen> {
         );
         return;
       }
-      await ExportService.share(file);
+      final box = context.findRenderObject() as RenderBox?;
+      final origin = box != null ? box.localToGlobal(Offset.zero) & box.size : null;
+      await ExportService.share(file, shareOrigin: origin);
       HapticService.heritageExport();
     } finally {
       if (mounted) setState(() => _isExporting = false);
