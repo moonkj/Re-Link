@@ -232,6 +232,11 @@ const routes: Route[] = [
     pattern: /^\/admin\/stats$/,
     handler: (req, env) => handleAdminStats(req, env),
   },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/reset-stats$/,
+    handler: (req, env) => handleAdminResetStats(req, env),
+  },
 
   // ── User Data Retention ──────────────────────────────────
   {
@@ -459,6 +464,23 @@ async function handleAdminStats(
       plan_family_plus: planMap['family_plus'] ?? 0,
     },
   }, 200, request);
+}
+
+// ============================================================
+// Admin: POST /admin/reset-stats — reset access logs
+// ============================================================
+async function handleAdminResetStats(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const adminSecret = request.headers.get('X-Admin-Secret');
+  if (!env.ADMIN_SECRET || !adminSecret || adminSecret !== env.ADMIN_SECRET) {
+    return errorResponse('Forbidden', 403, request);
+  }
+
+  await env.DB.prepare('DELETE FROM access_logs').run();
+
+  return jsonResponse({ data: { message: 'Access logs cleared' } }, 200, request);
 }
 
 // ============================================================

@@ -532,11 +532,51 @@ class _AccessStatsSectionState extends ConsumerState<_AccessStatsSection> {
                         _StatRow('플러스', '$_planPlus명'),
                         _StatRow('패밀리', '$_planFamily명'),
                         _StatRow('패밀리플러스', '$_planFamilyPlus명'),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextButton.icon(
+                            onPressed: _loading ? null : _resetStats,
+                            icon: Icon(Icons.delete_outline, size: 16, color: AppColors.error),
+                            label: Text('접속 통계 초기화', style: TextStyle(fontSize: 12, color: AppColors.error)),
+                          ),
+                        ),
                       ],
                     ),
         ),
       ],
     );
+  }
+
+  Future<void> _resetStats() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('접속 통계 초기화', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700)),
+        content: Text('모든 접속 로그가 삭제됩니다.\n이 작업은 되돌릴 수 없습니다.', style: TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.5)),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: Text('취소', style: TextStyle(color: AppColors.textSecondary))),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: Text('초기화', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w700))),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    setState(() => _loading = true);
+    try {
+      const adminSecret = String.fromEnvironment('ADMIN_SECRET', defaultValue: '');
+      await http.post(
+        Uri.parse('${EnvConfig.workersBaseUrl}/admin/reset-stats'),
+        headers: {'X-Admin-Secret': adminSecret},
+      ).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      await _loadStats();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() { _error = '$e'; _loading = false; });
+    }
   }
 }
 
