@@ -14,6 +14,7 @@ class GlassCard extends StatelessWidget {
     this.margin,
     this.shadows = AppShadows.glass,
     this.onTap,
+    this.onLongPress,
     this.width,
     this.height,
   });
@@ -24,6 +25,7 @@ class GlassCard extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
   final List<BoxShadow> shadows;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
   final double? width;
   final double? height;
 
@@ -57,8 +59,8 @@ class GlassCard extends StatelessWidget {
       child: child,
     );
 
-    if (onTap != null) {
-      return GestureDetector(onTap: onTap, child: card);
+    if (onTap != null || onLongPress != null) {
+      return GestureDetector(onTap: onTap, onLongPress: onLongPress, child: card);
     }
     return card;
   }

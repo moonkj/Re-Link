@@ -107,10 +107,9 @@ class _CapsuleCardState extends State<CapsuleCard>
         statusColor = AppColors.success;
     }
 
-    final card = GestureDetector(
-      onLongPress: widget.onLongPress,
-      child: GlassCard(
+    final card = GlassCard(
       onTap: widget.onTap,
+      onLongPress: widget.onLongPress,
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
         children: [
@@ -164,7 +163,6 @@ class _CapsuleCardState extends State<CapsuleCard>
           ),
         ],
       ),
-    ),
     );
 
     // openable 상태: 부드러운 펄스 애니메이션
