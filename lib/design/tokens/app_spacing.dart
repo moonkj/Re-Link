@@ -14,7 +14,7 @@ abstract final class AppSpacing {
   // ── 특수 용도 ─────────────────────────────────────────────────────────────
   static const double pagePadding = 20.0;
   static const double cardPadding = 16.0;
-  static const double bottomNavHeight = 80.0;
+  static const double bottomNavHeight = 85.0;
   static const double appBarHeight = 56.0;
   static const double fabSize = 56.0;
   static const double nodeCardWidth = 120.0;

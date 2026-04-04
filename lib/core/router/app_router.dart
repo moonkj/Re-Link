@@ -650,7 +650,7 @@ class _CustomBottomNav extends StatelessWidget {
     final mood = MoodColors.fromTabIndex(currentIndex);
 
     return Container(
-          height: 72,
+          height: 85,
           decoration: BoxDecoration(
             color: isDark
                 ? const Color(0xCC0D0D1F)
