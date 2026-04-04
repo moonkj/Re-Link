@@ -1654,10 +1654,25 @@ class _ServerHealthSectionState extends ConsumerState<_ServerHealthSection> {
                           TextStyle(fontSize: 13, color: AppColors.accent),
                     )
                   : Column(
-                      children: _tableCounts.entries
-                          .map((e) =>
-                              _StatRow(e.key, '${e.value}행'))
-                          .toList(),
+                      children: _tableCounts.entries.map((e) {
+                        const labels = {
+                          'users': '👤 가입자',
+                          'family_groups': '👨‍👩‍👧 가족 그룹',
+                          'family_invites': '✉️ 초대장',
+                          'sync_nodes': '🔄 동기화 노드',
+                          'sync_edges': '🔄 동기화 관계',
+                          'sync_memories': '🔄 동기화 기억',
+                          'sync_checkpoints': '📍 동기화 체크포인트',
+                          'refresh_tokens': '🔑 활성 세션',
+                          'purchase_receipts': '🧾 구매 영수증',
+                          'access_logs': '📋 접속 기록',
+                          'error_logs': '🚨 에러 기록',
+                        };
+                        return _StatRow(
+                          labels[e.key] ?? e.key,
+                          '${e.value}건',
+                        );
+                      }).toList(),
                     ),
         ),
       ],
