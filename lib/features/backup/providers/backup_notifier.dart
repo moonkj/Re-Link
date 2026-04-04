@@ -98,6 +98,22 @@ class BackupNotifier extends _$BackupNotifier {
     }
   }
 
+  // ── 로컬 전용 백업 (파일 내보내기용, 클라우드 업로드 안 함) ──────────────
+
+  Future<File?> createLocalBackup() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final service = ref.read(backupServiceProvider);
+      final file = await service.createBackup();
+      await _loadInfo();
+      state = state.copyWith(isLoading: false);
+      return file;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: '$e');
+      return null;
+    }
+  }
+
   // ── 백업 생성 + 클라우드 업로드 ───────────────────────────────────────────
 
   Future<File?> backup() async {

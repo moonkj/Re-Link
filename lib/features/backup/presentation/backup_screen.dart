@@ -300,8 +300,8 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   Future<void> _exportFile() async {
     final notifier = ref.read(backupNotifierProvider.notifier);
     try {
-      // BackupNotifier를 통해 백업 생성 (로딩 상태 표시)
-      final file = await notifier.backup();
+      // 로컬 전용 백업 생성 (클라우드 업로드 안 함)
+      final file = await notifier.createLocalBackup();
       if (!mounted || file == null) return;
       final box = context.findRenderObject() as RenderBox?;
       final origin = box != null

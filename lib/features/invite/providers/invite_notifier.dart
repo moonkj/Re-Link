@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_plus/share_plus.dart';
@@ -98,8 +99,9 @@ class InviteNotifier extends _$InviteNotifier {
     if (state.code == null) return;
     state = state.copyWith(isSharing: true, clearError: true);
     try {
-      // 웰컴 캡슐 데이터를 settings에 저장 (백업에 포함되도록)
+      // 초대 코드 + 웰컴 캡슐 데이터를 settings에 저장 (백업 매니페스트에 포함되도록)
       final settingsRepo = ref.read(settingsRepositoryProvider);
+      await settingsRepo.setInviteCode(state.code!);
       if (state.welcomeMessage != null && state.welcomeMessage!.isNotEmpty) {
         await settingsRepo.set(
           SettingsKey.welcomeMessage,
