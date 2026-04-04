@@ -118,14 +118,15 @@ class CapsuleListScreen extends ConsumerWidget {
       // 열 수 있는 캡슐 → 열기 확인
       _showOpenConfirm(context, ref, capsule);
     } else {
-      // 잠긴 캡슐 → 안내
+      // 잠긴 캡슐 → 안내 + 삭제 힌트
       HapticService.light();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${capsule.openDate.year}년 ${capsule.openDate.month}월 ${capsule.openDate.day}일에 열 수 있어요.',
+            '${capsule.openDate.year}년 ${capsule.openDate.month}월 ${capsule.openDate.day}일에 열 수 있어요.\n삭제하려면 길게 누르세요.',
           ),
           behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
         ),
       );
     }

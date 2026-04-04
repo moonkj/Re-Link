@@ -201,15 +201,16 @@ class _VoiceLegacyList extends ConsumerWidget {
       // 열 수 있는 유언 -> 열기 확인
       _showOpenConfirm(context, ref, legacy);
     } else {
-      // 봉인된 유언 -> 안내
+      // 봉인된 유언 -> 안내 + 삭제 힌트
       HapticService.light();
       final dateStr = legacy.openDate != null
           ? '${legacy.openDate!.year}년 ${legacy.openDate!.month}월 ${legacy.openDate!.day}일에 열 수 있어요.'
           : '수동 공개 조건이 충족되어야 열 수 있어요.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(dateStr),
+          content: Text('$dateStr\n삭제하려면 길게 누르세요.'),
           behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
         ),
       );
     }
