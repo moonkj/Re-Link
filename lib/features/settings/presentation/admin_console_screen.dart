@@ -1375,15 +1375,19 @@ class _RevenueSectionState extends ConsumerState<_RevenueSection> {
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body) as Map<String, dynamic>;
         final data = body['data'] as Map<String, dynamic>;
+        final byPlatform = data['by_platform'] as Map<String, dynamic>? ?? {};
+        final activeSubs = data['active_subscriptions'];
+        final activeCount = activeSubs is Map
+            ? (activeSubs as Map).values.fold<int>(0, (s, v) => s + ((v as num?)?.toInt() ?? 0))
+            : (activeSubs as num?)?.toInt() ?? 0;
         setState(() {
-          _todayRevenue = (data['today'] as num?)?.toInt() ?? 0;
-          _weekRevenue = (data['this_week'] as num?)?.toInt() ?? 0;
-          _monthRevenue = (data['this_month'] as num?)?.toInt() ?? 0;
-          _iosRevenue = (data['ios'] as num?)?.toInt() ?? 0;
-          _androidRevenue = (data['android'] as num?)?.toInt() ?? 0;
-          _activeSubscriptions =
-              (data['active_subscriptions'] as num?)?.toInt() ?? 0;
-          _mrr = (data['mrr'] as num?)?.toInt() ?? 0;
+          _todayRevenue = (data['purchases_today'] as num?)?.toInt() ?? 0;
+          _weekRevenue = (data['purchases_this_week'] as num?)?.toInt() ?? 0;
+          _monthRevenue = (data['purchases_this_month'] as num?)?.toInt() ?? 0;
+          _iosRevenue = (byPlatform['ios'] as num?)?.toInt() ?? 0;
+          _androidRevenue = (byPlatform['android'] as num?)?.toInt() ?? 0;
+          _activeSubscriptions = activeCount;
+          _mrr = (data['mrr_krw'] as num?)?.toInt() ?? 0;
           _loading = false;
         });
       } else {
@@ -1610,8 +1614,11 @@ class _ServerHealthSectionState extends ConsumerState<_ServerHealthSection> {
         final body = jsonDecode(response.body) as Map<String, dynamic>;
         final data = body['data'] as Map<String, dynamic>;
         final tables = <String, int>{};
-        for (final entry in data.entries) {
-          tables[entry.key] = (entry.value as num?)?.toInt() ?? 0;
+        final tableCounts = data['table_counts'] as Map<String, dynamic>? ?? data;
+        for (final entry in tableCounts.entries) {
+          if (entry.value is num) {
+            tables[entry.key] = (entry.value as num).toInt();
+          }
         }
         setState(() {
           _tableCounts = tables;
@@ -1820,9 +1827,10 @@ class _ErrorLogSectionState extends ConsumerState<_ErrorLogSection> {
       if (!mounted) return;
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body) as Map<String, dynamic>;
-        final data = body['data'] as List?;
+        final data = body['data'] as Map<String, dynamic>;
+        final errorList = data['errors'] as List? ?? [];
         setState(() {
-          _errors = data?.cast<Map<String, dynamic>>() ?? [];
+          _errors = errorList.cast<Map<String, dynamic>>();
           _loading = false;
         });
       } else {
@@ -2411,9 +2419,10 @@ class _FamilyGroupSectionState extends ConsumerState<_FamilyGroupSection> {
       if (!mounted) return;
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body) as Map<String, dynamic>;
-        final data = body['data'] as List?;
+        final data = body['data'] as Map<String, dynamic>;
+        final familyList = data['families'] as List? ?? [];
         setState(() {
-          _families = data?.cast<Map<String, dynamic>>() ?? [];
+          _families = familyList.cast<Map<String, dynamic>>();
           _loading = false;
         });
       } else {
