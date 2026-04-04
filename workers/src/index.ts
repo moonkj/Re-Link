@@ -217,6 +217,16 @@ const routes: Route[] = [
     pattern: /^\/admin\/cleanup$/,
     handler: (req, env) => handleAdminCleanup(req, env),
   },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/grant-plan$/,
+    handler: (req, env) => handleAdminGrantPlan(req, env),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/search-user$/,
+    handler: (req, env) => handleAdminSearchUser(req, env),
+  },
 
   // ── User Data Retention ──────────────────────────────────
   {
@@ -282,6 +292,102 @@ async function handleDataRetention(
 
   const status = computeDataRetentionStatus(user.plan, user.plan_expires_at);
   return jsonResponse({ data: status }, 200, request);
+}
+
+// ============================================================
+// Admin: POST /admin/grant-plan — grant plan to user by email
+// ============================================================
+async function handleAdminGrantPlan(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const adminSecret = request.headers.get('X-Admin-Secret');
+  if (!env.ADMIN_SECRET || !adminSecret || adminSecret !== env.ADMIN_SECRET) {
+    return errorResponse('Forbidden', 403, request);
+  }
+
+  let body: { email: string; plan: string; duration_days: number };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return errorResponse('Invalid JSON body', 400, request);
+  }
+
+  if (!body.email || !body.plan || !body.duration_days) {
+    return errorResponse('email, plan, duration_days are required', 400, request);
+  }
+
+  const validPlans = ['free', 'plus', 'family', 'family_plus'];
+  if (!validPlans.includes(body.plan)) {
+    return errorResponse(`Invalid plan. Must be one of: ${validPlans.join(', ')}`, 400, request);
+  }
+
+  const user = await env.DB
+    .prepare('SELECT id, email, plan, plan_expires_at FROM users WHERE email = ?')
+    .bind(body.email)
+    .first<{ id: string; email: string; plan: string; plan_expires_at: number | null }>();
+
+  if (!user) {
+    return errorResponse(`User not found: ${body.email}`, 404, request);
+  }
+
+  const now = Date.now();
+  const expiresAt = now + body.duration_days * 24 * 60 * 60 * 1000;
+
+  await env.DB
+    .prepare('UPDATE users SET plan = ?, plan_expires_at = ? WHERE id = ?')
+    .bind(body.plan, expiresAt, user.id)
+    .run();
+
+  return jsonResponse({
+    data: {
+      user_id: user.id,
+      email: user.email,
+      previous_plan: user.plan,
+      new_plan: body.plan,
+      expires_at: new Date(expiresAt).toISOString(),
+      duration_days: body.duration_days,
+    },
+  }, 200, request);
+}
+
+// ============================================================
+// Admin: GET /admin/search-user — search user by email
+// ============================================================
+async function handleAdminSearchUser(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const adminSecret = request.headers.get('X-Admin-Secret');
+  if (!env.ADMIN_SECRET || !adminSecret || adminSecret !== env.ADMIN_SECRET) {
+    return errorResponse('Forbidden', 403, request);
+  }
+
+  const url = new URL(request.url);
+  const email = url.searchParams.get('email');
+  if (!email) {
+    return errorResponse('email query parameter required', 400, request);
+  }
+
+  const users = await env.DB
+    .prepare('SELECT id, email, name, plan, plan_expires_at, storage_used_bytes, created_at FROM users WHERE email LIKE ?')
+    .bind(`%${email}%`)
+    .all<{ id: string; email: string; name: string | null; plan: string; plan_expires_at: number | null; storage_used_bytes: number; created_at: number }>();
+
+  return jsonResponse({
+    data: {
+      count: users.results.length,
+      users: users.results.map((u) => ({
+        id: u.id,
+        email: u.email,
+        name: u.name,
+        plan: u.plan,
+        plan_expires_at: u.plan_expires_at ? new Date(u.plan_expires_at).toISOString() : null,
+        storage_used_mb: Math.round(u.storage_used_bytes / 1024 / 1024 * 10) / 10,
+        created_at: new Date(u.created_at).toISOString(),
+      })),
+    },
+  }, 200, request);
 }
 
 // ============================================================

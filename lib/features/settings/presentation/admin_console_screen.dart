@@ -5,8 +5,11 @@
 /// - DB 통계
 library;
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/config/env_config.dart';
+import 'package:http/http.dart' as http;
 import '../../../core/database/tables/settings_table.dart';
 import '../../../design/glass/app_glass.dart';
 import '../../../design/tokens/app_colors.dart';
@@ -91,6 +94,10 @@ class _AdminConsoleScreenState extends ConsumerState<AdminConsoleScreen> {
 
           // 나무 성장 상태
           _TreeGrowthSection(),
+          const SizedBox(height: AppSpacing.xl),
+
+          // 사용자 플랜 부여
+          _GrantPlanSection(),
           const SizedBox(height: AppSpacing.xl),
 
           // DB 통계
@@ -939,6 +946,196 @@ class _DbStatsSectionState extends ConsumerState<_DbStatsSection> {
                   ],
                 ),
         ),
+      ],
+    );
+  }
+}
+
+// ── 사용자 플랜 부여 ──────────────────────────────────────────────────────
+
+class _GrantPlanSection extends ConsumerStatefulWidget {
+  const _GrantPlanSection();
+
+  @override
+  ConsumerState<_GrantPlanSection> createState() => _GrantPlanSectionState();
+}
+
+class _GrantPlanSectionState extends ConsumerState<_GrantPlanSection> {
+  final _emailCtrl = TextEditingController();
+  UserPlan _selectedPlan = UserPlan.family;
+  int _durationDays = 30;
+  bool _isLoading = false;
+  String? _result;
+  List<Map<String, dynamic>> _searchResults = [];
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _searchUser() async {
+    final email = _emailCtrl.text.trim();
+    if (email.isEmpty) return;
+    setState(() => _isLoading = true);
+    try {
+      const adminSecret = String.fromEnvironment('ADMIN_SECRET', defaultValue: '');
+      final response = await http.get(
+        Uri.parse('${EnvConfig.workersBaseUrl}/admin/search-user?email=${Uri.encodeComponent(email)}'),
+        headers: {
+          'X-Admin-Secret': adminSecret,
+        },
+      ).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = body['data'] as Map<String, dynamic>;
+        final users = (data['users'] as List).cast<Map<String, dynamic>>();
+        setState(() {
+          _searchResults = users;
+          _result = '${users.length}명 검색됨';
+        });
+      } else {
+        setState(() => _result = '검색 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() => _result = '오류: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _grantPlan(String email) async {
+    setState(() => _isLoading = true);
+    try {
+      const adminSecret = String.fromEnvironment('ADMIN_SECRET', defaultValue: '');
+      final planName = _selectedPlan == UserPlan.familyPlus
+          ? 'family_plus'
+          : _selectedPlan.name;
+      final response = await http.post(
+        Uri.parse('${EnvConfig.workersBaseUrl}/admin/grant-plan'),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Secret': adminSecret,
+        },
+        body: jsonEncode({
+          'email': email,
+          'plan': planName,
+          'duration_days': _durationDays,
+        }),
+      ).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = body['data'] as Map<String, dynamic>;
+        setState(() => _result =
+            '✅ ${data['email']} → ${data['new_plan']} (${data['duration_days']}일, ~${data['expires_at']})');
+      } else {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        setState(() => _result = '❌ ${body['message'] ?? response.statusCode}');
+      }
+    } catch (e) {
+      setState(() => _result = '오류: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionLabel(label: '사용자 플랜 부여'),
+        const SizedBox(height: AppSpacing.sm),
+        // 이메일 검색
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _emailCtrl,
+                decoration: InputDecoration(
+                  hintText: '이메일 검색',
+                  hintStyle: TextStyle(color: AppColors.textTertiary),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  border: OutlineInputBorder(borderRadius: AppRadius.radiusMd),
+                ),
+                style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                onSubmitted: (_) => _searchUser(),
+              ),
+            ),
+            const SizedBox(width: 8),
+            GlassButton(
+              onPressed: _isLoading ? null : _searchUser,
+              child: _isLoading
+                  ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
+                  : Icon(Icons.search, size: 20, color: AppColors.primary),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+
+        // 검색 결과
+        if (_searchResults.isNotEmpty) ...[
+          ..._searchResults.map((u) => GlassCard(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${u['email']}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('플랜: ${u['plan']} · ${u['storage_used_mb']}MB 사용', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                if (u['plan_expires_at'] != null)
+                  Text('만료: ${u['plan_expires_at']}', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+                const SizedBox(height: 8),
+                // 플랜 선택 + 기간 + 부여 버튼
+                Row(
+                  children: [
+                    // 플랜 선택
+                    DropdownButton<UserPlan>(
+                      value: _selectedPlan,
+                      dropdownColor: AppColors.bgSurface,
+                      style: TextStyle(fontSize: 12, color: AppColors.textPrimary),
+                      items: UserPlan.values.map((p) => DropdownMenuItem(
+                        value: p,
+                        child: Text(p.displayName),
+                      )).toList(),
+                      onChanged: (p) => setState(() => _selectedPlan = p ?? UserPlan.family),
+                    ),
+                    const SizedBox(width: 8),
+                    // 기간 선택
+                    DropdownButton<int>(
+                      value: _durationDays,
+                      dropdownColor: AppColors.bgSurface,
+                      style: TextStyle(fontSize: 12, color: AppColors.textPrimary),
+                      items: const [
+                        DropdownMenuItem(value: 7, child: Text('7일')),
+                        DropdownMenuItem(value: 30, child: Text('30일')),
+                        DropdownMenuItem(value: 90, child: Text('90일')),
+                        DropdownMenuItem(value: 365, child: Text('1년')),
+                      ],
+                      onChanged: (d) => setState(() => _durationDays = d ?? 30),
+                    ),
+                    const Spacer(),
+                    // 부여 버튼
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : () => _grantPlan(u['email'] as String),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      ),
+                      child: Text('부여', style: TextStyle(fontSize: 12, color: Colors.white)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          )),
+        ],
+
+        // 결과 메시지
+        if (_result != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(_result!, style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        ],
       ],
     );
   }
