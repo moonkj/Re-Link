@@ -300,6 +300,9 @@ export async function handleAppleAuth(
     env.JWT_SECRET,
   );
 
+  // Record access log (fire-and-forget)
+  await env.DB.prepare('INSERT INTO access_logs (user_id, accessed_at) VALUES (?, ?)').bind(user.id, Date.now()).run();
+
   const response: AuthResponse = {
     access_token: accessToken,
     refresh_token: refreshToken,
@@ -353,6 +356,9 @@ export async function handleGoogleAuth(
     user,
     env.JWT_SECRET,
   );
+
+  // Record access log (fire-and-forget)
+  await env.DB.prepare('INSERT INTO access_logs (user_id, accessed_at) VALUES (?, ?)').bind(user.id, Date.now()).run();
 
   const response: AuthResponse = {
     access_token: accessToken,
@@ -423,6 +429,9 @@ export async function handleRefresh(
       'INSERT INTO refresh_tokens (token, user_id, expires_at, created_at) VALUES (?, ?, ?, ?)',
     ).bind(newRefreshToken, user.id, newExpiresAt, now),
   ]);
+
+  // Record access log (fire-and-forget)
+  await env.DB.prepare('INSERT INTO access_logs (user_id, accessed_at) VALUES (?, ?)').bind(rt.user_id, Date.now()).run();
 
   const response: RefreshResponse = {
     access_token: accessToken,
@@ -622,6 +631,9 @@ export async function handleKakaoAuth(
     user,
     env.JWT_SECRET,
   );
+
+  // Record access log (fire-and-forget)
+  await env.DB.prepare('INSERT INTO access_logs (user_id, accessed_at) VALUES (?, ?)').bind(user.id, Date.now()).run();
 
   const response: AuthResponse = {
     access_token: accessToken,

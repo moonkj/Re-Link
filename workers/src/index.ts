@@ -227,6 +227,11 @@ const routes: Route[] = [
     pattern: /^\/admin\/search-user$/,
     handler: (req, env) => handleAdminSearchUser(req, env),
   },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/stats$/,
+    handler: (req, env) => handleAdminStats(req, env),
+  },
 
   // ── User Data Retention ──────────────────────────────────
   {
@@ -386,6 +391,72 @@ async function handleAdminSearchUser(
         storage_used_mb: Math.round(u.storage_used_bytes / 1024 / 1024 * 10) / 10,
         created_at: new Date(u.created_at).toISOString(),
       })),
+    },
+  }, 200, request);
+}
+
+// ============================================================
+// Admin: GET /admin/stats — access statistics
+// ============================================================
+async function handleAdminStats(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const adminSecret = request.headers.get('X-Admin-Secret');
+  if (!env.ADMIN_SECRET || !adminSecret || adminSecret !== env.ADMIN_SECRET) {
+    return errorResponse('Forbidden', 403, request);
+  }
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const weekStart = new Date(todayStart);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const monthStart = new Date(todayStart);
+  monthStart.setDate(1);
+
+  const todayMs = todayStart.getTime();
+  const weekMs = weekStart.getTime();
+  const monthMs = monthStart.getTime();
+
+  const today = await env.DB
+    .prepare('SELECT COUNT(DISTINCT user_id) as cnt FROM access_logs WHERE accessed_at >= ?')
+    .bind(todayMs)
+    .first<{ cnt: number }>();
+  const week = await env.DB
+    .prepare('SELECT COUNT(DISTINCT user_id) as cnt FROM access_logs WHERE accessed_at >= ?')
+    .bind(weekMs)
+    .first<{ cnt: number }>();
+  const month = await env.DB
+    .prepare('SELECT COUNT(DISTINCT user_id) as cnt FROM access_logs WHERE accessed_at >= ?')
+    .bind(monthMs)
+    .first<{ cnt: number }>();
+  const total = await env.DB
+    .prepare('SELECT COUNT(DISTINCT user_id) as cnt FROM access_logs')
+    .first<{ cnt: number }>();
+  const totalUsers = await env.DB
+    .prepare('SELECT COUNT(*) as cnt FROM users')
+    .first<{ cnt: number }>();
+
+  // 플랜별 인원
+  const planCounts = await env.DB
+    .prepare('SELECT plan, COUNT(*) as cnt FROM users GROUP BY plan')
+    .all<{ plan: string; cnt: number }>();
+  const planMap: Record<string, number> = {};
+  for (const row of planCounts.results) {
+    planMap[row.plan] = row.cnt;
+  }
+
+  return jsonResponse({
+    data: {
+      today: today?.cnt ?? 0,
+      this_week: week?.cnt ?? 0,
+      this_month: month?.cnt ?? 0,
+      total_unique: total?.cnt ?? 0,
+      total_registered: totalUsers?.cnt ?? 0,
+      plan_free: planMap['free'] ?? 0,
+      plan_plus: planMap['plus'] ?? 0,
+      plan_family: planMap['family'] ?? 0,
+      plan_family_plus: planMap['family_plus'] ?? 0,
     },
   }, 200, request);
 }

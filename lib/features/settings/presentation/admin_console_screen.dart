@@ -66,6 +66,10 @@ class _AdminConsoleScreenState extends ConsumerState<AdminConsoleScreen> {
           _WarningBanner(),
           const SizedBox(height: AppSpacing.xl),
 
+          // 접속 통계
+          _AccessStatsSection(),
+          const SizedBox(height: AppSpacing.xl),
+
           // 요금제 오버라이드
           _PlanOverrideSection(),
           const SizedBox(height: AppSpacing.xl),
@@ -414,6 +418,124 @@ class _WarningBanner extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── 접속 통계 섹션 ──────────────────────────────────────────────────────────
+
+class _AccessStatsSection extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_AccessStatsSection> createState() =>
+      _AccessStatsSectionState();
+}
+
+class _AccessStatsSectionState extends ConsumerState<_AccessStatsSection> {
+  bool _loading = true;
+  String? _error;
+  int _today = 0;
+  int _thisWeek = 0;
+  int _thisMonth = 0;
+  int _totalUnique = 0;
+  int _totalRegistered = 0;
+  int _planFree = 0;
+  int _planPlus = 0;
+  int _planFamily = 0;
+  int _planFamilyPlus = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+  }
+
+  Future<void> _loadStats() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      const adminSecret =
+          String.fromEnvironment('ADMIN_SECRET', defaultValue: '');
+      final response = await http.get(
+        Uri.parse('${EnvConfig.workersBaseUrl}/admin/stats'),
+        headers: {'X-Admin-Secret': adminSecret},
+      ).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = body['data'] as Map<String, dynamic>;
+        setState(() {
+          _today = (data['today'] as num?)?.toInt() ?? 0;
+          _thisWeek = (data['this_week'] as num?)?.toInt() ?? 0;
+          _thisMonth = (data['this_month'] as num?)?.toInt() ?? 0;
+          _totalUnique = (data['total_unique'] as num?)?.toInt() ?? 0;
+          _totalRegistered = (data['total_registered'] as num?)?.toInt() ?? 0;
+          _planFree = (data['plan_free'] as num?)?.toInt() ?? 0;
+          _planPlus = (data['plan_plus'] as num?)?.toInt() ?? 0;
+          _planFamily = (data['plan_family'] as num?)?.toInt() ?? 0;
+          _planFamilyPlus = (data['plan_family_plus'] as num?)?.toInt() ?? 0;
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'HTTP ${response.statusCode}';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(child: SectionLabel(label: '접속 통계')),
+            if (!_loading)
+              GestureDetector(
+                onTap: _loadStats,
+                child: Icon(Icons.refresh, color: AppColors.primary, size: 20),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: _loading
+              ? Center(
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.primary))
+              : _error != null
+                  ? Text(
+                      '오류: $_error',
+                      style:
+                          TextStyle(fontSize: 13, color: AppColors.accent),
+                    )
+                  : Column(
+                      children: [
+                        _StatRow('오늘 접속', '$_today명'),
+                        _StatRow('이번 주', '$_thisWeek명'),
+                        _StatRow('이번 달', '$_thisMonth명'),
+                        _StatRow('누적 접속', '$_totalUnique명'),
+                        _StatRow('총 가입자', '$_totalRegistered명'),
+                        const Divider(height: 16),
+                        _StatRow('무료', '$_planFree명'),
+                        _StatRow('플러스', '$_planPlus명'),
+                        _StatRow('패밀리', '$_planFamily명'),
+                        _StatRow('패밀리플러스', '$_planFamilyPlus명'),
+                      ],
+                    ),
+        ),
+      ],
     );
   }
 }

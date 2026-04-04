@@ -150,3 +150,13 @@ CREATE TABLE IF NOT EXISTS purchase_receipts (
   is_valid        INTEGER NOT NULL DEFAULT 1
 );
 CREATE INDEX IF NOT EXISTS idx_purchase_receipts_user ON purchase_receipts(user_id);
+
+-- ============================================================
+-- Access Logs (user access statistics)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS access_logs (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id    TEXT    NOT NULL,
+  accessed_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_access_logs_date ON access_logs(accessed_at);
