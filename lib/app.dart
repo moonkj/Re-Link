@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/config/env_config.dart';
 import 'core/router/app_router.dart';
 import 'core/utils/haptic_service.dart';
 import 'design/tokens/app_colors.dart';
@@ -357,6 +360,60 @@ class _ChangelogCheckerState extends ConsumerState<_ChangelogChecker>
     } catch (_) {
       // 변경 로그 로드 실패 시 무시 — 핵심 기능 아님
     }
+
+    // 서버 공지사항 확인
+    _checkAnnouncement();
+  }
+
+  Future<void> _checkAnnouncement() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${EnvConfig.workersBaseUrl}/system/announcement'),
+      ).timeout(const Duration(seconds: 5));
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = body['data'] as Map<String, dynamic>?;
+        final text = data?['text'] as String?;
+        final type = data?['type'] as String? ?? 'info';
+        if (text != null && text.isNotEmpty) {
+          _showAnnouncementBanner(text, type);
+        }
+      }
+    } catch (_) {
+      // 공지사항 로드 실패 시 무시
+    }
+  }
+
+  void _showAnnouncementBanner(String text, String type) {
+    final color = switch (type) {
+      'warning' => AppColors.warning,
+      'critical' => AppColors.error,
+      _ => AppColors.primary,
+    };
+    final icon = switch (type) {
+      'warning' => Icons.warning_amber_rounded,
+      'critical' => Icons.error_outline,
+      _ => Icons.campaign_outlined,
+    };
+    ScaffoldMessenger.of(context).showMaterialBanner(
+      MaterialBanner(
+        backgroundColor: color.withAlpha(20),
+        leading: Icon(icon, color: color),
+        content: Text(
+          text,
+          style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+            },
+            child: Text('닫기', style: TextStyle(color: color)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
