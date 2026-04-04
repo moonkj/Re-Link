@@ -674,7 +674,7 @@ class _CustomBottomNav extends StatelessWidget {
                     duration: const Duration(milliseconds: 280),
                     curve: Curves.easeOutCubic,
                     left: tabWidth * currentIndex + (tabWidth - 48) / 2,
-                    top: 12,
+                    top: 18,
                     child: Container(
                       width: 48,
                       height: 32,
