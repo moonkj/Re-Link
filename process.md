@@ -4678,6 +4678,21 @@ dependencies:
 - [x] **수정 (CRITICAL)**: 초대 코드 settings DB 저장 누락 → `setInviteCode()` 추가
 - [x] **수정 (MEDIUM)**: "파일로 내보내기"가 클라우드 업로드도 실행 → `createLocalBackup()` 분리
 
+### 유료결제 기능 활성화 검증 ✅
+
+- [x] 13개 체크포인트 검증 완료 — 플랜 제한값/노드/사진/음성/영상/광고/클라우드/동기화/공유/버전관리/IAP/표시/즉시활성화
+- [x] **수정 (FAIL)**: 설정 플랜 표시 `ConsumerStatefulWidget` → `ConsumerWidget` (구매 후 즉시 갱신)
+- [x] **수정 (RISK)**: 영상 저장이 MemoryNotifier 우회 → `addVideo()` 메서드 추가 (R2 업로드 큐 등록)
+- [x] **수정**: 무료 노드 제한 15 → 10개 변경 (user_plan + CLAUDE.md + 테스트 3파일)
+
+### 관리자 플랜 부여 기능 ✅
+
+- [x] 서버 `POST /admin/grant-plan` — 이메일로 사용자 플랜+기간 설정
+- [x] 서버 `GET /admin/search-user` — 이메일로 사용자 검색
+- [x] Flutter 관리자 콘솔 — 이메일 검색 → 플랜/기간 선택 → 부여 UI
+- [x] 부여 옵션: 7일/30일/90일/1년, 4개 플랜 선택 가능
+- [x] ADMIN_SECRET 헤더 인증
+
 ## Phase 35 — 로그인 3사 정상화 + 빌드 키 설정 (2026-04-03)
 
 > Apple/Google/카카오 로그인 전체 정상화, 빌드 환경 키 관리 체계 확립
