@@ -71,8 +71,6 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.xl),
           const _AccessibilitySection(),
           const SizedBox(height: AppSpacing.xl),
-          const _PrivacyPromiseSection(),
-          const SizedBox(height: AppSpacing.xl),
           const _FeedbackSection(),
           const SizedBox(height: AppSpacing.xl),
           const _AppInfoSection(),
