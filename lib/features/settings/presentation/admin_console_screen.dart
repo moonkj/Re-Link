@@ -66,47 +66,33 @@ class _AdminConsoleScreenState extends ConsumerState<AdminConsoleScreen> {
           _WarningBanner(),
           const SizedBox(height: AppSpacing.xl),
 
-          // 접속 통계
+          // ── 운영 현황 ──
           _AccessStatsSection(),
           const SizedBox(height: AppSpacing.xl),
-
-          // 매출 대시보드
           _RevenueSection(),
           const SizedBox(height: AppSpacing.xl),
 
-          // 사용자 상세 조회
+          // ── 사용자 관리 ──
           _UserDetailSection(),
           const SizedBox(height: AppSpacing.xl),
-
-          // 요금제 오버라이드
           _PlanOverrideSection(),
           const SizedBox(height: AppSpacing.xl),
-
-          // 사용자 플랜 부여
           _GrantPlanSection(),
           const SizedBox(height: AppSpacing.xl),
-
-          // 서버 헬스
-          _ServerHealthSection(),
-          const SizedBox(height: AppSpacing.xl),
-
-          // R2 스토리지
-          _StorageOverviewSection(),
-          const SizedBox(height: AppSpacing.xl),
-
-          // 에러 로그
-          _ErrorLogSection(),
-          const SizedBox(height: AppSpacing.xl),
-
-          // 강제 로그아웃
           _ForceLogoutSection(),
           const SizedBox(height: AppSpacing.xl),
 
-          // 공지사항 관리
-          _AnnouncementSection(),
+          // ── 서버 관리 ──
+          _ServerHealthSection(),
+          const SizedBox(height: AppSpacing.xl),
+          _StorageOverviewSection(),
+          const SizedBox(height: AppSpacing.xl),
+          _ErrorLogSection(),
           const SizedBox(height: AppSpacing.xl),
 
-          // 가족 그룹 목록
+          // ── 소통 ──
+          _AnnouncementSection(),
+          const SizedBox(height: AppSpacing.xl),
           _FamilyGroupSection(),
           const SizedBox(height: AppSpacing.xl),
 
@@ -531,7 +517,7 @@ class _AccessStatsSectionState extends ConsumerState<_AccessStatsSection> {
       children: [
         Row(
           children: [
-            const Expanded(child: SectionLabel(label: '접속 통계')),
+            const Expanded(child: SectionLabel(label: '📊 접속 현황')),
             if (!_loading)
               GestureDetector(
                 onTap: _loadStats,
@@ -656,7 +642,7 @@ class _PlanOverrideSectionState extends ConsumerState<_PlanOverrideSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionLabel(label: '요금제 오버라이드'),
+        const SectionLabel(label: '🔧 내 요금제 변경'),
         const SizedBox(height: AppSpacing.sm),
         GlassCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -726,7 +712,7 @@ class _DummyDataSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionLabel(label: '더미 데이터'),
+        const SectionLabel(label: '🧪 테스트 노드'),
         const SizedBox(height: AppSpacing.sm),
         GlassCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -835,7 +821,7 @@ class _DummyMemorySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionLabel(label: '더미 기억 데이터'),
+        const SectionLabel(label: '🧪 테스트 기억'),
         const SizedBox(height: AppSpacing.sm),
         GlassCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -985,7 +971,7 @@ class _BadgeSectionState extends ConsumerState<_BadgeSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionLabel(label: '배지 관리'),
+        const SectionLabel(label: '🏅 배지 관리'),
         const SizedBox(height: AppSpacing.sm),
         GlassCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -1112,7 +1098,7 @@ class _DbStatsSectionState extends ConsumerState<_DbStatsSection> {
       children: [
         Row(
           children: [
-            const Expanded(child: SectionLabel(label: 'DB 통계')),
+            const Expanded(child: SectionLabel(label: '📈 로컬 DB 통계')),
             if (!_loading)
               GestureDetector(
                 onTap: () {
@@ -1238,7 +1224,7 @@ class _GrantPlanSectionState extends ConsumerState<_GrantPlanSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionLabel(label: '사용자 플랜 부여'),
+        const SectionLabel(label: '🎁 사용자 플랜 부여'),
         const SizedBox(height: AppSpacing.sm),
         // 이메일 검색
         Row(
@@ -1412,7 +1398,7 @@ class _RevenueSectionState extends ConsumerState<_RevenueSection> {
       children: [
         Row(
           children: [
-            const Expanded(child: SectionLabel(label: '매출 대시보드')),
+            const Expanded(child: SectionLabel(label: '💰 매출 현황')),
             if (!_loading)
               GestureDetector(
                 onTap: _loadRevenue,
@@ -1516,7 +1502,7 @@ class _UserDetailSectionState extends ConsumerState<_UserDetailSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionLabel(label: '사용자 상세 조회'),
+        const SectionLabel(label: '🔍 사용자 조회'),
         const SizedBox(height: AppSpacing.sm),
         Row(
           children: [
@@ -1646,7 +1632,7 @@ class _ServerHealthSectionState extends ConsumerState<_ServerHealthSection> {
       children: [
         Row(
           children: [
-            const Expanded(child: SectionLabel(label: '서버 헬스')),
+            const Expanded(child: SectionLabel(label: '🗄️ 서버 DB 현황')),
             if (!_loading)
               GestureDetector(
                 onTap: _loadHealth,
@@ -1745,7 +1731,7 @@ class _StorageOverviewSectionState
       children: [
         Row(
           children: [
-            const Expanded(child: SectionLabel(label: 'R2 스토리지')),
+            const Expanded(child: SectionLabel(label: '☁️ 클라우드 저장소')),
             if (!_loading)
               GestureDetector(
                 onTap: _loadStorage,
@@ -1875,7 +1861,7 @@ class _ErrorLogSectionState extends ConsumerState<_ErrorLogSection> {
       children: [
         Row(
           children: [
-            const Expanded(child: SectionLabel(label: '에러 로그')),
+            const Expanded(child: SectionLabel(label: '🚨 서버 에러')),
             if (!_loading)
               GestureDetector(
                 onTap: _loadErrors,
@@ -2028,7 +2014,7 @@ class _ForceLogoutSectionState extends ConsumerState<_ForceLogoutSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionLabel(label: '강제 로그아웃'),
+        const SectionLabel(label: '🔒 세션 강제 종료'),
         const SizedBox(height: AppSpacing.sm),
         GlassCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -2241,7 +2227,7 @@ class _AnnouncementSectionState extends ConsumerState<_AnnouncementSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionLabel(label: '공지사항 관리'),
+        const SectionLabel(label: '📢 앱 공지사항'),
         const SizedBox(height: AppSpacing.sm),
         GlassCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -2447,7 +2433,7 @@ class _FamilyGroupSectionState extends ConsumerState<_FamilyGroupSection> {
       children: [
         Row(
           children: [
-            const Expanded(child: SectionLabel(label: '가족 그룹 목록')),
+            const Expanded(child: SectionLabel(label: '👨‍👩‍👧‍👦 가족 그룹')),
             if (!_loading)
               GestureDetector(
                 onTap: _loadFamilies,
@@ -2551,7 +2537,7 @@ class _TreeGrowthSection extends ConsumerWidget {
       children: [
         Row(
           children: [
-            const Expanded(child: SectionLabel(label: '나무 성장 상태')),
+            const Expanded(child: SectionLabel(label: '🌳 나무 성장')),
             GestureDetector(
               onTap: () => ref.invalidate(treeGrowthNotifierProvider),
               child: Icon(Icons.refresh, color: AppColors.primary, size: 20),
@@ -2599,7 +2585,7 @@ class _DisableAdminSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionLabel(label: '관리자 모드'),
+        const SectionLabel(label: '⚙️ 관리자 모드'),
         const SizedBox(height: AppSpacing.sm),
         SizedBox(
           width: double.infinity,
